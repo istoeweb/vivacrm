@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog | CRM Vida de Ouro</title>
+  <link rel="stylesheet" href="assets/crm.css" />
+  <style>
+    .post-title { max-width: 430px; }
+    .post-title small { display:block; margin-top:4px; color:var(--text-muted); font-weight:400; }
+    .blog-form textarea[name="conteudo"] { min-height:420px; line-height:1.7; }
+    .blog-form textarea[name="resumo"] { min-height:80px; }
+    .blog-help { margin-top:5px; color:var(--text-muted); font-size:12px; }
+    .blog-stats { margin-bottom:24px; }
+    .image-preview { display:none; width:100%; max-height:220px; margin-top:10px; object-fit:cover; border-radius:10px; border:1px solid var(--gray-200); }
+    .image-preview.show { display:block; }
+    #appModal .modal { width:min(1080px,calc(100vw - 32px)); max-width:none; }
+    .editor-toolbar { display:flex; gap:8px; margin-bottom:8px; padding:8px; background:var(--gray-100); border-radius:8px; }
+    .editor-toolbar button { padding:6px 10px; color:var(--gray-700); background:var(--white); border:1px solid var(--gray-200); border-radius:6px; font-weight:700; }
+    .article-preview { display:none; margin-top:16px; padding:28px; color:var(--gray-700); background:var(--white); border:1px solid var(--gray-200); border-radius:12px; white-space:pre-line; line-height:1.8; }
+    .article-preview.show { display:block; }
+  </style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="content">
+  <div class="top-bar">
+    <div><h1>Blog</h1><p>Crie e publique conteúdo no site</p></div>
+    <button class="btn btn-primary" onclick="novoPost()">+ Novo artigo</button>
+  </div>
+  <div class="stats-grid blog-stats">
+    <div class="stat-card"><div><div class="stat-card__value" id="totalPosts">0</div><div class="stat-card__label">Total de artigos</div></div></div>
+    <div class="stat-card"><div><div class="stat-card__value" id="publishedPosts">0</div><div class="stat-card__label">Publicados</div></div></div>
+    <div class="stat-card"><div><div class="stat-card__value" id="draftPosts">0</div><div class="stat-card__label">Rascunhos</div></div></div>
+  </div>
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="table-toolbar__filters">
+        <input type="search" id="search" placeholder="Buscar artigo..." />
+        <select id="statusFilter"><option value="">Todos os status</option><option value="publicado">Publicados</option><option value="rascunho">Rascunhos</option></select>
+      </div>
+      <span class="text-muted text-small" id="countLabel"></span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Artigo</th><th>Categoria</th><th>Status</th><th>Autor</th><th>Publicação</th><th></th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table></div>
+    <div class="pager" id="pager"></div>
+  </div>
+</div>
+<script src="assets/crm.js"></script>
+<script>
+if (requireAuth()) {
+  const user = getUser();
+  if (user.role !== 'admin') location.href = 'dashboard.html';
+  renderSidebar('blog');
+  let posts = [], page = 1;
+
+  async function load() { posts = await apiGet('/blog/admin'); render(); }
+  function render() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const rows = posts.filter(p => (!status || p.status === status) && (!q || `${p.titulo} ${p.categoria||''} ${p.resumo||''}`.toLowerCase().includes(q)));
+    document.getElementById('totalPosts').textContent = posts.length;
+    document.getElementById('publishedPosts').textContent = posts.filter(p=>p.status==='publicado').length;
+    document.getElementById('draftPosts').textContent = posts.filter(p=>p.status==='rascunho').length;
+    document.getElementById('countLabel').textContent = `${rows.length} artigo(s)`;
+    const pg = paginate(rows, page); page = pg.page;
+    document.getElementById('tableBody').innerHTML = rows.length ? pg.slice.map(p => `<tr>
+      <td class="post-title"><strong>${esc(p.titulo)}</strong><small>/blog/artigo.html?slug=${esc(p.slug)}</small></td>
+      <td>${esc(p.categoria || 'Sem categoria')}</td><td>${badgeForStatus(p.status)}</td>
+      <td>${esc(p.autor_nome || '-')}</td><td class="text-small">${p.publicado_em ? fmtDate(p.publicado_em) : '-'}</td>
+      <td><div class="row-actions">
+        ${p.status === 'publicado' ? `<a class="icon-btn" title="Ver no site" href="../artigo.html?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">↗</a>` : ''}
+        <button class="icon-btn" title="Editar" onclick="editarPost(${p.id})">✎</button>
+        <button class="icon-btn icon-btn--del" title="Excluir" onclick="excluirPost(${p.id})">×</button>
+      </div></td></tr>`).join('') : '<tr class="empty-row"><td colspan="6">Nenhum artigo encontrado.</td></tr>';
+    renderPager(document.getElementById('pager'), pg, n => { page=n; render(); });
+  }
+
+  function slugify(v) { return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+  function formHTML(p={}) { return `<form class="blog-form">
+    <div class="form-group"><label>Título *</label><input name="titulo" required maxlength="180" value="${esc(p.titulo||'')}"></div>
+    <div class="form-row"><div class="form-group"><label>Endereço (slug)</label><input name="slug" maxlength="140" value="${esc(p.slug||'')}" placeholder="gerado pelo título"><div class="blog-help">Use letras, números e hífens.</div></div>
+    <div class="form-group"><label>Categoria</label><input name="categoria" maxlength="80" value="${esc(p.categoria||'')}" placeholder="Ex.: Seguro Auto"></div></div>
+    <div class="form-group"><label>Resumo</label><textarea name="resumo" maxlength="500" placeholder="Texto exibido na listagem do blog">${esc(p.resumo||'')}</textarea></div>
+    <div class="form-group"><label>Conteúdo *</label><div class="editor-toolbar"><button type="button" data-insert="## ">Título</button><button type="button" data-insert="• ">Lista</button><button type="button" id="previewArticle">Pré-visualizar</button></div><textarea name="conteudo" required placeholder="Escreva o artigo. Separe os parágrafos com uma linha em branco.">${esc(p.conteudo||'')}</textarea><div class="article-preview" id="articlePreview"></div></div>
+    <div class="form-group"><label>Imagem destacada</label><input name="imagem_arquivo" type="file" accept="image/jpeg,image/png,image/webp"><input name="imagem_url" type="hidden" value="${esc(p.imagem_url||'')}"><div class="blog-help">JPG, PNG ou WebP, com no máximo 5 MB.</div><img id="imagePreview" class="image-preview ${p.imagem_url?'show':''}" src="${esc(p.imagem_url||'')}" alt="Pré-visualização"></div>
+    <div class="form-group"><label>Status</label><select name="status"><option value="rascunho" ${p.status!=='publicado'?'selected':''}>Rascunho</option><option value="publicado" ${p.status==='publicado'?'selected':''}>Publicado</option></select></div>
+  </form>`; }
+
+  function setupImagePreview() { const input=document.querySelector('#appModal [name="imagem_arquivo"]'),preview=document.getElementById('imagePreview'),area=document.querySelector('#appModal [name="conteudo"]'); if(!input||!preview)return; input.addEventListener('change',()=>{const file=input.files[0];if(!file)return;preview.src=URL.createObjectURL(file);preview.classList.add('show');});document.querySelectorAll('#appModal [data-insert]').forEach(b=>b.addEventListener('click',()=>{const start=area.selectionStart;area.setRangeText(b.dataset.insert,start,start,'end');area.focus();}));document.getElementById('previewArticle').addEventListener('click',()=>{const box=document.getElementById('articlePreview');box.textContent=area.value||'A prévia do conteúdo aparecerá aqui.';box.classList.toggle('show');}); }
+  async function preparePostData(data) { const file=data.imagem_arquivo; delete data.imagem_arquivo; if(file&&file.size){if(file.size>5*1024*1024)throw new Error('A imagem deve ter no máximo 5 MB');const encoded=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Não foi possível ler a imagem'));reader.readAsDataURL(file);});const uploaded=await apiPost('/blog/admin/upload',{type:file.type,data:encoded});data.imagem_url=uploaded.url;}data.slug=data.slug||slugify(data.titulo);return data; }
+  window.novoPost = () => { openModal('Novo artigo', formHTML(), '', async data => {
+    try { await apiPost('/blog/admin', await preparePostData(data)); closeModal(); toast('Artigo criado!'); load(); } catch(e){toast(e.message,true);}
+  }); setupImagePreview(); };
+  window.editarPost = async id => { const p=await apiGet('/blog/admin/'+id); openModal('Editar artigo',formHTML(p),'',async data=>{try{await apiPut('/blog/admin/'+id,await preparePostData(data));closeModal();toast('Artigo atualizado!');load();}catch(e){toast(e.message,true);}});setupImagePreview(); };
+  window.excluirPost = async id => { if(!confirm('Excluir este artigo?')) return; await apiDel('/blog/admin/'+id); toast('Artigo excluído.'); load(); };
+  document.getElementById('search').addEventListener('input',()=>{page=1;render();});
+  document.getElementById('statusFilter').addEventListener('change',()=>{page=1;render();});
+  load().catch(e=>toast(e.message,true));
+}
+</script>
+</body>
+</html>

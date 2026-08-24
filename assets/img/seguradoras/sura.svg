@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" rx="8" fill="white"/>
+  <!-- sura text -->
+  <text x="20" y="50" font-family="Arial,sans-serif" font-size="34" font-weight="900" fill="#0033A0">sura</text>
+  <!-- Wing/bird swoosh -->
+  <path d="M110,20 C120,15 140,18 155,28 C145,26 132,30 125,38 C120,32 115,26 110,20 Z" fill="#00A8E0"/>
+  <path d="M120,26 C132,20 150,22 165,32 C152,30 138,36 130,46 C125,38 122,32 120,26 Z" fill="#0033A0" opacity="0.6"/>
+  <!-- Seguros -->
+  <text x="20" y="68" font-family="Arial,sans-serif" font-size="13" letter-spacing="2" fill="#555">Seguros</text>
+</svg>

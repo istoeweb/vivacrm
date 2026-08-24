@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /crm/
+Disallow: /api/
+
+Sitemap: https://vidadeouro.com.br/sitemap.xml

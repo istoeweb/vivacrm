@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" rx="8" fill="white"/>
+  <!-- Torch/figure simplified -->
+  <g transform="translate(10,8)" fill="#002D72">
+    <rect x="10" y="45" width="6" height="20" rx="1"/>
+    <ellipse cx="13" cy="35" rx="8" ry="12" fill="none" stroke="#002D72" stroke-width="2"/>
+    <polygon points="13,8 16,20 10,20" fill="#C8973F"/>
+    <!-- Flame -->
+    <path d="M13,6 C16,10 18,14 13,18 C8,14 10,10 13,6 Z" fill="#C8973F"/>
+  </g>
+  <!-- Liberty text -->
+  <text x="46" y="36" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="#002D72">Liberty</text>
+  <!-- Seguros text -->
+  <text x="46" y="58" font-family="Georgia,serif" font-size="18" fill="#002D72">Seguros</text>
+</svg>

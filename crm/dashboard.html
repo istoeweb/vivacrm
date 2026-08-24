@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | CRM Vida de Ouro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/crm.css" />
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="content">
+  <div class="top-bar">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Visão geral da corretora</p>
+    </div>
+    <div class="text-small text-muted" id="todayLabel"></div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="dist-grid" id="distGrid"></div>
+
+  <div class="table-card mb-20">
+    <div class="table-toolbar">
+      <div><strong>Apólices vencendo</strong> <span class="text-muted text-small">(próximos 30 dias)</span></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Cliente</th><th>Nº apólice</th><th>Vigência fim</th><th>Faltam</th></tr></thead>
+        <tbody id="vencendoBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card mb-20">
+    <div class="table-toolbar">
+      <div><strong>Follow-ups de hoje</strong> <span class="text-muted text-small">(retornos previstos e atrasados)</span></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Lead</th><th>Telefone</th><th>Status</th><th>Retorno</th></tr></thead>
+        <tbody id="followupBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div><strong>Próximos agendamentos</strong> <span class="text-muted text-small">(7 dias)</span></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data/hora</th><th>Título</th><th>Cliente/Lead</th><th>Status</th></tr></thead>
+        <tbody id="agendaBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="assets/crm.js"></script>
+<script>
+// Helpers (apiGet, esc, fmtDate, fmtDateTime, badgeForStatus, renderSidebar,
+// requireAuth, toast) já são globais via crm.js — não redeclarar aqui.
+
+// Rótulo + cor da barra por status (reaproveita a paleta dos badges)
+const STATUS_META = {
+  // leads
+  novo: { l: 'Novo', c: 'gray' },
+  contato_realizado: { l: 'Contato realizado', c: 'amber' },
+  proposta_enviada: { l: 'Proposta enviada', c: 'amber' },
+  aguardando_retorno: { l: 'Aguardando retorno', c: 'amber' },
+  fechado: { l: 'Fechado', c: 'green' },
+  desistiu: { l: 'Desistiu', c: 'red' },
+  sem_interesse: { l: 'Não tem interesse', c: 'gray' },
+  // apólices
+  ativa: { l: 'Ativa', c: 'green' },
+  renovada: { l: 'Renovada', c: 'green' },
+  cancelada: { l: 'Cancelada', c: 'red' },
+  vencida: { l: 'Vencida', c: 'gray' },
+  // sinistros
+  aberto: { l: 'Aberto', c: 'red' },
+  em_analise: { l: 'Em análise', c: 'amber' },
+  aprovado: { l: 'Aprovado', c: 'green' },
+  negado: { l: 'Negado', c: 'gray' },
+  finalizado: { l: 'Finalizado', c: '' }
+};
+
+// Ordem canônica do funil de leads
+const LEAD_ORDER = ['novo', 'contato_realizado', 'proposta_enviada', 'aguardando_retorno', 'fechado', 'desistiu', 'sem_interesse'];
+
+function sortByOrder(rows, order) {
+  const idx = (s) => { const i = order.indexOf(s); return i === -1 ? 99 : i; };
+  return [...rows].sort((a, b) => idx(a.status) - idx(b.status));
+}
+
+function renderDist(rows) {
+  if (!rows || !rows.length) return '<div class="dist-card__empty">Sem dados no período.</div>';
+  const max = Math.max(...rows.map(r => r.n));
+  return rows.map(r => {
+    const meta = STATUS_META[r.status] || { l: r.status, c: '' };
+    const pct = max ? Math.round((r.n / max) * 100) : 0;
+    const mod = meta.c ? ` dist-row__fill--${meta.c}` : '';
+    return `<div class="dist-row">
+      <div class="dist-row__label" title="${esc(meta.l)}">${esc(meta.l)}</div>
+      <div class="dist-row__track"><div class="dist-row__fill${mod}" style="width:${pct}%"></div></div>
+      <div class="dist-row__count">${r.n}</div>
+    </div>`;
+  }).join('');
+}
+
+function distCard(title, rows) {
+  return `<div class="dist-card">
+    <div class="dist-card__title">${title}</div>
+    ${renderDist(rows)}
+  </div>`;
+}
+
+function daysUntil(d) {
+  const dt = new Date(d);
+  if (isNaN(dt)) return null;
+  return Math.ceil((dt.setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000);
+}
+
+function daysPill(d) {
+  const n = daysUntil(d);
+  if (n === null) return '-';
+  const cls = n < 0 ? 'days-pill--red' : n <= 7 ? 'days-pill--red' : 'days-pill--amber';
+  const txt = n < 0 ? `Atrasado ${Math.abs(n)}d` : n === 0 ? 'Hoje' : n === 1 ? '1 dia' : `${n} dias`;
+  return `<span class="days-pill ${cls}">${txt}</span>`;
+}
+
+if (requireAuth()) {
+  renderSidebar('dashboard');
+  document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  apiGet('/dashboard').then(d => {
+    const pct = (d.taxaConversao * 100).toFixed(0) + '%';
+    const stats = [
+      { v: d.leadsTotal, l: 'Leads', cls: '', href: 'leads.html' },
+      { v: d.clientesTotal, l: 'Clientes', cls: '--gray', href: 'clientes.html' },
+      { v: d.apolicesTotal, l: 'Apólices', cls: '--green', href: 'apolices.html' },
+      { v: fmtMoney(d.receitaEstimada), l: 'Receita estimada', cls: '--green', href: 'apolices.html' },
+      { v: pct, l: 'Conversão de leads', cls: '--amber', href: 'leads.html' },
+      { v: d.sinistrosTotal, l: 'Sinistros', cls: d.sinistrosTotal > 0 ? '--red' : '--gray', href: 'sinistros.html' },
+      ...(d.agendamentosAtrasados > 0 ? [{ v: d.agendamentosAtrasados, l: 'Agend. atrasados', cls: '--red', href: 'agendamentos.html' }] : []),
+      ...(d.leadsNaoAtribuidos > 0 ? [{ v: d.leadsNaoAtribuidos, l: 'Leads não atribuídos', cls: '--amber', href: 'leads.html' }] : []),
+      ...(d.usuariosTotal !== null ? [{ v: d.usuariosTotal, l: 'Usuários', cls: '--gray', href: 'usuarios.html' }] : [])
+    ];
+    document.getElementById('statsGrid').innerHTML = stats.map(s =>
+      `<a class="stat-card stat-card${s.cls}" href="${s.href}"><div class="stat-card__value">${s.v}</div><div class="stat-card__label">${s.l}</div></a>`
+    ).join('');
+
+    // Distribuições por status (funil de leads, apólices, sinistros)
+    document.getElementById('distGrid').innerHTML = [
+      distCard('Funil de leads', sortByOrder(d.leadsPorStatus, LEAD_ORDER)),
+      distCard('Apólices por status', d.apolicesStatus),
+      distCard('Sinistros por status', d.sinistrosStatus)
+    ].join('');
+
+    const v = d.vencendo.length
+      ? d.vencendo.map(r => `<tr><td>${esc(r.cliente_nome)}</td><td>${esc(r.numero || '-')}</td><td>${fmtDate(r.vigencia_fim)}</td><td>${daysPill(r.vigencia_fim)}</td></tr>`).join('')
+      : '<tr class="empty-row"><td colspan="4">Nenhuma apólice vencendo em 30 dias.</td></tr>';
+    document.getElementById('vencendoBody').innerHTML = v;
+
+    const f = d.followupsLeads.length
+      ? d.followupsLeads.map(r => `<tr>
+          <td><strong>${esc(r.nome)}</strong></td>
+          <td>${r.telefone ? `<a href="${wppLink(r.telefone)}" target="_blank" rel="noopener">${esc(r.telefone)}</a>` : '-'}</td>
+          <td>${badgeForStatus(r.status)}</td>
+          <td>${daysPill(r.proximo_retorno)}</td>
+        </tr>`).join('')
+      : '<tr class="empty-row"><td colspan="4">Nenhum follow-up pendente. 🎉</td></tr>';
+    document.getElementById('followupBody').innerHTML = f;
+
+    const a = d.proximosAgendamentos.length
+      ? d.proximosAgendamentos.map(r => `<tr>
+          <td>${fmtDateTime(r.data_hora)}</td>
+          <td>${esc(r.titulo)}</td>
+          <td>${esc(r.cliente_nome || r.lead_nome || '-')}</td>
+          <td>${badgeForStatus(r.status)}</td>
+        </tr>`).join('')
+      : '<tr class="empty-row"><td colspan="4">Nenhum agendamento nos próximos 7 dias.</td></tr>';
+    document.getElementById('agendaBody').innerHTML = a;
+  }).catch(e => toast(e.message, true));
+}
+</script>
+</body>
+</html>

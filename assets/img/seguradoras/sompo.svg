@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" rx="8" fill="white"/>
+  <!-- Sphere icon -->
+  <circle cx="36" cy="40" r="22" fill="#C0C0C0" opacity="0.3"/>
+  <circle cx="36" cy="40" r="22" fill="none" stroke="#CC0000" stroke-width="2"/>
+  <circle cx="36" cy="40" r="14" fill="#CC0000"/>
+  <circle cx="36" cy="40" r="8" fill="#8B0000"/>
+  <!-- SOMPO text -->
+  <text x="70" y="38" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#555">SOMPO</text>
+  <!-- SEGUROS text -->
+  <text x="70" y="58" font-family="Arial,sans-serif" font-size="14" letter-spacing="2" fill="#888">SEGUROS</text>
+</svg>

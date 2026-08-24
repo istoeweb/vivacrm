@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
+  <defs>
+    <clipPath id="circleClip">
+      <circle cx="110" cy="110" r="105"/>
+    </clipPath>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#D4A84B"/>
+      <stop offset="50%"  stop-color="#C49A38"/>
+      <stop offset="100%" stop-color="#A87C2A"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#1E3F7A"/>
+      <stop offset="100%" stop-color="#152E60"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.2)"/>
+    </filter>
+  </defs>
+
+  <!-- Fundo branco circular com borda dourada -->
+  <circle cx="110" cy="110" r="108" fill="#FFFFFF" stroke="#C49A38" stroke-width="3"/>
+  <circle cx="110" cy="110" r="105" fill="#F5F5F3"/>
+
+  <!-- Área branca superior -->
+  <rect x="5" y="5" width="210" height="130" rx="0" fill="#F5F5F3" clip-path="url(#circleClip)"/>
+
+  <!-- Ícone folha/escudo Vida de Ouro no topo -->
+  <g transform="translate(110, 52)" filter="url(#shadow)">
+    <!-- Folha/escudo principal -->
+    <path d="M0,-28 C12,-28 24,-18 24,-6 C24,10 12,24 0,32 C-12,24 -24,10 -24,-6 C-24,-18 -12,-28 0,-28 Z"
+          fill="url(#goldGrad)"/>
+    <!-- Detalhe interno -->
+    <path d="M0,-18 C8,-18 15,-11 15,-3 C15,7 8,16 0,22 C-8,16 -15,7 -15,-3 C-15,-11 -8,-18 0,-18 Z"
+          fill="rgba(255,255,255,0.25)"/>
+    <!-- Miolo branco -->
+    <ellipse cx="0" cy="2" rx="7" ry="9" fill="white" opacity="0.9"/>
+  </g>
+
+  <!-- Texto VIDA DE OURO -->
+  <text x="110" y="104" font-family="Georgia, 'Times New Roman', serif" font-size="20"
+        font-weight="bold" fill="#1E3F7A" text-anchor="middle" letter-spacing="2">
+    VIDA DE OURO
+  </text>
+
+  <!-- Subtítulo SEGUROS | PREVIDÊNCIA | CONSÓRCIOS -->
+  <text x="110" y="118" font-family="Arial, sans-serif" font-size="7.5"
+        fill="#888888" text-anchor="middle" letter-spacing="1">
+    SEGUROS | PREVIDÊNCIA | CONSÓRCIOS
+  </text>
+
+  <!-- Faixa ondulada dourada -->
+  <path d="M5,130 Q30,120 55,128 Q80,136 110,126 Q140,116 165,124 Q190,132 215,122 L215,142 Q190,152 165,144 Q140,136 110,146 Q80,156 55,148 Q30,140 5,150 Z"
+        fill="url(#goldGrad)" clip-path="url(#circleClip)"/>
+
+  <!-- Área azul inferior -->
+  <rect x="5" y="140" width="210" height="75" fill="url(#blueGrad)" clip-path="url(#circleClip)"/>
+
+  <!-- Texto Unidade -->
+  <text x="110" y="165" font-family="Arial, sans-serif" font-size="10"
+        fill="rgba(255,255,255,0.75)" text-anchor="middle" letter-spacing="1">
+    Unidade
+  </text>
+
+  <!-- Texto Jacareí - SP -->
+  <text x="110" y="184" font-family="Arial, sans-serif" font-size="15.5"
+        font-weight="bold" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">
+    Jacareí - SP
+  </text>
+
+  <!-- Borda interna dourada fina -->
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#C49A38" stroke-width="1" opacity="0.4"/>
+</svg>

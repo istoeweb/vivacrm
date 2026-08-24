@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contato | Vida de Ouro Jacareí – (12) 97600-2718</title>
+  <meta name="description" content="Entre em contato com a Vida de Ouro Jacareí. Cotação gratuita de seguros, planos de saúde e certificado digital para o Vale do Paraíba e Litoral Norte." />
+  <link rel="canonical" href="https://vidadeouro.com.br/contato.html" />
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
+  <link rel="apple-touch-icon" href="assets/img/logo.svg" />
+  <meta name="theme-color" content="#1E3A5F" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Vida de Ouro Jacareí" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:title" content="Contato | Vida de Ouro Jacareí" />
+  <meta property="og:description" content="Cotação gratuita de seguros e planos de saúde. Fale pelo WhatsApp: (12) 97600-2718." />
+  <meta property="og:url" content="https://vidadeouro.com.br/contato.html" />
+  <meta property="og:image" content="https://vidadeouro.com.br/assets/img/logo.svg" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    .page-hero { position: relative; overflow: hidden; background: radial-gradient(circle at 15% 20%, rgba(59,130,246,.28), transparent 32%), linear-gradient(135deg, var(--blue-900) 0%, var(--blue-800) 100%); padding: 140px 0 88px; text-align: center; }
+    .page-hero::after { content: ''; position: absolute; width: 340px; height: 340px; right: -130px; bottom: -230px; border: 1px solid rgba(255,255,255,.12); border-radius: 50%; }
+    .page-hero .container { position: relative; z-index: 1; }
+    .page-hero h1 { font-size: clamp(2rem,4vw,2.8rem); font-weight: 900; color: var(--white); margin: 16px 0; }
+    .page-hero h1 strong { color: var(--gold); }
+    .page-hero p { color: rgba(255,255,255,.7); max-width: 600px; margin: 0 auto; font-size: 1.05rem; }
+    .page-hero__actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .page-hero__proof { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; margin-top: 24px; color: rgba(255,255,255,.78); font-size: 13px; }
+    .page-hero__proof span { display: inline-flex; align-items: center; gap: 6px; }
+    .page-hero__proof span::before { content: '\2713'; display: grid; place-items: center; width: 18px; height: 18px; color: #052e16; background: #86efac; border-radius: 50%; font-size: 11px; font-weight: 900; }
+
+    /* Seção contato */
+    .contact-section { padding: 88px 0; background: var(--white); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 64px; align-items: start; }
+    .contact-info { display: flex; flex-direction: column; gap: 20px; }
+    .contact-info__title { font-size: 1.6rem; font-weight: 800; color: var(--gray-900); margin-bottom: 8px; }
+    .contact-info__title strong { color: var(--blue-600); }
+
+    .cinfo-card { display: flex; align-items: flex-start; gap: 16px; background: var(--gray-50); border: 1.5px solid var(--gray-300); border-radius: var(--radius); padding: 20px; transition: all var(--transition); text-decoration: none; }
+    .cinfo-card:hover { border-color: var(--blue-500); box-shadow: var(--shadow); }
+    .cinfo-card__icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .cinfo-card__icon--wpp   { background: #DCFCE7; color: #16A34A; }
+    .cinfo-card__icon--blue  { background: var(--blue-50); color: var(--blue-600); }
+    .cinfo-card__icon--pin   { background: #FFF7ED; color: #EA580C; }
+    .cinfo-card__icon--clock { background: var(--gold-light); color: #B45309; }
+    .cinfo-card__body { display: flex; flex: 1; min-width: 0; flex-direction: column; }
+    .cinfo-card__body h4 { font-size: 14px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+    .cinfo-card__body p, .cinfo-card__body a, .cinfo-card__value { font-size: 15px; color: var(--gray-500); line-height: 1.6; }
+    .cinfo-card__body a, .cinfo-card__value { color: var(--blue-600); font-weight: 600; text-decoration: none; }
+    .cinfo-card__body a:hover { text-decoration: underline; }
+
+    .wpp-cta-box { background: linear-gradient(135deg, #064E3B, #065F46); border-radius: var(--radius-lg); padding: 28px; display: flex; align-items: center; gap: 20px; }
+    .wpp-cta-box__icon { font-size: 2.5rem; flex-shrink: 0; }
+    .wpp-cta-box h3 { color: var(--white); font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .wpp-cta-box p  { color: rgba(255,255,255,.7); font-size: 13.5px; margin-bottom: 14px; line-height: 1.5; }
+
+    /* Cidades */
+    .cities-section { padding: 64px 0; background: var(--gray-50); }
+    .cities-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-top: 40px; }
+    .city-item { background: var(--white); border: 1.5px solid var(--gray-300); border-radius: var(--radius); padding: 16px; text-align: center; font-size: 14px; font-weight: 600; color: var(--gray-700); transition: all var(--transition); }
+    .city-item:hover { border-color: var(--blue-500); color: var(--blue-600); background: var(--blue-50); }
+    .city-item span { display: block; font-size: 11px; font-weight: 400; color: var(--gray-500); margin-top: 3px; }
+    .city-item--destaque { background: var(--blue-50); border-color: var(--blue-500); color: var(--blue-700); }
+    .city-item--destaque span { color: var(--blue-600); }
+
+    /* Form */
+    .form-card { position: sticky; top: 96px; background: var(--white); border: 1.5px solid var(--gray-300); border-radius: var(--radius-lg); padding: 36px; box-shadow: 0 18px 50px rgba(15,23,42,.12); }
+    .form-card__eyebrow { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 12px; padding: 6px 10px; color: var(--blue-700); background: var(--blue-50); border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .form-card h2 { font-size: 1.3rem; font-weight: 800; color: var(--gray-900); margin-bottom: 6px; }
+    .form-card > p { font-size: 14px; color: var(--gray-500); margin-bottom: 28px; }
+    .form-card .form__group label { font-size: 13px; font-weight: 600; color: var(--gray-700); display: block; margin-bottom: 6px; }
+    .form-card .form__group input,
+    .form-card .form__group select,
+    .form-card .form__group textarea { padding: 12px 14px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 14.5px; font-family: inherit; color: var(--gray-900); background: var(--white); transition: border-color var(--transition), box-shadow var(--transition); outline: none; width: 100%; }
+    .form-card .form__group input:focus,
+    .form-card .form__group select:focus,
+    .form-card .form__group textarea:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+    .form-card .form__group textarea { resize: vertical; min-height: 80px; }
+    .form-card .form__group { margin-bottom: 16px; }
+    .form-card .form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form__note { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--gray-500); margin-top: 12px; }
+    .form__note a { color: var(--blue-600); font-weight: 600; }
+    .form-benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--gray-200); }
+    .form-benefit { text-align: center; color: var(--gray-600); font-size: 11px; line-height: 1.35; }
+    .form-benefit strong { display: block; margin-bottom: 3px; color: var(--gray-900); font-size: 12px; }
+
+    @media (max-width: 768px) {
+      .page-hero { padding: 118px 0 64px; }
+      .page-hero__actions { flex-direction: column; }
+      .page-hero__actions .btn { width: 100%; justify-content: center; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .form-card { position: static; padding: 24px; }
+      .wpp-cta-box { flex-direction: column; text-align: center; }
+      .form-card .form__row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .contact-info { gap: 14px; }
+      .contact-info__title { font-size: 1.35rem; }
+      .cinfo-card { gap: 12px; padding: 16px; }
+      .cinfo-card__icon { width: 42px; height: 42px; }
+    }
+    @media (max-width: 420px) { .form-benefits { grid-template-columns: 1fr; text-align: left; } }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <img src="assets/img/logo.svg" alt="Vida de Ouro Jacareí" class="logo__img" />
+      </a>
+      <nav class="nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="index.html" class="nav__link">Início</a></li>
+          <li class="nav__item nav__item--dropdown">
+            <a href="index.html#produtos" class="nav__link">Seguros <span class="nav__arrow">&#9660;</span></a>
+            <ul class="nav__dropdown">
+              <li><a href="produto.html?slug=seguro-auto">Seguro Auto</a></li>
+              <li><a href="produto.html?slug=seguro-moto">Seguro Moto</a></li>
+              <li><a href="produto.html?slug=seguro-caminhao">Seguro Caminhão</a></li>
+              <li><a href="produto.html?slug=seguro-vida">Seguro de Vida</a></li>
+              <li><a href="produto.html?slug=seguro-residencial">Seguro Residencial</a></li>
+              <li><a href="produto.html?slug=seguro-empresarial">Seguro Empresarial</a></li>
+              <li><a href="produto.html?slug=seguro-viagem">Seguro Viagem</a></li>
+            </ul>
+          </li>
+          <li class="nav__item nav__item--dropdown">
+            <a href="index.html#saude" class="nav__link">Saúde <span class="nav__arrow">&#9660;</span></a>
+            <ul class="nav__dropdown">
+              <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li>
+              <li><a href="produto.html?slug=porto-saude">Porto Saúde</a></li>
+              <li><a href="produto.html?slug=sulamerica-saude">SulAmérica Saúde</a></li>
+              <li><a href="produto.html?slug=bradesco-saude">Bradesco Saúde</a></li>
+              <li><a href="produto.html?slug=amil">Amil</a></li>
+            </ul>
+          </li>
+          <li class="nav__item nav__item--dropdown">
+            <a href="index.html#outros-produtos" class="nav__link">Outros produtos <span class="nav__arrow">&#9660;</span></a>
+            <ul class="nav__dropdown">
+              <li><a href="produto.html?slug=consorcios">Consórcios</a></li>
+              <li><a href="produto.html?slug=previdencia">Previdência Privada</a></li>
+              <li><a href="produto.html?slug=certificado-digital">Certificado Digital</a></li>
+            </ul>
+          </li>
+          <li><a href="sobre.html" class="nav__link">Sobre</a></li>
+          <li><a href="contato.html" class="nav__link">Contato</a></li>
+          <li><a href="blog.html" class="nav__link">Blog</a></li>
+        </ul>
+        <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp nav__cta">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          (12) 97600-2718
+        </a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="page-hero">
+    <div class="container">
+      <span class="section-tag">Fale Conosco</span>
+      <h1>Entre em <strong>contato</strong></h1>
+      <p>Conte o que você precisa e receba uma orientação personalizada para escolher a proteção certa, sem compromisso.</p>
+      <div class="page-hero__actions">
+        <a href="#formulario-contato" class="btn btn--primary btn--lg">Solicitar cotação gratuita</a>
+        <a href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+vim+pelo+site+e+gostaria+de+atendimento." target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp btn--lg">Falar pelo WhatsApp</a>
+      </div>
+      <div class="page-hero__proof" aria-label="Benefícios do atendimento">
+        <span>Sem compromisso</span>
+        <span>Atendimento consultivo</span>
+        <span>Presencial e online</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTATO -->
+  <section class="contact-section">
+    <div class="container contact-grid">
+
+      <!-- Info -->
+      <div class="contact-info">
+        <div>
+          <h2 class="contact-info__title">Fale com a <strong>nossa equipe</strong></h2>
+          <p style="font-size:15px;color:var(--gray-500);">Escolha o canal mais conveniente. Para iniciar uma conversa imediatamente, fale conosco pelo WhatsApp.</p>
+        </div>
+
+        <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="cinfo-card">
+          <div class="cinfo-card__icon cinfo-card__icon--wpp">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </div>
+          <div class="cinfo-card__body">
+            <h4>WhatsApp (preferencial)</h4>
+            <span class="cinfo-card__value">(12) 97600-2718</span>
+            <p style="font-size:13px;margin-top:4px;">Resposta rápida · Cotação gratuita</p>
+          </div>
+        </a>
+
+        <div class="cinfo-card">
+          <div class="cinfo-card__icon cinfo-card__icon--pin">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div class="cinfo-card__body">
+            <h4>Localização</h4>
+            <p>Jacareí – SP<br>Vale do Paraíba e Litoral Norte<br><em style="font-size:13px;">Atendimento presencial e 100% online</em></p>
+          </div>
+        </div>
+
+        <div class="cinfo-card">
+          <div class="cinfo-card__icon cinfo-card__icon--clock">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          </div>
+          <div class="cinfo-card__body">
+            <h4>Horário de atendimento</h4>
+            <p>Segunda a Sexta: 8h – 18h<br>Sábado: 8h – 12h<br><em style="font-size:13px;">WhatsApp com atendimento estendido</em></p>
+          </div>
+        </div>
+
+        <div class="wpp-cta-box">
+          <div class="wpp-cta-box__icon">&#128172;</div>
+          <div>
+            <h3>Prefere pelo WhatsApp?</h3>
+            <p>Envie uma mensagem, explique o que precisa e nossa equipe dará continuidade ao atendimento.</p>
+            <a href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+gostaria+de+uma+cota%C3%A7%C3%A3o+gratuita!" target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Chamar agora
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário -->
+      <div class="form-card" id="formulario-contato">
+        <span class="form-card__eyebrow">Cotação sem compromisso</span>
+        <h2>Solicitar cotação gratuita</h2>
+        <p>Leva menos de dois minutos. Após o envio, você continuará o atendimento pelo WhatsApp.</p>
+        <form id="cotacaoForm" novalidate>
+          <div class="form__group">
+            <label for="nome">Nome completo *</label>
+            <input type="text" id="nome" name="nome" placeholder="Seu nome completo" autocomplete="name" required />
+          </div>
+          <div class="form__row">
+            <div class="form__group">
+              <label for="telefone">WhatsApp *</label>
+              <input type="tel" id="telefone" name="telefone" placeholder="(12) 9 0000-0000" autocomplete="tel" inputmode="tel" required />
+            </div>
+            <div class="form__group">
+              <label for="cidade">Cidade *</label>
+              <select id="cidade" name="cidade" required>
+                <option value="">Selecione</option>
+                <option>Jacareí</option>
+                <option>São José dos Campos</option>
+                <option>Taubaté</option>
+                <option>Caçapava</option>
+                <option>Pindamonhangaba</option>
+                <option>Guaratinguetá</option>
+                <option>Caraguatatuba</option>
+                <option>São Sebastião</option>
+                <option>Ilhabela</option>
+                <option>Ubatuba</option>
+                <option>Outra cidade</option>
+              </select>
+            </div>
+          </div>
+          <div class="form__group">
+            <label for="produto">Produto desejado *</label>
+            <select id="produto" name="produto" required>
+              <option value="">Selecione o produto</option>
+              <optgroup label="Seguros de Veículos">
+                <option>Seguro Auto</option>
+                <option>Seguro Moto</option>
+                <option>Seguro Caminhão</option>
+              </optgroup>
+              <optgroup label="Seguros Pessoais">
+                <option>Seguro Residencial / Imóvel</option>
+                <option>Seguro de Vida</option>
+                <option>Seguro Viagem</option>
+              </optgroup>
+              <optgroup label="Seguros Empresariais">
+                <option>Seguro Empresarial</option>
+                <option>Seguro Equipamentos</option>
+                <option>Seguro Condomínio</option>
+                <option>Seguro Transporte</option>
+                <option>Seguro Garantia</option>
+                <option>Seguro de Vida Empresarial</option>
+              </optgroup>
+              <optgroup label="Saúde e Benefícios">
+                <option>Plano de Saúde Individual / Familiar</option>
+                <option>Plano de Saúde Empresarial</option>
+                <option>Previdência Privada</option>
+              </optgroup>
+              <optgroup label="Outros">
+                <option>Consórcio</option>
+                <option>Certificado Digital</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form__group">
+            <label for="email">E-mail <span style="font-weight:400;color:var(--gray-500);">(opcional)</span></label>
+            <input type="email" id="email" name="email" placeholder="voce@exemplo.com.br" autocomplete="email" inputmode="email" />
+          </div>
+          <div class="form__group">
+            <label for="mensagem">Observações</label>
+            <textarea id="mensagem" name="mensagem" placeholder="Conte mais sobre o que você precisa..."></textarea>
+          </div>
+          <button type="submit" class="btn btn--primary btn--full btn--lg">Enviar solicitação &#8594;</button>
+          <p class="form__note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Seus dados estão protegidos. Consulte nossa <a href="politica-de-privacidade.html">Política de Privacidade</a>.
+          </p>
+          <div class="form-benefits" aria-label="Informações sobre a cotação">
+            <div class="form-benefit"><strong>Gratuita</strong>Sem custo para cotar</div>
+            <div class="form-benefit"><strong>Personalizada</strong>Opções para seu perfil</div>
+            <div class="form-benefit"><strong>Protegida</strong>Dados tratados conforme a LGPD</div>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CIDADES -->
+  <section class="cities-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Cobertura Regional</span>
+        <h2 class="section-title">Cidades <strong>atendidas</strong></h2>
+        <p class="section-subtitle">Atendimento presencial em Jacareí e 100% online para todo o Vale do Paraíba, Litoral Norte e Brasil.</p>
+      </div>
+      <div class="cities-grid">
+        <div class="city-item">Jacareí<span>Presencial + Online</span></div>
+        <div class="city-item">São José dos Campos<span>Online</span></div>
+        <div class="city-item">Taubaté<span>Online</span></div>
+        <div class="city-item">Caçapava<span>Online</span></div>
+        <div class="city-item">Pindamonhangaba<span>Online</span></div>
+        <div class="city-item">Guaratinguetá<span>Online</span></div>
+        <div class="city-item">Caraguatatuba<span>Online</span></div>
+        <div class="city-item">São Sebastião<span>Online</span></div>
+        <div class="city-item">Ilhabela<span>Online</span></div>
+        <div class="city-item">Ubatuba<span>Online</span></div>
+        <div class="city-item city-item--destaque">Todo o Brasil<span>100% Online</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a href="index.html" class="logo">
+            <img src="assets/img/logo.svg" alt="Vida de Ouro Jacareí" class="logo__img logo__img--footer" />
+          </a>
+          <p>Corretora de seguros especializada no Vale do Paraíba e Litoral Norte.</p>
+          <p class="footer__susep">Corretor de Seguros habilitado SUSEP</p>
+          <div class="footer__social">
+            <a href="#" aria-label="Instagram" class="footer__social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+            <a href="#" aria-label="Facebook" class="footer__social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+            <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="footer__social-link footer__social-link--wpp"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+          </div>
+        </div>
+        <div class="footer__col">
+          <h4>Seguros</h4>
+          <ul>
+            <li><a href="produto.html?slug=seguro-auto">Seguro Auto</a></li>
+            <li><a href="produto.html?slug=seguro-moto">Seguro Moto</a></li>
+            <li><a href="produto.html?slug=seguro-vida">Seguro de Vida</a></li>
+            <li><a href="produto.html?slug=seguro-residencial">Seguro Residencial</a></li>
+            <li><a href="produto.html?slug=seguro-empresarial">Seguro Empresarial</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Saúde e Outros</h4>
+          <ul>
+            <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li>
+            <li><a href="produto.html?slug=consorcios">Consórcios</a></li>
+            <li><a href="produto.html?slug=previdencia">Previdência Privada</a></li>
+            <li><a href="produto.html?slug=certificado-digital">Certificado Digital</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Contato</h4>
+          <ul class="footer__contact-list">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg><a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer">(12) 97600-2718</a></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Jacareí – SP · Vale do Paraíba</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2026 Vida de Ouro Jacareí · Corretora de Seguros · Vale do Paraíba e Litoral Norte</p>
+        <div class="footer__bottom-links">
+          <a href="politica-de-privacidade.html">Política de Privacidade</a>
+          <a href="#">Termos de Uso</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="wpp-float" aria-label="WhatsApp">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    <span class="wpp-float__label">Fale conosco</span>
+  </a>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

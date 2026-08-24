@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sinistros | CRM Vida de Ouro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/crm.css" />
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="content">
+  <div class="top-bar">
+    <div><h1>Sinistros</h1><p>Acompanhamento de sinistros</p></div>
+    <button class="btn btn-primary" onclick="novoSinistro()">+ Novo sinistro</button>
+  </div>
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="table-toolbar__filters">
+        <input type="search" id="search" placeholder="Buscar..." />
+        <select id="statusFilter">
+          <option value="">Todos</option>
+          <option value="aberto">Aberto</option>
+          <option value="em_analise">Em análise</option>
+          <option value="aprovado">Aprovado</option>
+          <option value="negado">Negado</option>
+          <option value="finalizado">Finalizado</option>
+        </select>
+      </div>
+      <span class="text-muted text-small" id="countLabel"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Cliente</th><th>Apólice</th><th>Descrição</th><th>Data evento</th><th>Status</th><th>Aberto em</th><th></th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pager" id="pager"></div>
+  </div>
+</div>
+
+<script src="assets/crm.js"></script>
+<script>
+// Helpers (apiGet, apiPost, esc, renderSidebar, toast, etc.) já são globais via crm.js — não redeclarar.
+if (requireAuth()) {
+  renderSidebar('sinistros');
+  const user = getUser();
+  const isAdmin = user.role === 'admin';
+  let all = [], clientes = [], apolices = [], corretores = [], page = 1;
+  async function load() {
+    [all, clientes, apolices, corretores] = await Promise.all([
+      apiGet('/sinistros'), apiGet('/clientes'), apiGet('/apolices'),
+      isAdmin ? apiGet('/usuarios').catch(()=>[]) : Promise.resolve([])
+    ]);
+    render();
+  }
+  function render() {
+    const q = (document.getElementById('search').value||'').toLowerCase();
+    const s = document.getElementById('statusFilter').value;
+    const rows = all.filter(r => (!s||r.status===s) && (!q||(r.cliente_nome+' '+(r.descricao||'')).toLowerCase().includes(q)));
+    document.getElementById('countLabel').textContent = `${rows.length} de ${all.length}`;
+    const pg = paginate(rows, page); page = pg.page;
+    document.getElementById('tableBody').innerHTML = rows.length
+      ? pg.slice.map(r => `<tr>
+          <td><strong>${esc(r.cliente_nome||'-')}</strong></td>
+          <td>${esc(r.apolice_numero||'-')}</td>
+          <td>${esc((r.descricao||'').slice(0,60))}${r.descricao && r.descricao.length>60?'…':''}</td>
+          <td>${fmtDate(r.data_evento)}</td>
+          <td>${badgeForStatus(r.status)}</td>
+          <td class="text-small">${fmtDate(r.criado_em)}</td>
+          <td><div class="row-actions">
+            <button class="icon-btn" onclick='editSinistro(${JSON.stringify(JSON.stringify(r))})'><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg></button>
+            <button class="icon-btn icon-btn--del" onclick="delSinistro(${r.id})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/></svg></button>
+          </div></td>
+        </tr>`).join('')
+      : '<tr class="empty-row"><td colspan="7">Nenhum sinistro.</td></tr>';
+    renderPager(document.getElementById('pager'), pg, (n) => { page = n; render(); });
+  }
+  document.getElementById('search').addEventListener('input', () => { page = 1; render(); });
+  document.getElementById('statusFilter').addEventListener('change', () => { page = 1; render(); });
+
+  function formHTML(r = {}) {
+    return `<form>
+      <div class="form-group"><label>Cliente *</label>
+        <select name="cliente_id" required>
+          <option value="">Selecione</option>
+          ${clientes.map(c=>`<option value="${c.id}" ${r.cliente_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Apólice (opcional)</label>
+        <select name="apolice_id">
+          <option value="">—</option>
+          ${apolices.filter(a=>!r.cliente_id || a.cliente_id===r.cliente_id).map(a=>`<option value="${a.id}" ${r.apolice_id===a.id?'selected':''}>${esc(a.numero||'apolice #'+a.id)} — ${esc(a.produto)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Data do evento</label><input name="data_evento" type="date" value="${r.data_evento||''}"></div>
+        <div class="form-group"><label>Status</label>
+          <select name="status">${['aberto','em_analise','aprovado','negado','finalizado'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s.replace('_',' ').replace(/^./,c=>c.toUpperCase())}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label>Descrição</label><textarea name="descricao">${esc(r.descricao||'')}</textarea></div>
+      ${isAdmin ? `<div class="form-group"><label>Corretor</label>
+        <select name="corretor_id"><option value="">—</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
+    </form>`;
+  }
+  window.novoSinistro = () => openModal('Novo sinistro', formHTML(), '', async (d) => {
+    await apiPost('/sinistros', d); closeModal(); toast('Sinistro criado!'); load();
+  });
+  window.editSinistro = (j) => { const r = JSON.parse(j);
+    openModal('Editar sinistro #'+r.id, formHTML(r), '', async (d) => {
+      await apiPut('/sinistros/'+r.id, d); closeModal(); toast('Sinistro atualizado!'); load();
+    });
+  };
+  window.delSinistro = async (id) => { if (!confirm('Excluir sinistro?')) return;
+    await apiDel('/sinistros/'+id); toast('Sinistro excluído!'); load(); };
+
+  load().catch(e => toast(e.message, true));
+}
+</script>
+</body>
+</html>

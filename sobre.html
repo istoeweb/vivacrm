@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sobre Nós | Vida de Ouro Jacareí – Corretora de Seguros Vale do Paraíba</title>
+  <meta name="description" content="Conheça a Vida de Ouro Jacareí, corretora de seguros referência no Vale do Paraíba e Litoral Norte. Seguros, planos de saúde, consórcios e certificado digital." />
+  <link rel="canonical" href="https://vidadeouro.com.br/sobre.html" />
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
+  <link rel="apple-touch-icon" href="assets/img/logo.svg" />
+  <meta name="theme-color" content="#1E3A5F" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Vida de Ouro Jacareí" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:title" content="Sobre Nós | Vida de Ouro Jacareí" />
+  <meta property="og:description" content="Corretora de seguros referência no Vale do Paraíba e Litoral Norte." />
+  <meta property="og:url" content="https://vidadeouro.com.br/sobre.html" />
+  <meta property="og:image" content="https://vidadeouro.com.br/assets/img/logo.svg" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    .page-hero { background: linear-gradient(135deg, var(--blue-900) 0%, var(--blue-800) 100%); padding: 140px 0 80px; text-align: center; }
+    .page-hero h1 { font-size: clamp(2rem,4vw,2.8rem); font-weight: 900; color: var(--white); margin: 16px 0; }
+    .page-hero h1 strong { color: var(--gold); }
+    .page-hero p { color: rgba(255,255,255,.7); max-width: 600px; margin: 0 auto; font-size: 1.05rem; }
+
+    /* Sobre */
+    .sobre-section { padding: 88px 0; background: var(--white); }
+    .sobre-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .sobre-text p { color: var(--gray-500); font-size: 15px; line-height: 1.8; margin-bottom: 16px; }
+    .sobre-text .section-title { text-align: left; }
+    .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .value-card { background: var(--gray-50); border-radius: var(--radius); padding: 24px; border-left: 4px solid var(--blue-600); }
+    .value-card h4 { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 8px; }
+    .value-card p { font-size: 13.5px; color: var(--gray-500); line-height: 1.6; }
+
+    /* Missão */
+    .mission-section { background: linear-gradient(135deg, var(--blue-900) 0%, var(--blue-800) 100%); padding: 88px 0; text-align: center; }
+    .mission-section .section-title { color: var(--white); }
+    .mission-section .section-title strong { color: var(--gold); }
+    .mission-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
+    .mission-card { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-lg); padding: 32px 24px; transition: all var(--transition); }
+    .mission-card:hover { background: rgba(255,255,255,.13); transform: translateY(-4px); }
+    .mission-card .icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .mission-card h3 { color: var(--white); font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+    .mission-card p { color: rgba(255,255,255,.65); font-size: 14px; line-height: 1.7; }
+
+    /* Equipe / números */
+    .numeros-section { padding: 88px 0; background: var(--gray-50); }
+    .numeros-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; margin-top: 48px; }
+
+    @media (max-width: 768px) {
+      .sobre-grid, .values-grid, .mission-grid { grid-template-columns: 1fr; }
+      .numeros-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .numeros-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <img src="assets/img/logo.svg" alt="Vida de Ouro Jacareí" class="logo__img" />
+      </a>
+      <nav class="nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="index.html" class="nav__link">Início</a></li>
+          <li class="nav__item nav__item--dropdown">
+            <a href="index.html#produtos" class="nav__link">Seguros <span class="nav__arrow">&#9660;</span></a>
+            <ul class="nav__dropdown">
+              <li><a href="produto.html?slug=seguro-auto">Seguro Auto</a></li>
+              <li><a href="produto.html?slug=seguro-moto">Seguro Moto</a></li>
+              <li><a href="produto.html?slug=seguro-caminhao">Seguro Caminhão</a></li>
+              <li><a href="produto.html?slug=seguro-vida">Seguro de Vida</a></li>
+              <li><a href="produto.html?slug=seguro-residencial">Seguro Residencial</a></li>
+              <li><a href="produto.html?slug=seguro-empresarial">Seguro Empresarial</a></li>
+              <li><a href="produto.html?slug=seguro-viagem">Seguro Viagem</a></li>
+              <li><a href="produto.html?slug=seguro-condominio">Seguro Condomínio</a></li>
+              <li><a href="produto.html?slug=seguro-transporte">Seguro Transporte</a></li>
+              <li><a href="produto.html?slug=seguro-equipamentos">Seguro Equipamentos</a></li>
+            </ul>
+          </li>
+          <li class="nav__item nav__item--dropdown">
+            <a href="index.html#saude" class="nav__link">Saúde <span class="nav__arrow">&#9660;</span></a>
+            <ul class="nav__dropdown">
+              <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li>
+              <li><a href="produto.html?slug=porto-saude">Porto Saúde</a></li>
+              <li><a href="produto.html?slug=sulamerica-saude">SulAmérica Saúde</a></li>
+              <li><a href="produto.html?slug=bradesco-saude">Bradesco Saúde</a></li>
+              <li><a href="produto.html?slug=amil">Amil</a></li>
+              <li><a href="produto.html?slug=unimed">Unimed SJC</a></li>
+            </ul>
+          </li>
+          <li class="nav__item nav__item--dropdown">
+            <a href="index.html#outros-produtos" class="nav__link">Outros produtos <span class="nav__arrow">&#9660;</span></a>
+            <ul class="nav__dropdown">
+              <li><a href="produto.html?slug=consorcios">Consórcios</a></li>
+              <li><a href="produto.html?slug=previdencia">Previdência Privada</a></li>
+              <li><a href="produto.html?slug=certificado-digital">Certificado Digital</a></li>
+            </ul>
+          </li>
+          <li><a href="sobre.html" class="nav__link">Sobre</a></li>
+          <li><a href="contato.html" class="nav__link">Contato</a></li>
+          <li><a href="blog.html" class="nav__link">Blog</a></li>
+        </ul>
+        <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp nav__cta">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          (12) 97600-2718
+        </a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="page-hero">
+    <div class="container">
+      <span class="section-tag">Quem Somos</span>
+      <h1>Sobre a <strong>Vida de Ouro Jacareí</strong></h1>
+      <p>Corretora de seguros referência no Vale do Paraíba e Litoral Norte. Atendimento consultivo, pós-venda ativo e avaliações 5 estrelas no Google.</p>
+    </div>
+  </div>
+
+  <!-- SOBRE / HISTÓRIA -->
+  <section class="sobre-section">
+    <div class="container sobre-grid">
+      <div class="sobre-text">
+        <h2 class="section-title">Nossa <strong>história</strong></h2>
+        <p>A Vida de Ouro Jacareí é uma corretora de seguros especializada em proteção patrimonial, de vida, saúde e benefícios para pessoas físicas e jurídicas no Vale do Paraíba e Litoral Norte.</p>
+        <p>Trabalhamos de forma independente — somos seus representantes, não da seguradora. Nossa missão é encontrar a cobertura certa pelo melhor preço, com total transparência e sem burocracia.</p>
+        <p>Atuamos em Jacareí, São José dos Campos, Taubaté, Caçapava, Pindamonhangaba, Guaratinguetá, Caraguatatuba, São Sebastião, Ilhabela, Ubatuba e todo o Brasil via atendimento online.</p>
+        <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp btn--lg" style="margin-top:16px;display:inline-flex;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Falar com nossa equipe
+        </a>
+      </div>
+
+      <div class="values-grid">
+        <div class="value-card">
+          <h4>Missão</h4>
+          <p>Oferecer as melhores soluções em seguros e proteção financeira com atendimento humanizado e transparente.</p>
+        </div>
+        <div class="value-card" style="border-color:var(--gold)">
+          <h4>Visão</h4>
+          <p>Ser a corretora de referência no Vale do Paraíba, reconhecida pela excelência no atendimento e resultados.</p>
+        </div>
+        <div class="value-card" style="border-color:#16A34A">
+          <h4>Valores</h4>
+          <p>Honestidade, transparência, comprometimento com o cliente e pós-venda ativo durante toda a apólice.</p>
+        </div>
+        <div class="value-card" style="border-color:#7C3AED">
+          <h4>Diferencial</h4>
+          <p>Atendimento consultivo com mais de 20 seguradoras parceiras e suporte completo em sinistros.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSÃO / REFERÊNCIA -->
+  <section class="mission-section">
+    <div class="container">
+      <span class="section-tag" style="background:rgba(255,255,255,.15);color:var(--white);">Nossa Referência</span>
+      <h2 class="section-title">Por que somos <strong>referência regional</strong></h2>
+      <div class="mission-grid">
+        <div class="mission-card">
+          <div class="icon">&#11088;</div>
+          <h3>5 Estrelas no Google</h3>
+          <p>Avaliações reais de clientes satisfeitos de todo o Vale do Paraíba e Litoral Norte. Confiança comprovada por quem já foi atendido.</p>
+        </div>
+        <div class="mission-card">
+          <div class="icon">&#127919;</div>
+          <h3>Atendimento Consultivo</h3>
+          <p>Analisamos seu perfil e necessidades para indicar o seguro mais adequado, sem empurrar produtos desnecessários ou que não fazem sentido para você.</p>
+        </div>
+        <div class="mission-card">
+          <div class="icon">&#128222;</div>
+          <h3>Pós-venda Ativo</h3>
+          <p>Não sumimos após a venda. Estamos presentes durante toda a vigência da apólice, especialmente nos momentos de sinistro quando você mais precisa.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NÚMEROS -->
+  <section class="numeros-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Nossos números</span>
+        <h2 class="section-title">A confiança dos <strong>clientes em dados</strong></h2>
+      </div>
+      <div class="numeros-grid">
+        <div class="stat-card stat-card--blue">
+          <strong class="stat-card__value" data-count="50000">0</strong>
+          <span>Clientes Protegidos</span>
+        </div>
+        <div class="stat-card stat-card--gold">
+          <strong class="stat-card__value" data-count="5">0</strong>
+          <span>Estrelas no Google</span>
+        </div>
+        <div class="stat-card stat-card--dark">
+          <strong class="stat-card__value" data-count="20">0</strong>
+          <span>Seguradoras Parceiras</span>
+        </div>
+        <div class="stat-card stat-card--teal">
+          <strong class="stat-card__value" data-count="10">0</strong>
+          <span>Cidades Atendidas</span>
+        </div>
+      </div>
+
+      <!-- CTA final -->
+      <div style="text-align:center;margin-top:48px;padding:48px;background:linear-gradient(135deg,var(--blue-900),var(--blue-800));border-radius:var(--radius-lg);">
+        <h3 style="color:var(--white);font-size:1.6rem;font-weight:800;margin-bottom:12px;">Pronto para se <strong style="color:var(--gold)">proteger?</strong></h3>
+        <p style="color:rgba(255,255,255,.7);margin-bottom:28px;">Cotação gratuita, sem compromisso e com resposta em até 1 hora.</p>
+        <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+          <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp btn--lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Solicitar Cotação
+          </a>
+          <a href="index.html#produtos" class="btn btn--ghost btn--lg">Ver produtos</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a href="index.html" class="logo">
+            <img src="assets/img/logo.svg" alt="Vida de Ouro Jacareí" class="logo__img logo__img--footer" />
+          </a>
+          <p>Corretora de seguros especializada no Vale do Paraíba e Litoral Norte. Atendimento consultivo, pós-venda ativo e as melhores condições do mercado.</p>
+          <p class="footer__susep">Corretor de Seguros habilitado SUSEP</p>
+          <div class="footer__social">
+            <a href="#" aria-label="Instagram" class="footer__social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+            <a href="#" aria-label="Facebook" class="footer__social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+            <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="footer__social-link footer__social-link--wpp"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+          </div>
+        </div>
+        <div class="footer__col">
+          <h4>Seguros</h4>
+          <ul>
+            <li><a href="produto.html?slug=seguro-auto">Seguro Auto</a></li>
+            <li><a href="produto.html?slug=seguro-moto">Seguro Moto</a></li>
+            <li><a href="produto.html?slug=seguro-caminhao">Seguro Caminhão</a></li>
+            <li><a href="produto.html?slug=seguro-vida">Seguro de Vida</a></li>
+            <li><a href="produto.html?slug=seguro-residencial">Seguro Residencial</a></li>
+            <li><a href="produto.html?slug=seguro-empresarial">Seguro Empresarial</a></li>
+            <li><a href="produto.html?slug=seguro-viagem">Seguro Viagem</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Saúde e Outros</h4>
+          <ul>
+            <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li>
+            <li><a href="produto.html?slug=porto-saude">Porto Saúde</a></li>
+            <li><a href="produto.html?slug=sulamerica-saude">SulAmérica Saúde</a></li>
+            <li><a href="produto.html?slug=bradesco-saude">Bradesco Saúde</a></li>
+            <li><a href="produto.html?slug=consorcios">Consórcios</a></li>
+            <li><a href="produto.html?slug=previdencia">Previdência Privada</a></li>
+            <li><a href="produto.html?slug=certificado-digital">Certificado Digital</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Contato</h4>
+          <ul class="footer__contact-list">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg><a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer">(12) 97600-2718</a></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Jacareí – SP · Vale do Paraíba</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2026 Vida de Ouro Jacareí · Corretora de Seguros · Vale do Paraíba e Litoral Norte</p>
+        <div class="footer__bottom-links">
+          <a href="politica-de-privacidade.html">Política de Privacidade</a>
+          <a href="#">Termos de Uso</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="wpp-float" aria-label="WhatsApp">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    <span class="wpp-float__label">Fale conosco</span>
+  </a>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

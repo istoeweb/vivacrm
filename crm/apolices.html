@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apólices | CRM Vida de Ouro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/crm.css" />
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="content">
+  <div class="top-bar">
+    <div><h1>Apólices</h1><p>Apólices emitidas e vinculadas a clientes</p></div>
+    <button class="btn btn-primary" onclick="novaApolice()">+ Nova apólice</button>
+  </div>
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="table-toolbar__filters">
+        <input type="search" id="search" placeholder="Buscar por cliente, produto, número..." />
+        <select id="statusFilter">
+          <option value="">Todos</option>
+          <option value="ativa">Ativa</option>
+          <option value="renovada">Renovada</option>
+          <option value="vencida">Vencida</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+      <span class="text-muted text-small" id="countLabel"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Cliente</th><th>Produto</th><th>Seguradora</th><th>Número</th><th>Vigência</th><th>Prêmio</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pager" id="pager"></div>
+  </div>
+</div>
+
+<script src="assets/crm.js"></script>
+<script>
+// Helpers (apiGet, apiPost, esc, renderSidebar, toast, etc.) já são globais via crm.js — não redeclarar.
+if (requireAuth()) {
+  renderSidebar('apolices');
+  const user = getUser();
+  const isAdmin = user.role === 'admin';
+  let all = [], clientes = [], corretores = [], page = 1;
+  async function load() {
+    [all, clientes, corretores] = await Promise.all([
+      apiGet('/apolices'),
+      apiGet('/clientes'),
+      isAdmin ? apiGet('/usuarios').catch(()=>[]) : Promise.resolve([])
+    ]);
+    render();
+  }
+  function render() {
+    const q = (document.getElementById('search').value || '').toLowerCase();
+    const s = document.getElementById('statusFilter').value;
+    const rows = all.filter(r => (!s || r.status === s) &&
+      (!q || (r.cliente_nome+' '+(r.produto||'')+' '+(r.seguradora||'')+' '+(r.numero||'')).toLowerCase().includes(q)));
+    document.getElementById('countLabel').textContent = `${rows.length} de ${all.length}`;
+    const pg = paginate(rows, page); page = pg.page;
+    document.getElementById('tableBody').innerHTML = rows.length
+      ? pg.slice.map(r => `<tr>
+          <td><strong>${esc(r.cliente_nome||'-')}</strong></td>
+          <td>${esc(r.produto)}</td>
+          <td>${esc(r.seguradora||'-')}</td>
+          <td>${esc(r.numero||'-')}</td>
+          <td class="text-small">${fmtDate(r.vigencia_inicio)} → ${fmtDate(r.vigencia_fim)}</td>
+          <td>${r.premio != null ? fmtMoney(r.premio) : '-'}</td>
+          <td>${badgeForStatus(r.status)}</td>
+          <td><div class="row-actions">
+            <button class="icon-btn" title="Editar" onclick='editApolice(${JSON.stringify(JSON.stringify(r))})'><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg></button>
+            <button class="icon-btn icon-btn--del" title="Excluir" onclick="delApolice(${r.id})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/></svg></button>
+          </div></td>
+        </tr>`).join('')
+      : '<tr class="empty-row"><td colspan="8">Nenhuma apólice.</td></tr>';
+    renderPager(document.getElementById('pager'), pg, (n) => { page = n; render(); });
+  }
+  document.getElementById('search').addEventListener('input', () => { page = 1; render(); });
+  document.getElementById('statusFilter').addEventListener('change', () => { page = 1; render(); });
+
+  function formHTML(r = {}) {
+    return `<form>
+      <div class="form-group"><label>Cliente *</label>
+        <select name="cliente_id" required>
+          <option value="">Selecione</option>
+          ${clientes.map(c => `<option value="${c.id}" ${r.cliente_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Produto *</label><input name="produto" required value="${esc(r.produto||'')}"></div>
+        <div class="form-group"><label>Seguradora</label><input name="seguradora" value="${esc(r.seguradora||'')}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Número</label><input name="numero" value="${esc(r.numero||'')}"></div>
+        <div class="form-group"><label>Prêmio (R$)</label><input name="premio" type="number" step="0.01" min="0" value="${r.premio ?? ''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Vigência início</label><input name="vigencia_inicio" type="date" value="${r.vigencia_inicio||''}"></div>
+        <div class="form-group"><label>Vigência fim</label><input name="vigencia_fim" type="date" value="${r.vigencia_fim||''}"></div>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select name="status">${['ativa','renovada','vencida','cancelada'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}</select>
+      </div>
+      ${isAdmin ? `<div class="form-group"><label>Corretor</label>
+        <select name="corretor_id"><option value="">—</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
+    </form>`;
+  }
+  window.novaApolice = () => openModal('Nova apólice', formHTML(), '', async (d) => {
+    await apiPost('/apolices', d); closeModal(); toast('Apólice criada!'); load();
+  });
+  window.editApolice = (j) => { const r = JSON.parse(j);
+    openModal('Editar apólice #'+r.id, formHTML(r), '', async (d) => {
+      await apiPut('/apolices/'+r.id, d); closeModal(); toast('Apólice atualizada!'); load();
+    });
+  };
+  window.delApolice = async (id) => { if (!confirm('Excluir apólice?')) return;
+    await apiDel('/apolices/'+id); toast('Apólice excluída!'); load(); };
+
+  load().catch(e => toast(e.message, true));
+}
+</script>
+</body>
+</html>

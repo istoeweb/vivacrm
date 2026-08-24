@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" rx="8" fill="white"/>
+  <!-- Navy square -->
+  <rect x="12" y="12" width="52" height="56" rx="6" fill="#1B3A6B"/>
+  <!-- Sail/leaf icon in white -->
+  <path d="M38,18 C38,18 48,28 48,44 C48,44 38,40 32,32 Z" fill="white"/>
+  <path d="M34,30 C34,30 24,36 24,48 C24,48 34,46 38,38 Z" fill="rgba(255,255,255,0.6)"/>
+  <!-- Porto text -->
+  <text x="76" y="36" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#1B3A6B">Porto</text>
+  <!-- Saúde text -->
+  <text x="76" y="58" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#1B3A6B">Saúde</text>
+</svg>
