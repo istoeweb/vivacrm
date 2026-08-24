@@ -51,7 +51,9 @@ router.post('/admin/upload', ...adminOnly, (req, res) => {
     webp: buffer.subarray(0, 4).toString() === 'RIFF' && buffer.subarray(8, 12).toString() === 'WEBP',
   };
   if (!signatures[ext]) return res.status(400).json({ error: 'O conteúdo do arquivo não corresponde ao formato informado' });
-  const dir = path.join(__dirname, '..', '..', 'assets', 'img', 'blog');
+  const dir = process.env.BLOG_UPLOAD_DIR
+    ? path.resolve(process.env.BLOG_UPLOAD_DIR)
+    : path.join(__dirname, '..', '..', 'assets', 'img', 'blog');
   fs.mkdirSync(dir, { recursive: true });
   const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`;
   fs.writeFileSync(path.join(dir, filename), buffer, { flag: 'wx' });

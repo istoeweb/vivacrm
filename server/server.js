@@ -40,6 +40,7 @@ app.use(cors({
   origin(origin, cb) {
     if (allowedOrigins.length === 0) return cb(null, true); // dev: libera geral
     if (!origin) return cb(null, true); // ferramentas/servidor sem origem
+    if (process.env.RENDER_EXTERNAL_URL && origin === process.env.RENDER_EXTERNAL_URL) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
     return cb(new Error('Origem não permitida pelo CORS'));
   },
@@ -78,6 +79,11 @@ if (fs.existsSync(crmDir)) {
 
 // Servir assets do site institucional (logo, imagens) usados também pelo CRM
 const assetsDir = path.join(__dirname, '..', 'assets');
+const blogUploadDir = process.env.BLOG_UPLOAD_DIR
+  ? path.resolve(process.env.BLOG_UPLOAD_DIR)
+  : path.join(assetsDir, 'img', 'blog');
+fs.mkdirSync(blogUploadDir, { recursive: true });
+app.use('/assets/img/blog', express.static(blogUploadDir));
 if (fs.existsSync(assetsDir)) {
   app.use('/assets', express.static(assetsDir));
 }
@@ -124,7 +130,7 @@ app.use('/api', notFound);
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`CRM Vida de Ouro rodando em http://localhost:${PORT}`);
     console.log(`Admin: http://localhost:${PORT}/crm/`);
   });

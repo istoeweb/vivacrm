@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: vivacrm
+    runtime: node
+    region: ohio
+    plan: starter
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm run seed && npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /opt/render/project/src/server/storage/crm.db
+      - key: BLOG_UPLOAD_DIR
+        value: /opt/render/project/src/server/storage/blog
+    disk:
+      name: vivacrm-data
+      mountPath: /opt/render/project/src/server/storage
+      sizeGB: 1
