@@ -14,6 +14,16 @@ if (!fs.existsSync(process.env.DB_PATH)) {
     env: process.env,
     stdio: 'inherit',
   });
+
+  // O seed usa senhas demo conhecidas; num deploy público trocamos a do admin
+  // e desativamos o corretor demo.
+  if (process.env.ADMIN_PASSWORD) {
+    const bcrypt = require('bcrypt');
+    const db = require('../server/db');
+    db.prepare('UPDATE usuarios SET senha_hash = ? WHERE email = ?')
+      .run(bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10), 'admin@vidadeouro.com.br');
+    db.prepare('UPDATE usuarios SET ativo = 0 WHERE email = ?').run('joao@vidadeouro.com.br');
+  }
 }
 
 module.exports = require('../server/server');
