@@ -1,0 +1,11 @@
+.env
+**/.env
+*.db
+**/*.db
+*.zip
+.claude
+node_modules
+server/node_modules
+server/test
+wordpress-plugin
+wordpress-theme
