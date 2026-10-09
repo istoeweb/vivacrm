@@ -7,6 +7,7 @@
   fetch('/api/blog/' + encodeURIComponent(slug)).then((r) => r.ok ? r.json() : Promise.reject()).then((p) => {
     document.title = p.titulo + ' | Vida de Ouro Jacareí';
     document.getElementById('metaDescription').content = p.resumo || 'Artigo do Blog Vida de Ouro Jacareí';
+    if (p.palavras_chave) document.getElementById('metaKeywords').content = p.palavras_chave;
     const paragraphs = String(p.conteudo || '').split(/\n\s*\n/).filter(Boolean).map((x) => '<p>' + esc(x).replace(/\n/g, '<br>') + '</p>').join('');
     const image = safeImage(p.imagem_url);
     const published = p.publicado_em ? new Date(String(p.publicado_em).replace(' ', 'T')).toLocaleDateString('pt-BR') : '';

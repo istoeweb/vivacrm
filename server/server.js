@@ -20,6 +20,7 @@ const agendamentosRoutes = require('./routes/agendamentos');
 const usuariosRoutes = require('./routes/usuarios');
 const dashboardRoutes = require('./routes/dashboard');
 const blogRoutes = require('./routes/blog');
+const siteRoutes = require('./routes/site');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,8 +28,22 @@ const PORT = process.env.PORT || 3001;
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
-// Headers de segurança (CSP desligada por padrão para não quebrar o CRM estático)
-app.use(helmet({ contentSecurityPolicy: false }));
+// Headers de segurança + CSP. Como o CRM/site usam scripts inline e handlers
+// onclick, o script precisa de 'unsafe-inline'; ainda assim mantemos restrição
+// de origens, object-src 'none', base-uri e frame-ancestors (anti-clickjacking).
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      'script-src': ["'self'", "'unsafe-inline'"],
+      'script-src-attr': ["'unsafe-inline'"],
+      'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      'img-src': ["'self'", 'data:', 'https:'],
+      'connect-src': ["'self'"],
+    },
+  },
+}));
 
 // CORS restrito por origem quando ALLOWED_ORIGINS estiver definido
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
@@ -107,6 +122,8 @@ app.get('/:page', (req, res, next) => {
 });
 app.get('/robots.txt', (_req, res) => res.sendFile(path.join(siteDir, 'robots.txt')));
 app.get('/sitemap.xml', (_req, res) => res.sendFile(path.join(siteDir, 'sitemap.xml')));
+// Favicon global (site + CRM): usa a logo SVG da marca e evita o 404 de /favicon.ico
+app.get('/favicon.ico', (_req, res) => res.sendFile(path.join(assetsDir, 'img', 'logo.svg')));
 
 // Rate limit estrito nas rotas públicas antes das rotas gerais
 app.use('/api/auth/login', publicLimiter);
@@ -122,6 +139,7 @@ app.use('/api/agendamentos', agendamentosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/site', siteRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

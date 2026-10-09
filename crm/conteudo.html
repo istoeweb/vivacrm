@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conteúdo do Site | CRM Vida de Ouro</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+  <link rel="stylesheet" href="assets/crm.css" />
+  <style>
+    .cms-group { margin-bottom: 28px; }
+    .cms-group__title { margin: 0 0 4px; color: var(--gray-900); font-size: 15px; font-weight: 800; }
+    .cms-group__sub { margin: 0 0 16px; color: var(--text-muted); font-size: 13px; }
+    .cms-form { max-width: 720px; }
+    .cms-actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+    .cms-saved { color: var(--green, #16a34a); font-size: 13px; font-weight: 600; }
+  </style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="content">
+  <div class="top-bar">
+    <div><h1>Conteúdo do Site</h1><p>Edite as informações que aparecem em todas as páginas do site</p></div>
+  </div>
+  <div class="table-card" style="padding:24px">
+    <form id="cmsForm" class="cms-form">
+      <div id="cmsGroups"></div>
+      <div class="cms-actions">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        <span class="cms-saved" id="cmsSaved" style="display:none">Salvo!</span>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="assets/crm.js"></script>
+<script>
+if (requireAuth()) {
+  const user = getUser();
+  if (user.role !== 'admin') location.href = 'dashboard.html';
+  renderSidebar('conteudo');
+
+  const groupsEl = document.getElementById('cmsGroups');
+
+  function fieldHTML(f, value) {
+    const inputType = f.tipo === 'email' ? 'email' : (f.tipo === 'url' ? 'url' : 'text');
+    return `<div class="form-group">
+      <label>${esc(f.label)}</label>
+      <input name="${esc(f.chave)}" type="${inputType}" maxlength="500" value="${esc(value || '')}">
+      ${f.help ? `<div class="text-muted text-small" style="margin-top:4px">${esc(f.help)}</div>` : ''}
+    </div>`;
+  }
+
+  async function load() {
+    const { fields, values } = await apiGet('/site/admin');
+    const grupos = [...new Set(fields.map(f => f.grupo))];
+    groupsEl.innerHTML = grupos.map(g => `
+      <div class="cms-group">
+        <h2 class="cms-group__title">${esc(g)}</h2>
+        ${fields.filter(f => f.grupo === g).map(f => fieldHTML(f, values[f.chave])).join('')}
+      </div>`).join('');
+  }
+
+  document.getElementById('cmsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      await apiPut('/site/admin', data);
+      toast('Conteúdo do site atualizado!');
+      const saved = document.getElementById('cmsSaved');
+      saved.style.display = 'inline';
+      setTimeout(() => { saved.style.display = 'none'; }, 2500);
+    } catch (err) { toast(err.message, true); }
+  });
+
+  load().catch(e => toast(e.message, true));
+}
+</script>
+</body>
+</html>

@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
       '<ul class="nav__list">',
       '<li><a href="index.html" class="nav__link">Início</a></li>',
       '<li class="nav__item nav__item--dropdown"><a href="index.html#produtos" class="nav__link">Seguros <span class="nav__arrow">&#9660;</span></a><ul class="nav__dropdown"><li><a href="produto.html?slug=seguro-auto">Seguro Auto</a></li><li><a href="produto.html?slug=seguro-moto">Seguro Moto</a></li><li><a href="produto.html?slug=seguro-caminhao">Seguro Caminhão</a></li><li><a href="produto.html?slug=seguro-vida">Seguro de Vida</a></li><li><a href="produto.html?slug=seguro-residencial">Seguro Residencial</a></li><li><a href="produto.html?slug=seguro-empresarial">Seguro Empresarial</a></li><li><a href="produto.html?slug=seguro-viagem">Seguro Viagem</a></li></ul></li>',
-      '<li class="nav__item nav__item--dropdown"><a href="index.html#saude" class="nav__link">Saúde <span class="nav__arrow">&#9660;</span></a><ul class="nav__dropdown"><li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li><li><a href="produto.html?slug=porto-saude">Porto Saúde</a></li><li><a href="produto.html?slug=sulamerica-saude">SulAmérica Saúde</a></li><li><a href="produto.html?slug=bradesco-saude">Bradesco Saúde</a></li><li><a href="produto.html?slug=amil">Amil</a></li><li><a href="produto.html?slug=unimed">Unimed SJC</a></li></ul></li>',
+      '<li class="nav__item nav__item--dropdown"><a href="index.html#saude" class="nav__link">Saúde <span class="nav__arrow">&#9660;</span></a><ul class="nav__dropdown"><li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li><li><a href="produto.html?slug=sao-francisco-vida">São Francisco Vida</a></li><li><a href="produto.html?slug=santa-casa-saude">Santa Casa Saúde SJC</a></li><li><a href="produto.html?slug=planos-odontologicos">Planos Odontológicos</a></li><li><a href="produto.html?slug=porto-saude">Porto Saúde</a></li><li><a href="produto.html?slug=sulamerica-saude">SulAmérica Saúde</a></li><li><a href="produto.html?slug=bradesco-saude">Bradesco Saúde</a></li><li><a href="produto.html?slug=amil">Amil</a></li><li><a href="produto.html?slug=unimed">Unimed SJC</a></li></ul></li>',
       '<li class="nav__item nav__item--dropdown"><a href="index.html#outros-produtos" class="nav__link">Outros produtos <span class="nav__arrow">&#9660;</span></a><ul class="nav__dropdown"><li><a href="produto.html?slug=consorcios">Consórcios</a></li><li><a href="produto.html?slug=previdencia">Previdência Privada</a></li><li><a href="produto.html?slug=certificado-digital">Certificado Digital</a></li></ul></li>',
       '<li><a href="sobre.html" class="nav__link">Sobre</a></li><li><a href="contato.html" class="nav__link">Contato</a></li><li><a href="blog.html" class="nav__link">Blog</a></li></ul>',
       '<a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp nav__cta">WhatsApp</a>'
@@ -313,6 +313,35 @@ document.addEventListener('DOMContentLoaded', () => {
     counterEls.forEach(el => observer.observe(el));
   }
 
+  // ---- Cotação rápida do hero: preenche o formulário principal ----
+  const quick = document.getElementById('quickQuote');
+  if (quick) {
+    const opts = quick.querySelectorAll('.quick-quote__opt');
+    opts.forEach(btn => btn.addEventListener('click', () => {
+      opts.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    }));
+
+    quick.addEventListener('submit', e => {
+      e.preventDefault();
+      const main = document.getElementById('cotacaoForm');
+      if (!main) return;
+      const picked = quick.querySelector('.quick-quote__opt[aria-pressed="true"]');
+      const fill = (id, value) => {
+        const el = main.querySelector('#' + id);
+        if (el && value) { el.value = value; el.dispatchEvent(new Event('change')); }
+      };
+      fill('nome', quick.querySelector('#qqNome').value.trim());
+      fill('telefone', quick.querySelector('#qqTelefone').value.trim());
+      if (picked) fill('produto', picked.dataset.produto);
+
+      document.getElementById('cotacao').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const next = ['nome', 'telefone', 'cidade', 'produto']
+        .map(id => main.querySelector('#' + id))
+        .find(el => el && !el.value);
+      setTimeout(() => (next || main.querySelector('[type="submit"]')).focus({ preventScroll: true }), 500);
+    });
+  }
+
   // ---- Form submit ----
   const form = document.getElementById('cotacaoForm');
   if (form) {
@@ -378,7 +407,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const email = form.querySelector('#email')?.value.trim() || '';
-      const msg = form.querySelector('#mensagem')?.value.trim() || '';
+      const obs = form.querySelector('#mensagem')?.value.trim() || '';
+      // Perfil marcado no formulário vai junto da observação para o CRM e o WhatsApp
+      const perfil = [
+        form.querySelector('#possuiCnpj')?.checked ? 'Possui CNPJ' : '',
+        form.querySelector('#possuiPlano')?.checked ? 'Possui plano atual' : ''
+      ].filter(Boolean).join(' · ');
+      const msg = [perfil, obs].filter(Boolean).join(' — ');
 
       // Envia para o CRM (não bloqueia o WhatsApp do usuário)
       try {

@@ -3,12 +3,19 @@ services:
     name: vivacrm
     runtime: node
     region: ohio
-    plan: free
+    # Discos persistentes exigem plano pago. No plano free o filesystem é
+    # efêmero: cada deploy/restart apagaria o SQLite e as imagens do blog.
+    plan: starter
     rootDir: server
     buildCommand: npm ci
     startCommand: npm run seed && npm start
     healthCheckPath: /api/health
     autoDeploy: true
+    # Dados que precisam sobreviver a deploys: banco SQLite e uploads do blog.
+    disk:
+      name: vivacrm-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
@@ -16,3 +23,11 @@ services:
         value: 22.22.0
       - key: JWT_SECRET
         generateValue: true
+      - key: DB_PATH
+        value: /var/data/crm.db
+      - key: BLOG_UPLOAD_DIR
+        value: /var/data/blog
+      # Origens do site institucional. A URL *.onrender.com é liberada
+      # automaticamente via RENDER_EXTERNAL_URL (ver server.js).
+      - key: ALLOWED_ORIGINS
+        value: https://vidadeouro.com.br,https://www.vidadeouro.com.br

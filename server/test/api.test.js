@@ -180,6 +180,24 @@ test('corretor assume lead sem dono; não assume lead de outro', async () => {
   assert.equal(conflict.status, 409);
 });
 
+test('corretor enxerga a fila de leads sem dono, mas não os de outro corretor', async () => {
+  const livre = await api('POST', '/api/leads', { body: { nome: 'Lead Na Fila', telefone: '12977005566' } });
+  const alheio = await api('POST', '/api/leads', { body: { nome: 'Lead de Outro', telefone: '12977007788' } });
+  await api('PUT', `/api/leads/${alheio.data.id}`, { token: adminToken, body: { corretor_id: 1 } });
+
+  const lista = await api('GET', '/api/leads', { token: corretorToken });
+  assert.equal(lista.status, 200);
+  const ids = lista.data.map((l) => l.id);
+  assert.ok(ids.includes(livre.data.id), 'lead sem dono deve aparecer na fila do corretor');
+  assert.ok(!ids.includes(alheio.data.id), 'lead de outro corretor não pode vazar');
+
+  // O detalhe segue a mesma regra da listagem.
+  const detalhe = await api('GET', `/api/leads/${livre.data.id}`, { token: corretorToken });
+  assert.equal(detalhe.status, 200);
+  const negado = await api('GET', `/api/leads/${alheio.data.id}`, { token: corretorToken });
+  assert.equal(negado.status, 403);
+});
+
 test('servidor entrega site e CRM sem expor arquivos internos', async () => {
   const site = await fetch(base + '/');
   assert.equal(site.status, 200);
@@ -199,7 +217,8 @@ test('blog: admin gerencia artigos e público vê somente publicados', async () 
   assert.equal(denied.status, 403);
 
   const draft = await api('POST', '/api/blog/admin', { token: adminToken, body: {
-    titulo: 'Como escolher um seguro', conteudo: 'Conteúdo de teste.', resumo: 'Resumo', status: 'rascunho'
+    titulo: 'Como escolher um seguro', conteudo: 'Conteúdo de teste.', resumo: 'Resumo', status: 'rascunho',
+    palavras_chave: 'Seguro Auto, seguro auto ,  proteção veicular'
   }});
   assert.equal(draft.status, 201);
   const id = draft.data.id;
@@ -216,6 +235,8 @@ test('blog: admin gerencia artigos e público vê somente publicados', async () 
   const article = await api('GET', '/api/blog/como-escolher-um-seguro');
   assert.equal(article.status, 200);
   assert.equal(article.data.titulo, 'Como escolher um seguro');
+  // palavras_chave são sanitizadas: trim + dedupe case-insensitive preservando ordem
+  assert.equal(article.data.palavras_chave, 'Seguro Auto, proteção veicular');
 
   const removed = await api('DELETE', `/api/blog/admin/${id}`, { token: adminToken });
   assert.equal(removed.status, 200);
@@ -231,4 +252,34 @@ test('blog: upload de imagem exige admin e valida o arquivo', async () => {
   const uploadedPath = path.join(__dirname, '..', '..', upload.data.url);
   assert.equal(fs.existsSync(uploadedPath), true);
   fs.rmSync(uploadedPath, { force: true });
+});
+
+test('site: conteúdo público, RBAC de edição e atualização em lote', async () => {
+  // Público lê os valores padrão semeados
+  const pub = await api('GET', '/api/site/content');
+  assert.equal(pub.status, 200);
+  assert.equal(pub.data['contato.whatsapp'], '5512976002718');
+  assert.equal(pub.data['contato.telefone'], '(12) 97600-2718');
+
+  // Corretor não pode ver o admin nem editar
+  assert.equal((await api('GET', '/api/site/admin', { token: corretorToken })).status, 403);
+  assert.equal((await api('PUT', '/api/site/admin', { token: corretorToken, body: { 'contato.email': 'x@y.com' } })).status, 403);
+
+  // Admin vê campos + valores
+  const adminView = await api('GET', '/api/site/admin', { token: adminToken });
+  assert.equal(adminView.status, 200);
+  assert.ok(Array.isArray(adminView.data.fields) && adminView.data.fields.length > 0);
+
+  // Admin atualiza em lote; chaves desconhecidas são ignoradas
+  const upd = await api('PUT', '/api/site/admin', { token: adminToken, body: {
+    'contato.whatsapp': ' 5512999998888 ', 'contato.email': 'contato@vidadeouro.com.br', 'chave.invalida': 'nao_deve_entrar'
+  }});
+  assert.equal(upd.status, 200);
+  assert.equal(upd.data.values['contato.whatsapp'], '5512999998888');
+  assert.equal(upd.data.values['contato.email'], 'contato@vidadeouro.com.br');
+  assert.equal('chave.invalida' in upd.data.values, false);
+
+  // Reflete no endpoint público
+  const pub2 = await api('GET', '/api/site/content');
+  assert.equal(pub2.data['contato.whatsapp'], '5512999998888');
 });

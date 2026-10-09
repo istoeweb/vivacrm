@@ -5,9 +5,11 @@ const { isValidEmail, isValidPhone, isValidLeadStatus, getPagination, wantsPagin
 
 const router = express.Router();
 
+// Corretor enxerga os próprios leads + a fila de captação (leads sem dono),
+// que é justamente o que ele pode assumir via POST /:id/assumir.
 function visibleWhere(req) {
   if (req.user.role === 'admin') return '';
-  return ' WHERE corretor_id = ' + Number(req.user.id);
+  return ' WHERE (l.corretor_id = ' + Number(req.user.id) + ' OR l.corretor_id IS NULL)';
 }
 
 // POST público — usado pelo formulário do site (sem auth)
@@ -64,7 +66,8 @@ router.get('/:id', auth, (req, res) => {
     WHERE l.id = ?
   `).get(req.params.id);
   if (!row) return res.status(404).json({ error: 'Lead não encontrado' });
-  if (req.user.role !== 'admin' && row.corretor_id !== req.user.id) {
+  // Leads sem dono ficam visíveis a qualquer corretor (fila de captação).
+  if (req.user.role !== 'admin' && row.corretor_id !== null && row.corretor_id !== req.user.id) {
     return res.status(403).json({ error: 'Acesso negado' });
   }
   res.json(row);

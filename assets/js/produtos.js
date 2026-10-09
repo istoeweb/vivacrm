@@ -266,20 +266,105 @@ window.PRODUTOS = {
     categoria: "Saúde e Benefícios",
     tag: "Individual, Familiar e Empresarial",
     tagline: "Assistência médica de qualidade, sem burocracia.",
-    descricao: "Especialistas em planos de saúde individuais, familiares e empresariais. Comparamos as principais operadoras do mercado para encontrar a melhor cobertura, rede credenciada e custo-benefício para você, sua família ou sua empresa. Suporte completo no pós-venda.",
-    publico: "Para pessoas físicas, famílias e empresas que precisam de assistência médica de qualidade no Vale do Paraíba, São Paulo e Brasil.",
+    precos: [
+      { rotulo: "Unimed SJC (PF)", valor: "R$ 154,90" },
+      { rotulo: "São Francisco Vida (PJ)", valor: "R$ 171,37" },
+      { rotulo: "Santa Casa Saúde SJC", valor: "R$ 250,84" }
+    ],
+    descricao: "Especialistas em planos de saúde nacionais e regionais para pessoa física, MEI, PME e empresas. Comparamos as principais operadoras para encontrar a melhor cobertura, rede credenciada e custo-benefício — ideal para quem teve reajuste elevado, quer reduzir custos, ampliar a rede médica ou fazer portabilidade de carências com segurança.",
+    publico: "Para pessoas físicas, crianças, idosos, profissionais liberais, MEI e empresas no Vale do Paraíba, Litoral Norte, São Paulo e Brasil.",
     coberturas: [
       { t: "Individual, Familiar e Empresarial", d: "Planos para diferentes perfis e portes de empresa." },
-      { t: "A partir de 1 Vida", d: "Algumas operadoras aceitam planos empresariais a partir de 1 vida." },
-      { t: "Migração e Renovação Assistida", d: "Acompanhamos todo o processo de troca ou renovação de plano." },
-      { t: "Suporte em Uso e Sinistros", d: "Orientação em rede credenciada, reembolso e sinistros." },
-      { t: "Comparativo entre Operadoras", d: "Comparamos Amil, Porto, Bradesco, SulAmérica, Unimed e mais." }
+      { t: "A partir de 1 Vida", d: "Unimed SJC, São Francisco Vida e Santa Casa aceitam contratação a partir de 1 vida." },
+      { t: "Estudo Gratuito de Redução de Custo", d: "Analisamos seu plano atual para reduzir o valor ou melhorar a cobertura." },
+      { t: "Portabilidade de Carências", d: "Troque de plano aproveitando as carências já cumpridas." },
+      { t: "Com ou sem Coparticipação", d: "Opções para equilibrar mensalidade e uso." },
+      { t: "Hospitais de Referência", d: "Vivalle, Policlin, Santa Casa SJC, Alvorada, São Francisco, Antônio Afonso, Einstein, Sírio-Libanês e outros." }
     ],
-    seguradoras: ["Amil", "Porto Saúde", "Bradesco Saúde", "SulAmérica", "Unimed SJC", "Omint", "Assim Saúde", "Santa Casa SJC", "São Francisco Vida"],
+    seguradoras: ["São Francisco Vida", "Santa Casa Saúde SJC", "Unimed SJC", "Porto Saúde", "SulAmérica", "Amil", "Bradesco Saúde", "Omint", "Care Plus", "Hapvida", "Assim Saúde"],
     faq: [
-      { q: "Tabela ANS ou livre adesão?", a: "Trabalhamos com ambas as modalidades conforme o perfil. A recomendação depende do objetivo, idade e filiação." },
-      { q: "Cobre preexistente?", a: "A maioria dos planos tem carência para doenças preexistentes. Comparemos opções para reduzir prazos onde for possível." },
-      { q: "Ajuda na migração de plano?", a: "Sim. Fazemos a portabilidade de carências entre operadoras conforme a ANS, mantendo seus direitos." }
+      { q: "Existe plano empresarial a partir de 1 vida?", a: "Sim. Há planos empresariais para MEI, PME e empresas, alguns a partir de 1 vida." },
+      { q: "Posso reduzir o valor do meu plano atual?", a: "Sim. Fazemos um estudo gratuito para redução de custo ou upgrade de cobertura." },
+      { q: "Posso fazer portabilidade?", a: "Sim. Fazemos a portabilidade de carências entre operadoras conforme a ANS, aproveitando as carências já cumpridas." },
+      { q: "Há plano para idosos?", a: "Sim. Temos opções ideais para a terceira idade, com rede regional ou nacional." },
+      { q: "Existe plano infantil?", a: "Sim. Há planos para crianças e para toda a família." },
+      { q: "Os planos têm coparticipação?", a: "Existem opções com e sem coparticipação. Explicamos a diferença no custo de cada uma." },
+      { q: "Os planos possuem cobertura nacional?", a: "Bradesco Saúde, SulAmérica, Amil e Porto Saúde têm opções nacionais. Unimed SJC, São Francisco Vida e Santa Casa são regionais, com ótimo custo-benefício." },
+      { q: "Cobre preexistente?", a: "A maioria dos planos tem carência para doenças preexistentes. Comparamos opções para reduzir prazos onde for possível." }
+    ]
+  },
+
+  "sao-francisco-vida": {
+    nome: "São Francisco Vida",
+    categoria: "Saúde e Benefícios",
+    tag: "A partir de 1 vida",
+    tagline: "Plano regional com excelente custo-benefício em Jacareí e região.",
+    precos: [
+      { rotulo: "Pessoa física", valor: "R$ 211,34" },
+      { rotulo: "Pessoa jurídica", valor: "R$ 171,37" }
+    ],
+    descricao: "O São Francisco Vida oferece planos de saúde em Jacareí, São José dos Campos e Litoral Norte para pessoas físicas, crianças, idosos, médicos, advogados, dentistas, profissionais liberais e empresas (MEI, PME, médias e grandes), com contratação a partir de 1 vida.",
+    publico: "Para quem busca um plano regional acessível — ótimo para crianças, idosos e empresas.",
+    coberturas: [
+      { t: "A partir de 1 Vida", d: "Pessoa física, MEI, PME e grandes empresas." },
+      { t: "Hospitais na Rede", d: "Hospital São Francisco, Antoninho da Rocha Marmo, Pio XII, Prontil, Plani e Tomovale." },
+      { t: "Ideal para Crianças e Idosos", d: "Excelente custo-benefício para toda a família." },
+      { t: "Atendimento Regional", d: "Jacareí, São José dos Campos e Litoral Norte." }
+    ],
+    seguradoras: ["São Francisco Vida"],
+    faq: [
+      { q: "Atende em quais cidades?", a: "Jacareí, São José dos Campos e Litoral Norte, com rede própria e credenciada." },
+      { q: "Posso contratar sendo profissional liberal?", a: "Sim. Médicos, advogados, dentistas e outros profissionais liberais podem contratar, inclusive com CNPJ." },
+      { q: "Posso trazer carências de outro plano?", a: "Sim, com portabilidade de carências conforme as regras da ANS." }
+    ]
+  },
+
+  "santa-casa-saude": {
+    nome: "Santa Casa Saúde SJC",
+    categoria: "Saúde e Benefícios",
+    tag: "Rede própria em SJC",
+    tagline: "Referência em plano de saúde em São José dos Campos e região.",
+    precos: [
+      { rotulo: "Pessoa física e empresas", valor: "R$ 250,84" }
+    ],
+    descricao: "O Plano Santa Casa Saúde SJC é referência em São José dos Campos, Jacareí, Taubaté, Vale do Paraíba e Litoral Norte, com rede própria, hospitais credenciados e excelente custo-benefício. Opções para pessoa física, MEI e empresas, com portabilidade de carências.",
+    publico: "Para idosos, crianças, famílias e empresas que querem rede própria forte em SJC.",
+    coberturas: [
+      { t: "Rede Própria em SJC", d: "Hospital Santa Casa de SJC: alta complexidade, maternidade e pediatria." },
+      { t: "Pessoa Física, MEI e Empresas", d: "Planos para diferentes perfis." },
+      { t: "Portabilidade de Carências", d: "Troque de plano mantendo as carências cumpridas." },
+      { t: "Ideal para Idosos e Crianças", d: "Bom custo-benefício para toda a família." }
+    ],
+    seguradoras: ["Santa Casa Saúde SJC"],
+    faq: [
+      { q: "O plano atende em Jacareí?", a: "Sim. Atende Jacareí, SJC, Taubaté, Vale do Paraíba e Litoral Norte." },
+      { q: "Tem maternidade?", a: "Sim. A Santa Casa de SJC é referência em maternidade e pediatria." },
+      { q: "Posso fazer portabilidade?", a: "Sim, aproveitando as carências já cumpridas no plano anterior." }
+    ]
+  },
+
+  "planos-odontologicos": {
+    nome: "Planos Odontológicos",
+    categoria: "Saúde e Benefícios",
+    tag: "PF e Empresas",
+    tagline: "Saúde bucal com cobertura regional ou nacional.",
+    precos: [
+      { rotulo: "Empresas (PJ)", valor: "R$ 29,90" },
+      { rotulo: "Pessoa física", valor: "R$ 49,30" }
+    ],
+    descricao: "Planos odontológicos para pessoa física, profissionais com CNPJ e empresas a partir de 2 vidas. Cobertura do Rol da ANS com 190 procedimentos, com opções regionais (Jacareí e Guararema) e nacionais.",
+    publico: "Para famílias, profissionais com CNPJ e empresas a partir de 2 vidas.",
+    coberturas: [
+      { t: "Rol da ANS", d: "190 procedimentos cobertos." },
+      { t: "Uniodonto Jacareí", d: "Rede regional em Jacareí e Guararema. PJ a partir de R$ 32,90 e PF a partir de R$ 49,30." },
+      { t: "Porto Odonto, Bradesco Dental e SulAmérica Odonto", d: "Abrangência nacional. PJ a partir de R$ 29,90." },
+      { t: "Coberturas Complementares", d: "Planos que permitem ampliar as coberturas." }
+    ],
+    seguradoras: ["Uniodonto Jacareí", "Porto Odonto", "Bradesco Dental", "SulAmérica Odonto"],
+    faq: [
+      { q: "Quem pode contratar o plano empresarial?", a: "Empresas a partir de 2 vidas ou profissionais que possuem CNPJ." },
+      { q: "A cobertura é nacional?", a: "Porto Odonto, Bradesco Dental e SulAmérica Odonto são nacionais; a Uniodonto atende Jacareí e Guararema." },
+      { q: "Posso incluir minha família?", a: "Sim. Os planos permitem incluir dependentes." }
     ]
   },
 
@@ -288,10 +373,13 @@ window.PRODUTOS = {
     categoria: "Saúde e Benefícios",
     tag: "Para Empresas",
     tagline: "Linha Pró Vale e Tradicional com cobertura nacional.",
-    descricao: "O Porto Saúde é referência em planos empresariais e familiares. Linhas Tradicional e Pró Vale com cobertura nacional, acesso à rede D'Or e hospitais premium em São Paulo. Disponível para empresas de qualquer porte, a partir de 1 funcionário.",
-    publico: "Para empresas que querem assistência médica de qualidade para funcionários, dependentes, sócios e diretores.",
+    precos: [
+      { rotulo: "Empresarial a partir de 3 vidas", valor: "R$ 208,82" }
+    ],
+    descricao: "O Porto Saúde é referência em planos empresariais. O Porto Pró Vale, para empresas a partir de 3 vidas, atende Jacareí, São José dos Campos, Caçapava e Taubaté com seguro de vida e plano odontológico inclusos. As linhas Tradicional, Prata e Bronze dão acesso a hospitais da Rede D'Or, Hospital Vivalle e atendimento nacional em São Paulo.",
+    publico: "Para empresas que sofreram reajuste elevado ou querem melhorar a cobertura de funcionários, dependentes e sócios.",
     coberturas: [
-      { t: "A partir de 1 Funcionário", d: "Disponível para empresas de pequeno, médio e grande porte." },
+      { t: "Empresarial a partir de 3 Vidas", d: "Linha Pró Vale com seguro de vida e odontológico inclusos." },
       { t: "Cobertura Nacional", d: "Atendimento em todo o Brasil com ampla rede credenciada." },
       { t: "Rede D'Or e Hospitais Premium", d: "Acesso a hospitais de referência em São Paulo e Vale do Paraíba." },
       { t: "Dependentes e Agregados", d: "Inclusão de familiares, agregados e estagiários no plano." }
@@ -299,7 +387,7 @@ window.PRODUTOS = {
     seguradoras: ["Porto Saúde"],
     faq: [
       { q: "Linha Pró Vale o que é?", a: "É uma linha regional com rede enxuta e custo otimizado para empresas do Vale do Paraíba — ideal para reduzir o valor por vida." },
-      { q: "MEI pode contratar?", a: "Depende do porte. Existem planos empresariais a partir de 1 vida — validamos a elegibilidade na cotação." },
+      { q: "MEI pode contratar?", a: "Os planos empresariais Porto Saúde são a partir de 3 vidas. Para menos vidas, apresentamos outras operadoras na cotação." },
       { q: "Cobre Spalla e Sírio Libanês?", a: "Sim, conforme a contratada. As linhas premium dão acesso à rede D'Or, Sírio Libanês e outros." }
     ]
   },
@@ -309,7 +397,10 @@ window.PRODUTOS = {
     categoria: "Saúde e Benefícios",
     tag: "Empresarial e Familiar",
     tagline: "Rede credenciada de referência nacional.",
-    descricao: "A SulAmérica Saúde é referência nacional pela qualidade da rede credenciada e acesso a hospitais premium. Planos empresariais e familiares com cobertura nacional, migração e upgrade assistido pela equipe da Vida de Ouro.",
+    precos: [
+      { rotulo: "Empresarial a partir de 3 vidas", valor: "R$ 324,10" }
+    ],
+    descricao: "A SulAmérica Saúde oferece planos empresariais para MEI e empresas em Jacareí, São José dos Campos, Taubaté e Vale do Paraíba, com ampla rede credenciada e atendimento nacional — incluindo Hospital Vivalle, Hospital Antônio Afonso, clínicas e consultórios. Ideal para reduzir custos, dar upgrade de cobertura ou trocar de plano após reajuste elevado.",
     publico: "Para empresas e famílias que buscam flexibilidade, ampla rede e hospitais premium.",
     coberturas: [
       { t: "Rede D'Or Inclusa", d: "Acesso à maior rede privada de hospitais do Brasil." },
@@ -321,7 +412,7 @@ window.PRODUTOS = {
     faq: [
       { q: "Cobre região do Vale?", a: "Sim. A rede credenciada cobre o Vale do Paraíba, Litoral Norte e principais cidades de SP." },
       { q: "Tem rede Sírio/Alemão?", a: "Depende da rede contratada. As redes premium dão acesso a esses hospitais." },
-      { q: "Empresa com 2 vidas contrata?", a: "Sim. Existem planos empresariais a partir de poucas vidas — verificamos a elegibilidade." }
+      { q: "A partir de quantas vidas?", a: "Os planos empresariais SulAmérica são a partir de 3 vidas. Verificamos a elegibilidade na cotação." }
     ]
   },
 
@@ -330,7 +421,10 @@ window.PRODUTOS = {
     categoria: "Saúde e Benefícios",
     tag: "Empresarial e Familiar",
     tagline: "Rede ampla e flexível para todos os portes.",
-    descricao: "O Bradesco Saúde oferece planos empresariais e familiares com rede ampla e flexível, abrangência nacional e hospitais de referência. A Vida de Ouro faz a análise do perfil para encontrar a melhor linha para a sua empresa ou família.",
+    precos: [
+      { rotulo: "Empresarial a partir de 3 vidas", valor: "R$ 495,93" }
+    ],
+    descricao: "O Bradesco Saúde oferece plano de saúde empresarial com cobertura nacional, ampla rede credenciada e serviços diferenciados. Tradição, solidez e diversas opções de planos em Jacareí, São José dos Campos, Taubaté e Vale do Paraíba — ideal para empresas que precisam reduzir custo sem perder qualidade.",
     publico: "Para empresas de pequeno, médio e grande porte e famílias que buscam flexibilidade de rede.",
     coberturas: [
       { t: "Rede Ampla", d: "Acesso a hospitais e clínicas em todo o Brasil." },
@@ -351,7 +445,10 @@ window.PRODUTOS = {
     categoria: "Saúde e Benefícios",
     tag: "Individual e Empresarial",
     tagline: "Rede ampla com hospitais de referência.",
-    descricao: "A Amil é uma das operadoras mais tradicionais do país, com rede ampla e hospitais de referência. A Vida de Ouro apresenta as linhas Amil para empresas e famílias, com análise personalizada para encontrar a melhor condição de custo-benefício.",
+    precos: [
+      { rotulo: "Empresarial a partir de 2 vidas", valor: "R$ 363,03" }
+    ],
+    descricao: "A Amil oferece planos de saúde empresariais a partir de 2 vidas em Jacareí, São José dos Campos, Taubaté, Vale do Paraíba e Litoral Norte, com atendimento nacional, rede credenciada ampla e hospitais de ponta em São Paulo. Ideal para empresas que buscam reduzir custos, melhorar a cobertura ou dar upgrade no plano.",
     publico: "Para empresas e famílias que querem rede ampla e qualidade consolidada no mercado.",
     coberturas: [
       { t: "Rede Ampla", d: "Amplo credenciamento em SP e Brasil." },
@@ -372,7 +469,10 @@ window.PRODUTOS = {
     categoria: "Saúde e Benefícios",
     tag: "Cooperativa Regional",
     tagline: "Referência em saúde no Vale do Paraíba.",
-    descricao: "A Unimed SJC é referência em saúde cooperativa no Vale do Paraíba, com rede credenciada ampla na região. Planos individuais, familiares e empresariais com atendimento próximo e qualidade reconhecida. A Vida de Ouro faz a cotação comparativa e suporte no pós-venda.",
+    precos: [
+      { rotulo: "Pessoa física", valor: "R$ 154,90" }
+    ],
+    descricao: "A Unimed São José dos Campos oferece planos com atendimento em Jacareí, São José dos Campos, Campos do Jordão e Litoral Norte. Rede credenciada ampla, Hospital Santos Dumont, pronto atendimento próprio e excelente custo-benefício. Planos para pessoa física, profissionais liberais e empresas a partir de 1 vida.",
     publico: "Para quem prioriza rede credenciada local no Vale do Paraíba.",
     coberturas: [
       { t: "Rede Regional Amplia", d: "Amplo credenciamento de médicos, clínicas e hospitais no Vale." },
@@ -404,7 +504,11 @@ window.PRODUTOS = {
     seguradoras: ["Rodobens", "Porto", "Caixa Seguradora", "Brasilprev", "BTG Pactual"],
     faq: [
       { q: "Consórcio tem juros?", a: "Não. O consórcio cobra taxa administrativa, diluída nas parcelas — sem juros como no financiamento." },
-      { q: "Posso antecipar parcelas?", a: "Sim, e a antecipação aumenta suas chances de contemplação por lance livre." },
+      { q: "Posso antecipar parcelas?", a: "Sim. A antecipação reduz o prazo e aumenta suas chances de contemplação por lance livre." },
+      { q: "Existe lance?", a: "Sim, lance livre ou fixo, conforme o grupo." },
+      { q: "Posso usar o FGTS?", a: "Sim, no consórcio de imóvel, conforme as regras da Caixa." },
+      { q: "Posso transferir minha cota?", a: "Sim, a transferência de cota é permitida." },
+      { q: "Consórcio é seguro?", a: "Sim. É regulamentado e fiscalizado pelo Banco Central." },
       { q: "Cota contemplada pode ser usada para reforma?", a: "Depende do tipo de consórcio. O imobiliário permite destinar parte para construção ou reforma — verifique nas condições." }
     ]
   },
@@ -447,7 +551,10 @@ window.PRODUTOS = {
     seguradoras: ["Atendimento presencial Jacareí e online para todo o Brasil"],
     faq: [
       { q: "Qual a diferença A1 x A3?", a: "O A1 tem validade de 1 ano e fica instalado no computador. O A3 tem validade de 1 a 3 anos e é armazenado em token/cartão, mais seguro e portável." },
-      { q: "Emissao online é segura?", a: "Sim. A emissão online é feita com validação biométrica via gov.br, 100% segura e oficial." },
+      { q: "Onde emitir?", a: "Presencialmente em Jacareí ou online, por videoconferência, para todo o Brasil." },
+      { q: "Emissão online é segura?", a: "Sim. A emissão online é feita com validação biométrica via gov.br, 100% segura e oficial." },
+      { q: "Serve para assinar contratos?", a: "Sim. O certificado digital serve para assinatura digital de contratos e documentos." },
+      { q: "Precisa instalar?", a: "Sim, e auxiliamos em toda a instalação." },
       { q: "Renovo na Vida de Ouro?", a: "Sim. Cuidamos da renovação antes do vencimento, mantendo a validade do certificado sem interrupções." }
     ]
   }

@@ -4,11 +4,6 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
-function corretorClause(req, alias) {
-  if (req.user.role === 'admin') return '';
-  return ` WHERE ${alias}.corretor_id = ` + Number(req.user.id);
-}
-
 router.get('/', auth, (req, res) => {
   const isAdmin = req.user.role === 'admin';
   const cond = (alias) => (isAdmin ? '' : ` WHERE ${alias}.corretor_id = ` + Number(req.user.id));
@@ -89,11 +84,11 @@ router.get('/', auth, (req, res) => {
       AND datetime(g.data_hora) < datetime('now') ${agAtrasadosWhere}
   `).get().n;
 
-  // Leads sem corretor atribuído (fila de captação)
-  const naoAtribWhere = isAdmin ? '' : `AND l.corretor_id = ${Number(req.user.id)}`;
-  const leadsNaoAtribuidos = isAdmin
-    ? db.prepare(`SELECT COUNT(*) AS n FROM leads l WHERE l.corretor_id IS NULL ${naoAtribWhere}`).get().n
-    : 0;
+  // Leads sem corretor atribuído (fila de captação). A fila é compartilhada:
+  // qualquer corretor pode assumir, então o contador vale para todos os papéis.
+  const leadsNaoAtribuidos = db
+    .prepare('SELECT COUNT(*) AS n FROM leads l WHERE l.corretor_id IS NULL')
+    .get().n;
 
   // Follow-ups de leads previstos para hoje ou atrasados (funil ainda aberto)
   const followWhere = isAdmin ? '' : `AND l.corretor_id = ${Number(req.user.id)}`;

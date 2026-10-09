@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" rx="8" fill="white"/>
+  <!-- Heart -->
+  <path d="M28,22 C28,15 20,10 14,15 C8,10 0,15 0,22 C0,30 14,42 14,42 C14,42 28,30 28,22 Z" transform="translate(10,10)" fill="#E31E24"/>
+  <!-- São Francisco text -->
+  <text x="55" y="28" font-family="Arial,sans-serif" font-size="9" fill="#00AEEF">São Francisco</text>
+  <!-- VIDA text -->
+  <text x="50" y="56" font-family="Georgia,serif" font-size="30" font-weight="bold" fill="#00AEEF">VIDA</text>
+</svg>

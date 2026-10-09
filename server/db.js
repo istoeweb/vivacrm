@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   conteudo TEXT NOT NULL,
   categoria TEXT,
   imagem_url TEXT,
+  palavras_chave TEXT,
   status TEXT NOT NULL DEFAULT 'rascunho' CHECK(status IN ('rascunho','publicado')),
   autor_id INTEGER,
   publicado_em TEXT,
@@ -108,7 +109,42 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   atualizado_em TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (autor_id) REFERENCES usuarios(id) ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT EXISTS site_conteudo (
+  chave TEXT PRIMARY KEY,
+  valor TEXT NOT NULL DEFAULT '',
+  atualizado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `);
+
+/*
+ * Conteúdo editável do site (CMS-lite). Semeia os valores padrão atuais do site
+ * apenas se ainda não existirem, para não sobrescrever edições feitas no painel.
+ */
+const SITE_CONTENT_DEFAULTS = {
+  'contato.whatsapp': '5512976002718',
+  'contato.telefone': '(12) 97600-2718',
+  'contato.telefone_fixo': '(12) 3351-3875',
+  'contato.email': 'jacarei@vidadeouro.com.br',
+  'contato.endereco': 'Rua Dr. Pompílio Mercadante, 398, Sala 2010 – Boulevard Office Mall, Jacareí – SP',
+  'social.instagram': '',
+  'social.facebook': '',
+};
+{
+  const insertContent = db.prepare('INSERT OR IGNORE INTO site_conteudo (chave, valor) VALUES (?, ?)');
+  for (const [chave, valor] of Object.entries(SITE_CONTENT_DEFAULTS)) insertContent.run(chave, valor);
+
+  // Migração única: bancos semeados antes de termos e-mail e endereço completo
+  // recebem os dados atuais, sem sobrescrever o que já foi editado no painel.
+  // A marca '_migr.contato_v1' impede que rode de novo (chaves com '_' não são públicas).
+  const done = db.prepare("SELECT 1 FROM site_conteudo WHERE chave = '_migr.contato_v1'").get();
+  if (!done) {
+    const upd = db.prepare('UPDATE site_conteudo SET valor = ? WHERE chave = ? AND valor = ?');
+    upd.run(SITE_CONTENT_DEFAULTS['contato.email'], 'contato.email', '');
+    upd.run(SITE_CONTENT_DEFAULTS['contato.endereco'], 'contato.endereco', 'Jacareí – SP · Vale do Paraíba');
+    db.prepare("INSERT INTO site_conteudo (chave, valor) VALUES ('_migr.contato_v1', '1')").run();
+  }
+}
 
 /*
  * Migração: bancos criados antes da revisão do funil de leads têm a coluna
@@ -163,8 +199,23 @@ db.exec(`
 CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
 CREATE INDEX IF NOT EXISTS idx_leads_corretor ON leads(corretor_id);
 CREATE INDEX IF NOT EXISTS idx_leads_proximo ON leads(proximo_retorno);
+CREATE INDEX IF NOT EXISTS idx_leads_criado ON leads(criado_em);
+CREATE INDEX IF NOT EXISTS idx_clientes_corretor ON clientes(corretor_id);
+CREATE INDEX IF NOT EXISTS idx_clientes_criado ON clientes(criado_em);
 CREATE INDEX IF NOT EXISTS idx_apolices_vigencia ON apolices(vigencia_fim);
+CREATE INDEX IF NOT EXISTS idx_apolices_corretor ON apolices(corretor_id);
+CREATE INDEX IF NOT EXISTS idx_apolices_cliente ON apolices(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_apolices_status ON apolices(status);
+CREATE INDEX IF NOT EXISTS idx_apolices_criado ON apolices(criado_em);
+CREATE INDEX IF NOT EXISTS idx_sinistros_corretor ON sinistros(corretor_id);
+CREATE INDEX IF NOT EXISTS idx_sinistros_cliente ON sinistros(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_sinistros_apolice ON sinistros(apolice_id);
+CREATE INDEX IF NOT EXISTS idx_sinistros_criado ON sinistros(criado_em);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_data ON agendamentos(data_hora);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_corretor ON agendamentos(corretor_id);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_cliente ON agendamentos(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_lead ON agendamentos(lead_id);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_status ON agendamentos(status);
 CREATE INDEX IF NOT EXISTS idx_blog_status_data ON blog_posts(status, publicado_em);
 CREATE INDEX IF NOT EXISTS idx_blog_categoria ON blog_posts(categoria);
 `);
@@ -210,6 +261,16 @@ if (premioCol && premioCol.type.toUpperCase() !== 'REAL') {
   db.exec('PRAGMA foreign_keys = ON;');
   db.exec('CREATE INDEX IF NOT EXISTS idx_apolices_vigencia ON apolices(vigencia_fim);');
   console.log('Migração de apólices aplicada (premio TEXT -> REAL).');
+}
+
+/*
+ * Migração: bancos criados antes do recurso de SEO não têm a coluna
+ * `palavras_chave` em blog_posts. Adiciona-a de forma idempotente.
+ */
+const blogCols = db.prepare('PRAGMA table_info(blog_posts)').all().map((c) => c.name);
+if (!blogCols.includes('palavras_chave')) {
+  db.exec('ALTER TABLE blog_posts ADD COLUMN palavras_chave TEXT;');
+  console.log('Migração de blog aplicada (coluna palavras_chave).');
 }
 
 module.exports = db;

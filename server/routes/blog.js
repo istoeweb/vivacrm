@@ -16,11 +16,20 @@ function slugify(value) {
 function clean(body, existing = {}) {
   const titulo = String(body.titulo ?? existing.titulo ?? '').trim().slice(0, 180);
   const conteudo = String(body.conteudo ?? existing.conteudo ?? '').trim().slice(0, 100000);
-  const slug = slugify(body.slug || titulo || existing.slug);
+  const slug = slugify(body.slug || existing.slug || titulo);
   const status = body.status === 'publicado' ? 'publicado' : 'rascunho';
   if (!titulo || !conteudo || !slug) return { error: 'Título e conteúdo são obrigatórios' };
+  const rawKeywords = body.palavras_chave ?? existing.palavras_chave ?? '';
+  const palavras_chave = String(rawKeywords)
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean)
+    .filter((k, i, arr) => arr.findIndex((o) => o.toLowerCase() === k.toLowerCase()) === i)
+    .slice(0, 15)
+    .join(', ')
+    .slice(0, 300) || null;
   return {
-    titulo, conteudo, slug, status,
+    titulo, conteudo, slug, status, palavras_chave,
     resumo: String(body.resumo ?? existing.resumo ?? '').trim().slice(0, 500) || null,
     categoria: String(body.categoria ?? existing.categoria ?? '').trim().slice(0, 80) || null,
     imagem_url: String(body.imagem_url ?? existing.imagem_url ?? '').trim().slice(0, 500) || null,
@@ -65,8 +74,8 @@ router.post('/admin', ...adminOnly, (req, res) => {
   if (p.error) return res.status(400).json({ error: p.error });
   try {
     const published = p.status === 'publicado' ? new Date().toISOString() : null;
-    const info = db.prepare(`INSERT INTO blog_posts (titulo,slug,resumo,conteudo,categoria,imagem_url,status,autor_id,publicado_em) VALUES (?,?,?,?,?,?,?,?,?)`)
-      .run(p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.status,req.user.id,published);
+    const info = db.prepare(`INSERT INTO blog_posts (titulo,slug,resumo,conteudo,categoria,imagem_url,palavras_chave,status,autor_id,publicado_em) VALUES (?,?,?,?,?,?,?,?,?,?)`)
+      .run(p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.palavras_chave,p.status,req.user.id,published);
     res.status(201).json({ id: info.lastInsertRowid, ok: true });
   } catch (e) {
     if (String(e.message).includes('UNIQUE')) return res.status(409).json({ error: 'Já existe um artigo com esse endereço' });
@@ -81,8 +90,8 @@ router.put('/admin/:id', ...adminOnly, (req, res) => {
   if (p.error) return res.status(400).json({ error: p.error });
   const published = p.status === 'publicado' ? (old.publicado_em || new Date().toISOString()) : null;
   try {
-    db.prepare(`UPDATE blog_posts SET titulo=?,slug=?,resumo=?,conteudo=?,categoria=?,imagem_url=?,status=?,publicado_em=?,atualizado_em=datetime('now') WHERE id=?`)
-      .run(p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.status,published,req.params.id);
+    db.prepare(`UPDATE blog_posts SET titulo=?,slug=?,resumo=?,conteudo=?,categoria=?,imagem_url=?,palavras_chave=?,status=?,publicado_em=?,atualizado_em=datetime('now') WHERE id=?`)
+      .run(p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.palavras_chave,p.status,published,req.params.id);
     res.json({ ok: true });
   } catch (e) {
     if (String(e.message).includes('UNIQUE')) return res.status(409).json({ error: 'Já existe um artigo com esse endereço' });
