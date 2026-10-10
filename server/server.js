@@ -10,6 +10,7 @@ const fs = require('fs');
 require('./db'); // garante criação das tabelas
 
 const { errorHandler, notFound } = require('./utils');
+const articlePage = require('./article-page');
 
 const authRoutes = require('./routes/auth');
 const leadsRoutes = require('./routes/leads');
@@ -116,6 +117,7 @@ const publicPages = new Set([
   'artigo.html',
 ]);
 app.get('/', (_req, res) => res.sendFile(path.join(siteDir, 'index.html')));
+app.get('/artigo.html', articlePage(siteDir));
 app.get('/:page', (req, res, next) => {
   if (!publicPages.has(req.params.page)) return next();
   res.sendFile(path.join(siteDir, req.params.page));

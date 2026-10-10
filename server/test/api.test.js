@@ -283,3 +283,28 @@ test('site: conteúdo público, RBAC de edição e atualização em lote', async
   const pub2 = await api('GET', '/api/site/content');
   assert.equal(pub2.data['contato.whatsapp'], '5512999998888');
 });
+
+test('artigo.html já vem com título e tags de prévia (Open Graph) do artigo', async () => {
+  const created = await api('POST', '/api/blog/admin', { token: adminToken, body: {
+    titulo: 'Seguro "auto" <barato>', conteudo: 'Texto.', resumo: 'Resumo & dicas', status: 'publicado',
+    imagem_url: 'assets/img/blog/foto.jpg',
+  }});
+  assert.equal(created.status, 201);
+
+  const page = await fetch(`${base}/artigo.html?slug=seguro-auto-barato`);
+  const html = await page.text();
+  assert.equal(page.status, 200);
+  assert.match(html, /<title>Seguro &quot;auto&quot; &lt;barato&gt; \| Vida de Ouro Jacareí<\/title>/);
+  assert.match(html, /<meta property="og:title" content="Seguro &quot;auto&quot; &lt;barato&gt;">/);
+  assert.match(html, /<meta property="og:description" content="Resumo &amp; dicas">/);
+  assert.match(html, new RegExp(`<meta property="og:image" content="${base}/assets/img/blog/foto.jpg">`));
+  assert.match(html, /"@type":"BlogPosting"/);
+  assert.doesNotMatch(html, /<barato>/);
+
+  // Slug inexistente ou rascunho: página padrão, sem tags do artigo
+  const fallback = await (await fetch(`${base}/artigo.html?slug=nao-existe`)).text();
+  assert.match(fallback, /<title>Artigo \| Vida de Ouro Jacareí<\/title>/);
+  assert.doesNotMatch(fallback, /og:title/);
+
+  await api('DELETE', `/api/blog/admin/${created.data.id}`, { token: adminToken });
+});
