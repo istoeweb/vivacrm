@@ -15,6 +15,17 @@ function asyncHandler(fn) {
   };
 }
 
+// express.Router cujos handlers podem ser async: erros/rejeições vão para next(),
+// como o Express 4 faz sozinho apenas com handlers síncronos.
+function asyncRouter() {
+  const router = require('express').Router();
+  for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
+    const original = router[method].bind(router);
+    router[method] = (path, ...handlers) => original(path, ...handlers.flat().map(asyncHandler));
+  }
+  return router;
+}
+
 // Middleware final de tratamento de erros.
 function errorHandler(err, req, res, _next) {
   const status = err.status || 500;
@@ -97,6 +108,7 @@ function parsePremio(v) {
 module.exports = {
   ApiError,
   asyncHandler,
+  asyncRouter,
   errorHandler,
   notFound,
   isValidEmail,

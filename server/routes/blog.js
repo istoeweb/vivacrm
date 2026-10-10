@@ -1,11 +1,13 @@
-const express = require('express');
 const db = require('../db');
-const fs = require('fs');
-const path = require('path');
+const { asyncRouter } = require('../utils');
+const { saveBlogImage } = require('../storage');
 const crypto = require('crypto');
+
+// SQLite: 'UNIQUE constraint failed'; Postgres: código 23505.
+const isUniqueViolation = (e) => e.code === '23505' || String(e.message).includes('UNIQUE');
 const { auth, requireRole } = require('../middleware/auth');
 
-const router = express.Router();
+const router = asyncRouter();
 const adminOnly = [auth, requireRole('admin')];
 
 function slugify(value) {
@@ -36,17 +38,17 @@ function clean(body, existing = {}) {
   };
 }
 
-router.get('/admin', ...adminOnly, (_req, res) => {
-  res.json(db.prepare(`SELECT p.*, u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id ORDER BY p.criado_em DESC`).all());
+router.get('/admin', ...adminOnly, async (_req, res) => {
+  res.json(await db.all(`SELECT p.*, u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id ORDER BY p.criado_em DESC`));
 });
 
-router.get('/admin/:id', ...adminOnly, (req, res) => {
-  const row = db.prepare('SELECT * FROM blog_posts WHERE id=?').get(req.params.id);
+router.get('/admin/:id', ...adminOnly, async (req, res) => {
+  const row = await db.get('SELECT * FROM blog_posts WHERE id=?', req.params.id);
   if (!row) return res.status(404).json({ error: 'Artigo não encontrado' });
   res.json(row);
 });
 
-router.post('/admin/upload', ...adminOnly, (req, res) => {
+router.post('/admin/upload', ...adminOnly, async (req, res) => {
   const { data, type } = req.body || {};
   const allowed = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
   const ext = allowed[type];
@@ -60,61 +62,55 @@ router.post('/admin/upload', ...adminOnly, (req, res) => {
     webp: buffer.subarray(0, 4).toString() === 'RIFF' && buffer.subarray(8, 12).toString() === 'WEBP',
   };
   if (!signatures[ext]) return res.status(400).json({ error: 'O conteúdo do arquivo não corresponde ao formato informado' });
-  const dir = process.env.BLOG_UPLOAD_DIR
-    ? path.resolve(process.env.BLOG_UPLOAD_DIR)
-    : path.join(__dirname, '..', '..', 'assets', 'img', 'blog');
-  fs.mkdirSync(dir, { recursive: true });
   const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`;
-  fs.writeFileSync(path.join(dir, filename), buffer, { flag: 'wx' });
-  res.status(201).json({ ok: true, url: `assets/img/blog/${filename}` });
+  const url = await saveBlogImage(filename, buffer, type);
+  res.status(201).json({ ok: true, url });
 });
 
-router.post('/admin', ...adminOnly, (req, res) => {
+router.post('/admin', ...adminOnly, async (req, res) => {
   const p = clean(req.body || {});
   if (p.error) return res.status(400).json({ error: p.error });
   try {
     const published = p.status === 'publicado' ? new Date().toISOString() : null;
-    const info = db.prepare(`INSERT INTO blog_posts (titulo,slug,resumo,conteudo,categoria,imagem_url,palavras_chave,status,autor_id,publicado_em) VALUES (?,?,?,?,?,?,?,?,?,?)`)
-      .run(p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.palavras_chave,p.status,req.user.id,published);
+    const info = await db.insert(`INSERT INTO blog_posts (titulo,slug,resumo,conteudo,categoria,imagem_url,palavras_chave,status,autor_id,publicado_em) VALUES (?,?,?,?,?,?,?,?,?,?)`, p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.palavras_chave,p.status,req.user.id,published);
     res.status(201).json({ id: info.lastInsertRowid, ok: true });
   } catch (e) {
-    if (String(e.message).includes('UNIQUE')) return res.status(409).json({ error: 'Já existe um artigo com esse endereço' });
+    if (isUniqueViolation(e)) return res.status(409).json({ error: 'Já existe um artigo com esse endereço' });
     throw e;
   }
 });
 
-router.put('/admin/:id', ...adminOnly, (req, res) => {
-  const old = db.prepare('SELECT * FROM blog_posts WHERE id=?').get(req.params.id);
+router.put('/admin/:id', ...adminOnly, async (req, res) => {
+  const old = await db.get('SELECT * FROM blog_posts WHERE id=?', req.params.id);
   if (!old) return res.status(404).json({ error: 'Artigo não encontrado' });
   const p = clean(req.body || {}, old);
   if (p.error) return res.status(400).json({ error: p.error });
   const published = p.status === 'publicado' ? (old.publicado_em || new Date().toISOString()) : null;
   try {
-    db.prepare(`UPDATE blog_posts SET titulo=?,slug=?,resumo=?,conteudo=?,categoria=?,imagem_url=?,palavras_chave=?,status=?,publicado_em=?,atualizado_em=datetime('now') WHERE id=?`)
-      .run(p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.palavras_chave,p.status,published,req.params.id);
+    await db.run(`UPDATE blog_posts SET titulo=?,slug=?,resumo=?,conteudo=?,categoria=?,imagem_url=?,palavras_chave=?,status=?,publicado_em=?,atualizado_em=? WHERE id=?`, p.titulo,p.slug,p.resumo,p.conteudo,p.categoria,p.imagem_url,p.palavras_chave,p.status,published,db.now(),req.params.id);
     res.json({ ok: true });
   } catch (e) {
-    if (String(e.message).includes('UNIQUE')) return res.status(409).json({ error: 'Já existe um artigo com esse endereço' });
+    if (isUniqueViolation(e)) return res.status(409).json({ error: 'Já existe um artigo com esse endereço' });
     throw e;
   }
 });
 
-router.delete('/admin/:id', ...adminOnly, (req, res) => {
-  const info = db.prepare('DELETE FROM blog_posts WHERE id=?').run(req.params.id);
+router.delete('/admin/:id', ...adminOnly, async (req, res) => {
+  const info = await db.run('DELETE FROM blog_posts WHERE id=?', req.params.id);
   if (!info.changes) return res.status(404).json({ error: 'Artigo não encontrado' });
   res.json({ ok: true });
 });
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const category = String(req.query.categoria || '').trim();
   const rows = category
-    ? db.prepare(`SELECT p.id,p.titulo,p.slug,p.resumo,p.categoria,p.imagem_url,p.publicado_em,u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id WHERE p.status='publicado' AND p.categoria=? ORDER BY p.publicado_em DESC`).all(category)
-    : db.prepare(`SELECT p.id,p.titulo,p.slug,p.resumo,p.categoria,p.imagem_url,p.publicado_em,u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id WHERE p.status='publicado' ORDER BY p.publicado_em DESC`).all();
+    ? await db.all(`SELECT p.id,p.titulo,p.slug,p.resumo,p.categoria,p.imagem_url,p.publicado_em,u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id WHERE p.status='publicado' AND p.categoria=? ORDER BY p.publicado_em DESC`, category)
+    : await db.all(`SELECT p.id,p.titulo,p.slug,p.resumo,p.categoria,p.imagem_url,p.publicado_em,u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id WHERE p.status='publicado' ORDER BY p.publicado_em DESC`);
   res.json(rows);
 });
 
-router.get('/:slug', (req, res) => {
-  const row = db.prepare(`SELECT p.*,u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id WHERE p.slug=? AND p.status='publicado'`).get(req.params.slug);
+router.get('/:slug', async (req, res) => {
+  const row = await db.get(`SELECT p.*,u.nome autor_nome FROM blog_posts p LEFT JOIN usuarios u ON u.id=p.autor_id WHERE p.slug=? AND p.status='publicado'`, req.params.slug);
   if (!row) return res.status(404).json({ error: 'Artigo não encontrado' });
   res.json(row);
 });

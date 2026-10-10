@@ -1,9 +1,9 @@
 const express = require('express');
 const db = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
-const { isValidEmail, isValidPhone, isValidLeadStatus, getPagination, wantsPagination } = require('../utils');
+const { asyncRouter, isValidEmail, isValidPhone, isValidLeadStatus, getPagination, wantsPagination } = require('../utils');
 
-const router = express.Router();
+const router = asyncRouter();
 
 // Corretor enxerga os próprios leads + a fila de captação (leads sem dono),
 // que é justamente o que ele pode assumir via POST /:id/assumir.
@@ -13,17 +13,16 @@ function visibleWhere(req) {
 }
 
 // POST público — usado pelo formulário do site (sem auth)
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { nome, telefone, email, cidade, produto, mensagem, origem } = req.body || {};
   if (!nome || !telefone) return res.status(400).json({ error: 'Nome e telefone obrigatórios' });
   if (!isValidPhone(telefone)) return res.status(400).json({ error: 'Telefone inválido (informe DDD + número)' });
   if (email && !isValidEmail(email)) return res.status(400).json({ error: 'E-mail inválido' });
 
-  const stmt = db.prepare(`
+  const info = await db.insert(`
     INSERT INTO leads (nome, telefone, email, cidade, produto, mensagem, origem, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, 'novo')
-  `);
-  const info = stmt.run(
+  `,
     String(nome).trim().slice(0, 120),
     String(telefone).trim().slice(0, 40),
     (email || '').trim().slice(0, 120) || null,
@@ -36,35 +35,35 @@ router.post('/', (req, res) => {
 });
 
 // Listar leads (auth) — admin vê todos, corretor vê só os seus
-router.get('/', auth, (req, res) => {
+router.get('/', auth, async (req, res) => {
   const where = visibleWhere(req);
   if (wantsPagination(req)) {
     const { limit, page, offset } = getPagination(req);
-    const total = db.prepare(`SELECT COUNT(*) AS n FROM leads l ${where}`).get().n;
-    const rows = db.prepare(`
+    const total = (await db.get(`SELECT COUNT(*) AS n FROM leads l ${where}`)).n;
+    const rows = await db.all(`
       SELECT l.*, u.nome AS corretor_nome
       FROM leads l LEFT JOIN usuarios u ON u.id = l.corretor_id
       ${where}
       ORDER BY l.criado_em DESC
       LIMIT ? OFFSET ?
-    `).all(limit, offset);
+    `, limit, offset);
     return res.json({ data: rows, total, page, limit });
   }
-  const rows = db.prepare(`
+  const rows = await db.all(`
     SELECT l.*, u.nome AS corretor_nome
     FROM leads l LEFT JOIN usuarios u ON u.id = l.corretor_id
     ${where}
     ORDER BY l.criado_em DESC
-  `).all();
+  `);
   res.json(rows);
 });
 
-router.get('/:id', auth, (req, res) => {
-  const row = db.prepare(`
+router.get('/:id', auth, async (req, res) => {
+  const row = await db.get(`
     SELECT l.*, u.nome AS corretor_nome
     FROM leads l LEFT JOIN usuarios u ON u.id = l.corretor_id
     WHERE l.id = ?
-  `).get(req.params.id);
+  `, req.params.id);
   if (!row) return res.status(404).json({ error: 'Lead não encontrado' });
   // Leads sem dono ficam visíveis a qualquer corretor (fila de captação).
   if (req.user.role !== 'admin' && row.corretor_id !== null && row.corretor_id !== req.user.id) {
@@ -73,8 +72,8 @@ router.get('/:id', auth, (req, res) => {
   res.json(row);
 });
 
-router.put('/:id', auth, (req, res) => {
-  const existing = db.prepare('SELECT * FROM leads WHERE id = ?').get(req.params.id);
+router.put('/:id', auth, async (req, res) => {
+  const existing = await db.get('SELECT * FROM leads WHERE id = ?', req.params.id);
   if (!existing) return res.status(404).json({ error: 'Lead não encontrado' });
   if (req.user.role !== 'admin' && existing.corretor_id !== req.user.id && existing.corretor_id !== null) {
     return res.status(403).json({ error: 'Acesso negado' });
@@ -111,32 +110,31 @@ router.put('/:id', auth, (req, res) => {
     return res.status(403).json({ error: 'Não é possível reatribuir lead' });
   }
 
-  db.prepare(`
+  await db.run(`
     UPDATE leads SET
       nome=?, telefone=?, email=?, cidade=?, produto=?, mensagem=?,
-      status=?, corretor_id=?, ultimo_contato=?, proximo_retorno=?, atualizado_em=datetime('now')
+      status=?, corretor_id=?, ultimo_contato=?, proximo_retorno=?, atualizado_em=?
     WHERE id=?
-  `).run(next.nome, next.telefone, next.email, next.cidade, next.produto, next.mensagem,
-         next.status, next.corretor_id, next.ultimo_contato, next.proximo_retorno, req.params.id);
+  `, next.nome, next.telefone, next.email, next.cidade, next.produto, next.mensagem,
+         next.status, next.corretor_id, next.ultimo_contato, next.proximo_retorno, db.now(), req.params.id);
 
   res.json({ ok: true });
 });
 
-router.delete('/:id', auth, requireRole('admin'), (req, res) => {
-  const info = db.prepare('DELETE FROM leads WHERE id = ?').run(req.params.id);
+router.delete('/:id', auth, requireRole('admin'), async (req, res) => {
+  const info = await db.run('DELETE FROM leads WHERE id = ?', req.params.id);
   if (info.changes === 0) return res.status(404).json({ error: 'Lead não encontrado' });
   res.json({ ok: true });
 });
 
 // Corretor assume um lead sem dono (ou admin atribui a si). Idempotente para o próprio dono.
-router.post('/:id/assumir', auth, (req, res) => {
-  const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(req.params.id);
+router.post('/:id/assumir', auth, async (req, res) => {
+  const lead = await db.get('SELECT * FROM leads WHERE id = ?', req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead não encontrado' });
   if (lead.corretor_id && lead.corretor_id !== req.user.id) {
     return res.status(409).json({ error: 'Lead já atribuído a outro corretor' });
   }
-  db.prepare("UPDATE leads SET corretor_id = ?, atualizado_em = datetime('now') WHERE id = ?")
-    .run(req.user.id, req.params.id);
+  await db.run("UPDATE leads SET corretor_id = ?, atualizado_em = ? WHERE id = ?", req.user.id, db.now(), req.params.id);
   res.json({ ok: true, corretor_id: req.user.id });
 });
 

@@ -1,52 +1,58 @@
-const express = require('express');
 const db = require('../db');
+const { asyncRouter } = require('../utils');
 const { auth } = require('../middleware/auth');
 
-const router = express.Router();
+const router = asyncRouter();
 
-router.get('/', auth, (req, res) => {
+router.get('/', auth, async (req, res) => {
   const isAdmin = req.user.role === 'admin';
   const cond = (alias) => (isAdmin ? '' : ` WHERE ${alias}.corretor_id = ` + Number(req.user.id));
 
-  const leadsTotal = db.prepare(`SELECT COUNT(*) AS n FROM leads ${cond('l')}`).get().n;
-  const leadsPorStatus = db.prepare(`
-    SELECT status, COUNT(*) AS n FROM leads
+  // Limites de data calculados aqui (UTC, como o datetime('now') do SQLite) para o SQL
+  // funcionar igual no SQLite e no Postgres. Datas são texto: 'YYYY-MM-DD' ou
+  // 'YYYY-MM-DD HH:MM' (o CRM às vezes grava com 'T', normalizado com replace()).
+  const isoAt = (days) => new Date(Date.now() + days * 86400000).toISOString().slice(0, 19).replace('T', ' ');
+  const today = isoAt(0).slice(0, 10);
+
+  const leadsTotal = (await db.get(`SELECT COUNT(*) AS n FROM leads l ${cond('l')}`)).n;
+  const leadsPorStatus = await db.all(`
+    SELECT status, COUNT(*) AS n FROM leads l
     ${cond('l')}
     GROUP BY status
-  `).all();
+  `);
 
-  const clientesTotal = db.prepare(`SELECT COUNT(*) AS n FROM clientes ${cond('c')}`).get().n;
+  const clientesTotal = (await db.get(`SELECT COUNT(*) AS n FROM clientes c ${cond('c')}`)).n;
 
-  const apolicesTotal = db.prepare(`SELECT COUNT(*) AS n FROM apolices ${cond('a')}`).get().n;
-  const apolicesStatus = db.prepare(`
-    SELECT status, COUNT(*) AS n FROM apolices
+  const apolicesTotal = (await db.get(`SELECT COUNT(*) AS n FROM apolices a ${cond('a')}`)).n;
+  const apolicesStatus = await db.all(`
+    SELECT status, COUNT(*) AS n FROM apolices a
     ${cond('a')}
     GROUP BY status
-  `).all();
+  `);
 
   // Apólices vencendo nos próximos 30 dias
-  const vencendo = db.prepare(`
+  const vencendo = await db.all(`
     SELECT a.id, a.numero, a.vigencia_fim, c.nome AS cliente_nome
     FROM apolices a LEFT JOIN clientes c ON c.id = a.cliente_id
     WHERE a.status = 'ativa'
       ${isAdmin ? 'AND' : 'AND a.corretor_id = ' + Number(req.user.id) + ' AND'}
       a.vigencia_fim <> ''
-      AND date(a.vigencia_fim) <= date('now','+30 days')
-      AND date(a.vigencia_fim) >= date('now')
+      AND substr(a.vigencia_fim, 1, 10) <= ?
+      AND substr(a.vigencia_fim, 1, 10) >= ?
     ORDER BY a.vigencia_fim ASC
-  `).all();
+  `, isoAt(30).slice(0, 10), today);
 
-  const sinistrosTotal = db.prepare(`
-    SELECT COUNT(*) AS n FROM sinistros ${cond('s')}
-  `).get().n;
-  const sinistrosStatus = db.prepare(`
-    SELECT status, COUNT(*) AS n FROM sinistros
+  const sinistrosTotal = (await db.get(`
+    SELECT COUNT(*) AS n FROM sinistros s ${cond('s')}
+  `)).n;
+  const sinistrosStatus = await db.all(`
+    SELECT status, COUNT(*) AS n FROM sinistros s
     ${cond('s')}
     GROUP BY status
-  `).all();
+  `);
 
   // Próximos 7 dias de agendamentos pendentes
-  const proximosAgendamentos = db.prepare(`
+  const proximosAgendamentos = await db.all(`
     SELECT g.id, g.data_hora, g.titulo, g.status,
       c.nome AS cliente_nome, l.nome AS lead_nome
     FROM agendamentos g
@@ -55,22 +61,20 @@ router.get('/', auth, (req, res) => {
     WHERE g.status = 'pendente'
       ${isAdmin ? 'AND' : 'AND g.corretor_id = ' + Number(req.user.id) + ' AND'}
       g.data_hora <> ''
-      AND datetime(g.data_hora) <= datetime('now','+7 days')
-      AND datetime(g.data_hora) >= datetime('now','-1 day')
+      AND replace(g.data_hora, 'T', ' ') <= ?
+      AND replace(g.data_hora, 'T', ' ') >= ?
     ORDER BY g.data_hora ASC
-  `).all();
+  `, isoAt(7), isoAt(-1));
 
   const usuariosTotal = isAdmin
-    ? db.prepare(`SELECT COUNT(*) AS n FROM usuarios WHERE ativo = 1`).get().n
+    ? (await db.get(`SELECT COUNT(*) AS n FROM usuarios WHERE ativo = 1`)).n
     : null;
 
   // Receita estimada: soma dos prêmios das apólices vigentes (ativa/renovada)
   const receitaWhere = isAdmin
     ? "WHERE status IN ('ativa','renovada')"
     : `WHERE a.corretor_id = ${Number(req.user.id)} AND status IN ('ativa','renovada')`;
-  const receitaEstimada = db.prepare(
-    `SELECT COALESCE(SUM(premio), 0) AS total FROM apolices a ${receitaWhere}`
-  ).get().total;
+  const receitaEstimada = (await db.get(`SELECT COALESCE(SUM(premio), 0) AS total FROM apolices a ${receitaWhere}`)).total;
 
   // Taxa de conversão de leads (fechados / total)
   const fechados = (leadsPorStatus.find((s) => s.status === 'fechado') || {}).n || 0;
@@ -78,31 +82,29 @@ router.get('/', auth, (req, res) => {
 
   // Agendamentos pendentes já vencidos (atrasados)
   const agAtrasadosWhere = isAdmin ? '' : `AND g.corretor_id = ${Number(req.user.id)}`;
-  const agendamentosAtrasados = db.prepare(`
+  const agendamentosAtrasados = (await db.get(`
     SELECT COUNT(*) AS n FROM agendamentos g
     WHERE g.status = 'pendente' AND g.data_hora <> ''
-      AND datetime(g.data_hora) < datetime('now') ${agAtrasadosWhere}
-  `).get().n;
+      AND replace(g.data_hora, 'T', ' ') < ? ${agAtrasadosWhere}
+  `, isoAt(0))).n;
 
   // Leads sem corretor atribuído (fila de captação). A fila é compartilhada:
   // qualquer corretor pode assumir, então o contador vale para todos os papéis.
-  const leadsNaoAtribuidos = db
-    .prepare('SELECT COUNT(*) AS n FROM leads l WHERE l.corretor_id IS NULL')
-    .get().n;
+  const leadsNaoAtribuidos = (await db.get('SELECT COUNT(*) AS n FROM leads l WHERE l.corretor_id IS NULL')).n;
 
   // Follow-ups de leads previstos para hoje ou atrasados (funil ainda aberto)
   const followWhere = isAdmin ? '' : `AND l.corretor_id = ${Number(req.user.id)}`;
-  const followupsLeads = db.prepare(`
+  const followupsLeads = await db.all(`
     SELECT l.id, l.nome, l.telefone, l.status, l.proximo_retorno,
       u.nome AS corretor_nome
     FROM leads l LEFT JOIN usuarios u ON u.id = l.corretor_id
     WHERE l.proximo_retorno IS NOT NULL AND l.proximo_retorno <> ''
-      AND date(l.proximo_retorno) <= date('now')
+      AND substr(l.proximo_retorno, 1, 10) <= ?
       AND l.status NOT IN ('fechado','desistiu','sem_interesse')
       ${followWhere}
     ORDER BY l.proximo_retorno ASC
     LIMIT 20
-  `).all();
+  `, today);
 
   res.json({
     leadsTotal,

@@ -7,9 +7,10 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 
-require('./db'); // garante criação das tabelas
+const db = require('./db');
+const { localDir: blogLocalDir } = require('./storage');
 
-const { errorHandler, notFound } = require('./utils');
+const { errorHandler, notFound, asyncHandler } = require('./utils');
 const articlePage = require('./article-page');
 
 const authRoutes = require('./routes/auth');
@@ -28,6 +29,9 @@ const PORT = process.env.PORT || 3001;
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+
+// Schema/migrações rodam ao carregar o db; as requisições esperam terminar.
+app.use((_req, _res, next) => { db.ready.then(() => next(), next); });
 
 // Headers de segurança + CSP. Como o CRM/site usam scripts inline e handlers
 // onclick, o script precisa de 'unsafe-inline'; ainda assim mantemos restrição
@@ -95,9 +99,8 @@ if (fs.existsSync(crmDir)) {
 
 // Servir assets do site institucional (logo, imagens) usados também pelo CRM
 const assetsDir = path.join(__dirname, '..', 'assets');
-const blogUploadDir = process.env.BLOG_UPLOAD_DIR
-  ? path.resolve(process.env.BLOG_UPLOAD_DIR)
-  : path.join(assetsDir, 'img', 'blog');
+// Imagens do blog gravadas em disco (quando o Supabase Storage não está configurado)
+const blogUploadDir = blogLocalDir();
 fs.mkdirSync(blogUploadDir, { recursive: true });
 app.use('/assets/img/blog', express.static(blogUploadDir));
 if (fs.existsSync(assetsDir)) {
@@ -117,7 +120,7 @@ const publicPages = new Set([
   'artigo.html',
 ]);
 app.get('/', (_req, res) => res.sendFile(path.join(siteDir, 'index.html')));
-app.get('/artigo.html', articlePage(siteDir));
+app.get('/artigo.html', asyncHandler(articlePage(siteDir)));
 app.get('/:page', (req, res, next) => {
   if (!publicPages.has(req.params.page)) return next();
   res.sendFile(path.join(siteDir, req.params.page));
@@ -150,10 +153,11 @@ app.use('/api', notFound);
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
+  db.ready.then(() => app.listen(PORT, '0.0.0.0', () => {
     console.log(`CRM Vida de Ouro rodando em http://localhost:${PORT}`);
     console.log(`Admin: http://localhost:${PORT}/crm/`);
-  });
+    console.log(`Banco: ${db.driver}`);
+  }), () => process.exit(1));
 }
 
 module.exports = app;

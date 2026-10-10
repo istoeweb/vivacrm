@@ -1,29 +1,23 @@
 // Entrada serverless da Vercel: reaproveita o app Express de server/.
-// O filesystem da Vercel é efêmero; só /tmp aceita escrita. O banco SQLite e os
-// uploads do blog vivem lá e são perdidos a cada cold start (uso apenas como preview).
-const path = require('path');
-const fs = require('fs');
-const { execFileSync } = require('child_process');
-
+// Com DATABASE_URL (Supabase) os dados persistem e o seed só cria o admin, se faltar.
+// Sem ele, o banco é um SQLite em /tmp (único lugar gravável na Vercel), recriado
+// com dados demo a cada cold start — uso apenas como preview.
 process.env.DB_PATH = process.env.DB_PATH || '/tmp/crm.db';
 process.env.BLOG_UPLOAD_DIR = process.env.BLOG_UPLOAD_DIR || '/tmp/blog';
 
-if (!fs.existsSync(process.env.DB_PATH)) {
-  // seed.js chama process.exit, então roda em processo separado
-  execFileSync(process.execPath, [path.join(__dirname, '..', 'server', 'seed.js')], {
-    env: process.env,
-    stdio: 'inherit',
-  });
+const db = require('../server/db');
+const { seed } = require('../server/seed');
+const app = require('../server/server');
 
-  // O seed usa senhas demo conhecidas; num deploy público trocamos a do admin
-  // e desativamos o corretor demo.
-  if (process.env.ADMIN_PASSWORD) {
-    const bcrypt = require('bcrypt');
-    const db = require('../server/db');
-    db.prepare('UPDATE usuarios SET senha_hash = ? WHERE email = ?')
-      .run(bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10), 'admin@vidadeouro.com.br');
-    db.prepare('UPDATE usuarios SET ativo = 0 WHERE email = ?').run('joao@vidadeouro.com.br');
+const persistent = Boolean(process.env.DATABASE_URL);
+const ready = seed({ demo: !persistent }).then(async ({ created }) => {
+  // O seed demo cria um corretor com senha conhecida; num deploy público ele fica inativo.
+  if (created && !persistent && process.env.ADMIN_PASSWORD) {
+    await db.run('UPDATE usuarios SET ativo = 0 WHERE email = ?', 'joao@vidadeouro.com.br');
   }
-}
+});
 
-module.exports = require('../server/server');
+module.exports = async (req, res) => {
+  await ready;
+  return app(req, res);
+};

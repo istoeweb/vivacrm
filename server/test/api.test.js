@@ -7,6 +7,11 @@ const fs = require('node:fs');
 
 const TMP_DB = path.join(os.tmpdir(), `crm-test-${process.pid}-${Date.now()}.db`);
 process.env.DB_PATH = TMP_DB;
+// Nunca usar o Supabase do server/.env nos testes: string vazia impede o dotenv
+// de preencher. DB_DRIVER=pglite roda a suíte no dialeto Postgres (em memória).
+process.env.DATABASE_URL = '';
+process.env.SUPABASE_URL = '';
+process.env.SUPABASE_SERVICE_ROLE_KEY = '';
 process.env.JWT_SECRET = 'test-secret-crm';
 process.env.NODE_ENV = 'test';
 
@@ -40,17 +45,18 @@ async function api(method, pathname, { token, body } = {}) {
 }
 
 before(async () => {
+  await db.ready;
   // Seed mínimo: admin, corretor e um usuário inativo.
-  db.prepare(
-    "INSERT INTO usuarios (nome,email,senha_hash,role,ativo) VALUES (?,?,?,'admin',1)"
-  ).run('Admin Teste', 'admin@test.com', bcrypt.hashSync('admin123', 10));
-  const corretor = db.prepare(
-    "INSERT INTO usuarios (nome,email,senha_hash,role,ativo) VALUES (?,?,?,'corretor',1)"
-  ).run('Corretor Teste', 'corretor@test.com', bcrypt.hashSync('corretor123', 10));
+  await db.insert(
+    "INSERT INTO usuarios (nome,email,senha_hash,role,ativo) VALUES (?,?,?,'admin',1)",
+    'Admin Teste', 'admin@test.com', bcrypt.hashSync('admin123', 10));
+  const corretor = await db.insert(
+    "INSERT INTO usuarios (nome,email,senha_hash,role,ativo) VALUES (?,?,?,'corretor',1)",
+    'Corretor Teste', 'corretor@test.com', bcrypt.hashSync('corretor123', 10));
   corretorId = Number(corretor.lastInsertRowid);
-  db.prepare(
-    "INSERT INTO usuarios (nome,email,senha_hash,role,ativo) VALUES (?,?,?,'corretor',0)"
-  ).run('Inativo', 'inativo@test.com', bcrypt.hashSync('senha123', 10));
+  await db.insert(
+    "INSERT INTO usuarios (nome,email,senha_hash,role,ativo) VALUES (?,?,?,'corretor',0)",
+    'Inativo', 'inativo@test.com', bcrypt.hashSync('senha123', 10));
 
   server = app.listen(0);
   await once(server, 'listening');
@@ -60,8 +66,9 @@ before(async () => {
   corretorToken = (await api('POST', '/api/auth/login', { body: { email: 'corretor@test.com', senha: 'corretor123' } })).data.token;
 });
 
-after(() => {
+after(async () => {
   if (server) server.close();
+  await db.close();
   try { fs.rmSync(TMP_DB, { force: true }); } catch { /* ignore */ }
 });
 
@@ -307,4 +314,24 @@ test('artigo.html já vem com título e tags de prévia (Open Graph) do artigo',
   assert.doesNotMatch(fallback, /og:title/);
 
   await api('DELETE', `/api/blog/admin/${created.data.id}`, { token: adminToken });
+});
+
+test('dashboard do corretor: filtros por dono e janelas de data', async () => {
+  const cli = await api('POST', '/api/clientes', { token: corretorToken, body: { nome: 'Cliente Dash' } });
+  const iso = (days) => new Date(Date.now() + days * 86400000).toISOString();
+  await api('POST', '/api/apolices', { token: corretorToken, body: {
+    cliente_id: cli.data.id, produto: 'Auto', vigencia_fim: iso(10).slice(0, 10), premio: 1000 } });
+  await api('POST', '/api/apolices', { token: corretorToken, body: {
+    cliente_id: cli.data.id, produto: 'Vida', vigencia_fim: iso(90).slice(0, 10), premio: 500 } });
+  // data_hora com 'T' (formato do <input type="datetime-local">) e com espaço
+  await api('POST', '/api/agendamentos', { token: corretorToken, body: { titulo: 'Amanhã', data_hora: iso(1).slice(0, 16) } });
+  await api('POST', '/api/agendamentos', { token: corretorToken, body: { titulo: 'Atrasado', data_hora: iso(-3).slice(0, 16).replace('T', ' ') } });
+
+  const r = await api('GET', '/api/dashboard', { token: corretorToken });
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.vencendo.map((v) => v.cliente_nome), ['Cliente Dash']);
+  assert.deepEqual(r.data.proximosAgendamentos.map((g) => g.titulo), ['Amanhã']);
+  assert.ok(r.data.agendamentosAtrasados >= 1);
+  assert.equal(r.data.receitaEstimada, 1500);
+  assert.equal(r.data.usuariosTotal, null);
 });

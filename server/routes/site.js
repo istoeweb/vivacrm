@@ -1,8 +1,9 @@
 const express = require('express');
 const db = require('../db');
+const { asyncRouter } = require('../utils');
 const { auth, requireRole } = require('../middleware/auth');
 
-const router = express.Router();
+const router = asyncRouter();
 const adminOnly = [auth, requireRole('admin')];
 
 // Campos editáveis do site: define quais chaves existem, seus rótulos, grupos e
@@ -18,8 +19,8 @@ const FIELDS = [
 ];
 const ALLOWED = new Set(FIELDS.map((f) => f.chave));
 
-function readAll() {
-  const rows = db.prepare('SELECT chave, valor FROM site_conteudo').all();
+async function readAll() {
+  const rows = await db.all('SELECT chave, valor FROM site_conteudo');
   const map = {};
   for (const r of rows) if (ALLOWED.has(r.chave)) map[r.chave] = r.valor;
   // Garante que todas as chaves conhecidas existam na resposta
@@ -28,30 +29,30 @@ function readAll() {
 }
 
 // Público: conteúdo consumido pelas páginas do site
-router.get('/content', (_req, res) => {
-  res.json(readAll());
+router.get('/content', async (_req, res) => {
+  res.json(await readAll());
 });
 
 // Admin: conteúdo + metadados dos campos para montar o formulário
-router.get('/admin', ...adminOnly, (_req, res) => {
-  res.json({ fields: FIELDS, values: readAll() });
+router.get('/admin', ...adminOnly, async (_req, res) => {
+  res.json({ fields: FIELDS, values: await readAll() });
 });
 
 // Admin: atualização em lote. Body = { chave: valor, ... }
-router.put('/admin', ...adminOnly, (req, res) => {
+router.put('/admin', ...adminOnly, async (req, res) => {
   const body = req.body || {};
-  const upsert = db.prepare(`
-    INSERT INTO site_conteudo (chave, valor, atualizado_em) VALUES (?, ?, datetime('now'))
-    ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = datetime('now')
-  `);
+  const upsert = `
+    INSERT INTO site_conteudo (chave, valor, atualizado_em) VALUES (?, ?, ?)
+    ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em
+  `;
   let updated = 0;
   for (const [chave, valor] of Object.entries(body)) {
     if (!ALLOWED.has(chave)) continue;
     const clean = String(valor ?? '').trim().slice(0, 500);
-    upsert.run(chave, clean);
+    await db.run(upsert, chave, clean, db.now());
     updated++;
   }
-  res.json({ ok: true, updated, values: readAll() });
+  res.json({ ok: true, updated, values: await readAll() });
 });
 
 module.exports = router;

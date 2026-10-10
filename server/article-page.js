@@ -17,10 +17,10 @@ function absoluteImage(base, url) {
 
 module.exports = function articlePage(siteDir) {
   const file = path.join(siteDir, 'artigo.html');
-  return (req, res) => {
+  return async (req, res) => {
     let html = fs.readFileSync(file, 'utf8');
     const slug = String(req.query.slug || '');
-    const post = slug && db.prepare(`SELECT titulo,slug,resumo,imagem_url,palavras_chave,publicado_em,atualizado_em FROM blog_posts WHERE slug=? AND status='publicado'`).get(slug);
+    const post = slug && await db.get(`SELECT titulo,slug,resumo,imagem_url,palavras_chave,publicado_em,atualizado_em FROM blog_posts WHERE slug=? AND status='publicado'`, slug);
     if (post) {
       const base = (process.env.SITE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
       const url = `${base}/artigo.html?slug=${encodeURIComponent(post.slug)}`;
