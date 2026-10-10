@@ -51,14 +51,19 @@
         const { token, user } = await r.json();
         sessionStorage.setItem('crm_token', token);
         sessionStorage.setItem('crm_user', JSON.stringify(user));
-        location.href = 'dashboard.html';
+        location.href = afterLogin();
       } catch (x) {
         err.textContent = x.message;
       } finally {
         btn.disabled = false; btn.textContent = 'Entrar';
       }
     });
-    if (sessionStorage.getItem('crm_token')) location.href = 'dashboard.html';
+    // Destino pós-login: só páginas do próprio CRM (evita redirecionamento para fora).
+    function afterLogin() {
+      const next = new URLSearchParams(location.search).get('next') || '';
+      return /^[a-z-]+\.html(\?[\w=&%-]*)?$/.test(next) && !next.startsWith('index.html') ? next : 'dashboard.html';
+    }
+    if (sessionStorage.getItem('crm_token')) location.href = afterLogin();
   </script>
 </body>
 </html>

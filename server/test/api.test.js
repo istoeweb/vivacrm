@@ -12,6 +12,9 @@ process.env.DB_PATH = TMP_DB;
 process.env.DATABASE_URL = '';
 process.env.SUPABASE_URL = '';
 process.env.SUPABASE_SERVICE_ROLE_KEY = '';
+// E-mails ficam em memória (mailer.outbox), nunca são enviados.
+process.env.MAIL_TRANSPORT = 'memory';
+process.env.SMTP_HOST = '';
 process.env.JWT_SECRET = 'test-secret-crm';
 process.env.NODE_ENV = 'test';
 
@@ -393,4 +396,105 @@ test('histórico do lead: registrar contato, status automático, dono e permiss�
   // Excluir o lead apaga o histórico (ON DELETE CASCADE)
   await api('DELETE', `/api/leads/${id}`, { token: adminToken });
   assert.equal((await db.get('SELECT COUNT(*) AS n FROM lead_interacoes WHERE lead_id = ?', id)).n, 0);
+});
+
+test('configurações: só admin, valida e-mails e modo de distribuição', async () => {
+  assert.equal((await api('GET', '/api/config', { token: corretorToken })).status, 403);
+  const bad = await api('PUT', '/api/config', { token: adminToken, body: { 'notificacao.emails': 'ok@x.com, nao-e-email' } });
+  assert.equal(bad.status, 400);
+  assert.match(bad.data.error, /nao-e-email/);
+  assert.equal((await api('PUT', '/api/config', { token: adminToken, body: { 'distribuicao.modo': 'aleatorio' } })).status, 400);
+  const ok = await api('PUT', '/api/config', { token: adminToken, body: {
+    'notificacao.emails': 'Vendas@Vidadeouro.com.br; gerente@vidadeouro.com.br', 'notificacao.avisar_corretor': '1' } });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.data.values['notificacao.emails'], 'vendas@vidadeouro.com.br, gerente@vidadeouro.com.br');
+  assert.equal(ok.data.smtp.configurado, true);
+
+  const { outbox } = require('../mailer');
+  const before = outbox.length;
+  const teste = await api('POST', '/api/config/teste-email', { token: adminToken, body: {} });
+  assert.equal(teste.status, 200);
+  assert.deepEqual(outbox[before].to, ['vendas@vidadeouro.com.br', 'gerente@vidadeouro.com.br']);
+});
+
+test('lead do site: aviso por e-mail, rodízio, duplicado vira histórico e UTM', async () => {
+  const { outbox } = require('../mailer');
+  await api('PUT', '/api/config', { token: adminToken, body: {
+    'notificacao.emails': 'vendas@vidadeouro.com.br', 'notificacao.avisar_corretor': '1', 'distribuicao.modo': 'rodizio' } });
+
+  const n0 = outbox.length;
+  const a = await api('POST', '/api/leads', { body: {
+    nome: 'Lead Email <b>', telefone: '(12) 98877-6655', produto: 'Seguro Auto', mensagem: 'Quero cotar',
+    origem_pagina: '/produto.html?id=seguro-auto', utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'auto-out' } });
+  assert.equal(a.status, 201);
+  assert.equal(outbox.length, n0 + 1);
+  const mail = outbox[outbox.length - 1];
+  assert.equal(mail.subject, 'Novo lead — Seguro Auto: Lead Email <b>');
+  assert.ok(mail.to.includes('vendas@vidadeouro.com.br'));
+  assert.ok(mail.html.includes('Lead Email &lt;b&gt;'), 'HTML do e-mail escapa os dados do lead');
+  assert.ok(mail.html.includes(`/crm/leads.html?lead=${a.data.id}`));
+
+  const leadA = (await api('GET', `/api/leads/${a.data.id}`, { token: adminToken })).data;
+  assert.equal(leadA.utm_source, 'google');
+  assert.equal(leadA.origem_pagina, '/produto.html?id=seguro-auto');
+  assert.ok(leadA.corretor_id, 'rodízio atribuiu um corretor');
+  const corretorEmail = (await db.get('SELECT email FROM usuarios WHERE id = ?', leadA.corretor_id)).email;
+  assert.ok(mail.to.includes(corretorEmail), 'corretor responsável também é avisado');
+
+  // Rodízio alterna entre corretores ativos
+  const b = await api('POST', '/api/leads', { body: { nome: 'Lead Rodizio', telefone: '12977776666' } });
+  const leadB = (await api('GET', `/api/leads/${b.data.id}`, { token: adminToken })).data;
+  assert.notEqual(leadB.corretor_id, leadA.corretor_id);
+
+  // Mesmo telefone (outro formato) com lead em aberto: não cria lead novo
+  const total = (await db.get('SELECT COUNT(*) AS n FROM leads')).n;
+  const dup = await api('POST', '/api/leads', { body: { nome: 'Lead Email', telefone: '+55 12 98877 6655', produto: 'Seguro Vida', mensagem: 'Agora quero vida também' } });
+  assert.equal(dup.status, 201);
+  assert.equal(dup.data.id, a.data.id);
+  assert.equal((await db.get('SELECT COUNT(*) AS n FROM leads')).n, total);
+  assert.match(outbox[outbox.length - 1].subject, /^Lead voltou a fazer contato/);
+  const hist = (await api('GET', `/api/leads/${a.data.id}/interacoes`, { token: adminToken })).data;
+  assert.match(hist[0].descricao, /Enviou o formulário do site novamente\. Produto: Seguro Vida/);
+
+  await api('PUT', '/api/config', { token: adminToken, body: { 'distribuicao.modo': 'manual', 'notificacao.emails': '' } });
+  const c = await api('POST', '/api/leads', { body: { nome: 'Lead Manual Fila', telefone: '12966665555' } });
+  assert.equal((await api('GET', `/api/leads/${c.data.id}`, { token: adminToken })).data.corretor_id, null);
+});
+
+test('cadastro manual no CRM: dono, etapa e valor do formulário', async () => {
+  const r = await api('POST', '/api/leads', { token: corretorToken, body: {
+    nome: 'Lead Manual', telefone: '12955554444', status: 'contato_realizado', valor_estimado: 'R$ 2.400,00',
+    proximo_retorno: '2030-02-01T09:00' } });
+  const l = (await api('GET', `/api/leads/${r.data.id}`, { token: corretorToken })).data;
+  assert.equal(l.corretor_id, corretorId);
+  assert.equal(l.origem, 'manual');
+  assert.equal(l.status, 'contato_realizado');
+  assert.equal(l.valor_estimado, 2400);
+  assert.equal(l.proximo_retorno, '2030-02-01 09:00');
+});
+
+test('motivo da perda: obrigatório ao perder, entra no histórico e some ao reabrir', async () => {
+  const r = await api('POST', '/api/leads', { token: adminToken, body: { nome: 'Lead Perda', telefone: '12944443333', valor_estimado: 1000 } });
+  const id = r.data.id;
+  const sem = await api('PUT', `/api/leads/${id}`, { token: adminToken, body: { status: 'desistiu' } });
+  assert.equal(sem.status, 400);
+  assert.match(sem.data.error, /motivo/i);
+  assert.equal((await api('PUT', `/api/leads/${id}`, { token: adminToken, body: { status: 'desistiu', motivo_perda: 'Preço' } })).status, 200);
+  let l = (await api('GET', `/api/leads/${id}`, { token: adminToken })).data;
+  assert.equal(l.motivo_perda, 'Preço');
+  const hist = (await api('GET', `/api/leads/${id}/interacoes`, { token: adminToken })).data;
+  assert.equal(hist[0].descricao, 'Novo → Desistiu (motivo: Preço)');
+
+  const viaContato = await api('POST', `/api/leads/${id}/interacoes`, { token: adminToken, body: { tipo: 'nota', descricao: 'x', status: 'sem_interesse' } });
+  assert.equal(viaContato.status, 201, 'troca entre etapas de perda mantém o motivo anterior');
+
+  const dash = (await api('GET', '/api/dashboard', { token: adminToken })).data;
+  assert.ok(dash.motivosPerda.some((m) => m.motivo === 'Preço' && m.n >= 1));
+  assert.ok(dash.leadsPorOrigem.some((o) => o.origem === 'google'));
+  assert.equal(typeof dash.funilValorAberto, 'number');
+  assert.equal(typeof dash.semContato30d, 'number');
+
+  await api('PUT', `/api/leads/${id}`, { token: adminToken, body: { status: 'contato_realizado' } });
+  l = (await api('GET', `/api/leads/${id}`, { token: adminToken })).data;
+  assert.equal(l.motivo_perda, null);
 });

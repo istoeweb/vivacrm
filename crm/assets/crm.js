@@ -10,7 +10,12 @@ function getUser() {
   try { return JSON.parse(sessionStorage.getItem('crm_user') || '{}'); } catch { return {}; }
 }
 function requireAuth() {
-  if (!getToken()) { location.href = 'index.html'; return false; }
+  if (!getToken()) {
+    // Volta para esta página após o login (ex.: link do e-mail de aviso de lead).
+    const here = location.pathname.split('/').pop() + location.search;
+    location.href = 'index.html' + (here && here !== 'dashboard.html' ? '?next=' + encodeURIComponent(here) : '');
+    return false;
+  }
   return true;
 }
 function logout() {
@@ -225,6 +230,7 @@ function renderSidebar(activeKey) {
     links.push({ key: 'blog', href: 'blog.html', label: 'Blog', icon: 'M4 19.5A2.5 2.5 0 016.5 17H20V5H6.5A2.5 2.5 0 004 7.5v12z M8 9h8 M8 13h6' });
     links.push({ key: 'conteudo', href: 'conteudo.html', label: 'Conteúdo do Site', icon: 'M3 3h18v18H3z M3 9h18 M9 21V9' });
     links.push({ key: 'usuarios', href: 'usuarios.html', label: 'Usuários', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' });
+    links.push({ key: 'configuracoes', href: 'configuracoes.html', label: 'Configurações', icon: 'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z' });
   }
   const html = `
     <div class="sidebar__brand">Vida de <strong>Ouro</strong><br><span style="font-size:10.5px;opacity:.6;letter-spacing:.08em;font-weight:500;">CRM Corretora</span></div>

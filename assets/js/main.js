@@ -342,11 +342,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ---- Origem do visitante (campanha) ----
+  // Guarda as UTMs da página de entrada; o formulário costuma ser enviado em outra página.
+  const UTM_KEY = 'vo_utm';
+  try {
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('utm_source') && !sessionStorage.getItem(UTM_KEY)) {
+      sessionStorage.setItem(UTM_KEY, JSON.stringify({
+        utm_source: qs.get('utm_source'), utm_medium: qs.get('utm_medium') || '', utm_campaign: qs.get('utm_campaign') || ''
+      }));
+    }
+  } catch (_) { /* storage indisponível (modo privado): segue sem UTM */ }
+  function utmData() {
+    try { return JSON.parse(sessionStorage.getItem(UTM_KEY) || '{}'); } catch (_) { return {}; }
+  }
+
   // ---- Form submit ----
   const form = document.getElementById('cotacaoForm');
   if (form) {
-    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    const CRM_API = isLocal && location.port !== '3001' ? 'http://localhost:8000/api' : '/api';
+    const CRM_API = '/api';
 
     // Cria/atualiza a mensagem de erro de um campo
     function setFieldError(field, msg) {
@@ -365,7 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function validPhone(tel) {
-      const digits = tel.replace(/\D/g, '');
+      let digits = tel.replace(/\D/g, '');
+      if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) digits = digits.slice(2);
       return digits.length === 10 || digits.length === 11;
     }
 
@@ -415,12 +430,17 @@ document.addEventListener('DOMContentLoaded', () => {
       ].filter(Boolean).join(' · ');
       const msg = [perfil, obs].filter(Boolean).join(' — ');
 
-      // Envia para o CRM (não bloqueia o WhatsApp do usuário)
+      // Envia para o CRM (não bloqueia o WhatsApp do usuário). keepalive garante a
+      // entrega mesmo se o navegador for para segundo plano ao abrir o app do WhatsApp.
       try {
         fetch(CRM_API + '/leads', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, telefone: tel, email, cidade, produto, mensagem: msg, origem: 'site' })
+          keepalive: true,
+          body: JSON.stringify({
+            nome, telefone: tel, email, cidade, produto, mensagem: msg, origem: 'site',
+            origem_pagina: location.pathname + location.search, ...utmData()
+          })
         }).catch(() => {});
       } catch (_) {}
 

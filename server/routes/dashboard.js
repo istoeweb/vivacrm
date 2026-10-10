@@ -106,7 +106,58 @@ router.get('/', auth, async (req, res) => {
     LIMIT 20
   `, today);
 
+  /* ---- Gestão de leads ---- */
+  const leadScope = isAdmin ? '' : `AND l.corretor_id = ${Number(req.user.id)}`;
+
+  // Tempo até o primeiro contato (leads dos últimos 30 dias). criado_em dos dois lados é UTC.
+  const primeiros = await db.all(`
+    SELECT l.criado_em AS recebido, MIN(i.criado_em) AS primeiro
+    FROM leads l JOIN lead_interacoes i ON i.lead_id = l.id
+      AND i.tipo IN ('ligacao','whatsapp','email','reuniao','proposta')
+    WHERE l.criado_em >= ? ${leadScope}
+    GROUP BY l.id, l.criado_em
+  `, isoAt(-30));
+  const horas = primeiros
+    .map((r) => (Date.parse(r.primeiro.replace(' ', 'T') + 'Z') - Date.parse(r.recebido.replace(' ', 'T') + 'Z')) / 3600000)
+    .filter((h) => Number.isFinite(h) && h >= 0);
+  const tempoPrimeiroContatoHoras = horas.length ? horas.reduce((a, b) => a + b, 0) / horas.length : null;
+  const semContato30d = (await db.get(`
+    SELECT COUNT(*) AS n FROM leads l
+    WHERE l.criado_em >= ? AND l.status = 'novo'
+      AND NOT EXISTS (SELECT 1 FROM lead_interacoes i WHERE i.lead_id = l.id) ${leadScope}
+  `, isoAt(-30))).n;
+
+  // Origem: campanha (utm_source) quando houver; senão a origem do cadastro.
+  const leadsPorOrigem = await db.all(`
+    SELECT COALESCE(NULLIF(l.utm_source, ''), l.origem, 'site') AS origem,
+      COUNT(*) AS n,
+      SUM(CASE WHEN l.status = 'fechado' THEN 1 ELSE 0 END) AS fechados
+    FROM leads l WHERE 1 = 1 ${leadScope}
+    GROUP BY COALESCE(NULLIF(l.utm_source, ''), l.origem, 'site')
+    ORDER BY n DESC
+  `);
+
+  const motivosPerda = await db.all(`
+    SELECT COALESCE(l.motivo_perda, 'Não informado') AS motivo, COUNT(*) AS n
+    FROM leads l WHERE l.status IN ('desistiu','sem_interesse') ${leadScope}
+    GROUP BY COALESCE(l.motivo_perda, 'Não informado')
+    ORDER BY n DESC
+  `);
+
+  const funil = await db.get(`
+    SELECT
+      COALESCE(SUM(CASE WHEN l.status NOT IN ('fechado','desistiu','sem_interesse') THEN l.valor_estimado END), 0) AS aberto,
+      COALESCE(SUM(CASE WHEN l.status = 'fechado' THEN l.valor_estimado END), 0) AS ganho
+    FROM leads l WHERE 1 = 1 ${leadScope}
+  `);
+
   res.json({
+    tempoPrimeiroContatoHoras,
+    semContato30d,
+    leadsPorOrigem,
+    motivosPerda,
+    funilValorAberto: funil.aberto,
+    funilValorGanho: funil.ganho,
     leadsTotal,
     leadsPorStatus,
     clientesTotal,

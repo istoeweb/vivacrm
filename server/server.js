@@ -23,6 +23,7 @@ const usuariosRoutes = require('./routes/usuarios');
 const dashboardRoutes = require('./routes/dashboard');
 const blogRoutes = require('./routes/blog');
 const siteRoutes = require('./routes/site');
+const configRoutes = require('./routes/config');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -146,6 +147,7 @@ app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/site', siteRoutes);
+app.use('/api/config', configRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

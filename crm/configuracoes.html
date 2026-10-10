@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações | CRM Vida de Ouro</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+  <link rel="stylesheet" href="assets/crm.css" />
+  <style>
+    .cfg { max-width: 720px; }
+    .cfg-group { margin-bottom: 30px; }
+    .cfg-group h2 { margin: 0 0 4px; color: var(--gray-900); font-size: 15px; font-weight: 800; }
+    .cfg-group > p { margin: 0 0 16px; color: var(--gray-500); font-size: 13px; }
+    .cfg-check { display: flex; gap: 10px; align-items: flex-start; color: var(--gray-700); font-size: 14px; cursor: pointer; }
+    .cfg-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--blue-600); }
+    .cfg-radio { display: grid; gap: 10px; }
+    .cfg-radio label { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--gray-200); border-radius: 10px; cursor: pointer; }
+    .cfg-radio label:has(input:checked) { border-color: var(--blue-500); background: var(--blue-50); }
+    .cfg-radio input { margin-top: 3px; accent-color: var(--blue-600); }
+    .cfg-radio strong { display: block; color: var(--gray-900); font-size: 14px; }
+    .cfg-radio small { color: var(--gray-500); font-size: 12px; }
+    .cfg-status { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; margin-bottom: 14px; border-radius: 10px; font-size: 13px; }
+    .cfg-status--ok { color: var(--green); background: var(--green-bg); }
+    .cfg-status--warn { color: var(--amber); background: var(--amber-bg); }
+    .cfg-status code { font-size: 12px; }
+    .cfg-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  </style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="content">
+  <div class="top-bar">
+    <div><h1>Configurações</h1><p>Avisos de lead novo e distribuição entre corretores</p></div>
+  </div>
+  <div class="table-card" style="padding:24px">
+    <form id="cfgForm" class="cfg">
+      <section class="cfg-group">
+        <h2>Aviso de lead novo por e-mail</h2>
+        <p>Quando alguém preenche o formulário do site, estes e-mails recebem os dados do lead com um link para abri-lo no CRM.</p>
+        <div id="smtpStatus"></div>
+        <div class="form-group">
+          <label for="emails">E-mails que recebem o aviso</label>
+          <input id="emails" name="notificacao.emails" type="text" maxlength="600" placeholder="vendas@vidadeouro.com.br, gerente@vidadeouro.com.br">
+          <div class="text-muted text-small" style="margin-top:4px">Separe por vírgula. Até 10 endereços. Deixe vazio para não enviar avisos.</div>
+        </div>
+        <label class="cfg-check"><input type="checkbox" id="avisarCorretor" name="notificacao.avisar_corretor" value="1"> <span>Avisar também o corretor responsável pelo lead (no e-mail cadastrado em Usuários)</span></label>
+      </section>
+
+      <section class="cfg-group">
+        <h2>Distribuição de leads do site</h2>
+        <p id="distSub">Como os leads que chegam pelo site são atribuídos aos corretores.</p>
+        <div class="cfg-radio">
+          <label><input type="radio" name="distribuicao.modo" value="manual"> <span><strong>Fila (manual)</strong><small>O lead entra sem corretor; quem atender primeiro assume.</small></span></label>
+          <label><input type="radio" name="distribuicao.modo" value="rodizio"> <span><strong>Rodízio automático</strong><small>Cada lead novo vai para o próximo corretor ativo, em ordem.</small></span></label>
+        </div>
+      </section>
+
+      <div class="cfg-actions">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-outline" id="testEmail">Enviar e-mail de teste</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="assets/crm.js"></script>
+<script>
+if (requireAuth()) {
+  if (getUser().role !== 'admin') location.href = 'dashboard.html';
+  renderSidebar('configuracoes');
+  const form = document.getElementById('cfgForm');
+
+  function render({ values, smtp, corretoresAtivos }) {
+    form.emails.value = values['notificacao.emails'] || '';
+    document.getElementById('avisarCorretor').checked = values['notificacao.avisar_corretor'] === '1';
+    form.querySelectorAll('[name="distribuicao.modo"]').forEach((r) => { r.checked = r.value === values['distribuicao.modo']; });
+    document.getElementById('distSub').textContent = `Como os leads que chegam pelo site são atribuídos aos corretores. Corretores ativos agora: ${corretoresAtivos}.`;
+    document.getElementById('smtpStatus').innerHTML = smtp.configurado
+      ? `<div class="cfg-status cfg-status--ok">✓ Envio de e-mail configurado no servidor. Remetente: ${esc(smtp.remetente)}</div>`
+      : `<div class="cfg-status cfg-status--warn"><span>⚠ O servidor ainda não tem um SMTP configurado, então os avisos não serão enviados.
+         Defina <code>SMTP_HOST</code>, <code>SMTP_PORT</code>, <code>SMTP_USER</code> e <code>SMTP_PASS</code> nas variáveis de ambiente (Vercel/Render).</span></div>`;
+  }
+
+  const collect = () => ({
+    'notificacao.emails': form.emails.value,
+    'notificacao.avisar_corretor': document.getElementById('avisarCorretor').checked ? '1' : '0',
+    'distribuicao.modo': (form.querySelector('[name="distribuicao.modo"]:checked') || {}).value || 'manual',
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try { render(await apiPut('/config', collect())); toast('Configurações salvas!'); }
+    catch (err) { toast(err.message, true); }
+  });
+
+  document.getElementById('testEmail').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try {
+      const r = await apiPost('/config/teste-email', { emails: form.emails.value });
+      toast('E-mail de teste enviado para ' + r.enviados.join(', '));
+    } catch (err) { toast(err.message, true); }
+    finally { btn.disabled = false; btn.textContent = 'Enviar e-mail de teste'; }
+  });
+
+  apiGet('/config').then(render).catch((e) => toast(e.message, true));
+}
+</script>
+</body>
+</html>

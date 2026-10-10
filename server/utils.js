@@ -64,7 +64,9 @@ function isValidEmail(email) {
 
 // Telefone válido: 10 ou 11 dígitos (com DDD), ignorando formatação.
 function isValidPhone(tel) {
-  const digits = String(tel).replace(/\D/g, '');
+  let digits = String(tel).replace(/\D/g, '');
+  // Aceita o DDI 55 ("+55 12 99999-0000"), comum quando copiado do WhatsApp.
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) digits = digits.slice(2);
   return digits.length === 10 || digits.length === 11;
 }
 

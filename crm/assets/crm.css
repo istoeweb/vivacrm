@@ -660,3 +660,5 @@ tbody tr:hover { background: #FBFAF6; }
 .kanban-card__actions button { margin-top: 0 !important; }
 .kanban-card__status { max-width: 150px; padding: 4px 6px; font-size: 12px; }
 .kanban-card strong, .kanban-card small, .kanban-card span { overflow-wrap: anywhere; }
+.badge--dup { margin-left: 6px; color: var(--amber); background: var(--amber-bg); font-size: 10px; vertical-align: middle; }
+.kanban-total { display: block; margin-top: 2px; color: var(--gray-500); font-size: 11px; font-weight: 700; text-transform: none; }

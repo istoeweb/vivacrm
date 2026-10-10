@@ -35,8 +35,20 @@
           <option value="nao">Não atribuídos</option>
           <option value="meus">Meus leads</option>
         </select>
+        <select id="retornoFilter" aria-label="Filtrar por retorno">
+          <option value="">Qualquer retorno</option>
+          <option value="atrasado">Retorno atrasado</option>
+          <option value="hoje">Retorno hoje</option>
+          <option value="semana">Próximos 7 dias</option>
+          <option value="sem">Sem retorno agendado</option>
+        </select>
+        <select id="produtoFilter" aria-label="Filtrar por produto"><option value="">Todos os produtos</option></select>
+        <select id="origemFilter" aria-label="Filtrar por origem"><option value="">Todas as origens</option></select>
       </div>
-      <span class="text-muted text-small" id="countLabel"></span>
+      <div class="flex gap-8" style="align-items:center">
+        <span class="text-muted text-small" id="countLabel"></span>
+        <button type="button" class="btn btn-sm btn-outline" id="exportCsv">Exportar CSV</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -60,27 +72,67 @@ if (requireAuth()) {
   const isAdmin = user.role === 'admin';
   let all = [], corretores = [], page = 1;
 
+  const LOST = ['desistiu', 'sem_interesse'];
+  const MOTIVOS = ['Preço', 'Já contratou com outro corretor', 'Sem retorno do cliente', 'Não aprovado pela seguradora',
+    'Desistiu da compra', 'Apenas pesquisando', 'Fora da área de atendimento'];
+  let datalistSeq = 0;
+  // Campo de motivo com sugestões (aceita texto livre).
+  function motivoField(name = 'motivo_perda', value = '', required = false) {
+    const id = 'motivos' + (++datalistSeq);
+    return `<input name="${name}" list="${id}" maxlength="120" value="${esc(value || '')}" placeholder="Escolha ou escreva o motivo" ${required ? 'required' : ''}>
+      <datalist id="${id}">${MOTIVOS.map((m) => `<option value="${esc(m)}">`).join('')}</datalist>`;
+  }
+  const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  const origemDe = (r) => r.utm_source || r.origem || 'site';
+  const normTel = (t) => { let d = String(t || '').replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; };
+  const localDate = (offsetDays = 0) => new Date(Date.now() + offsetDays * 86400000).toLocaleString('sv-SE').slice(0, 10);
+
   async function load() {
     [all, corretores] = await Promise.all([
       apiGet('/leads'),
       isAdmin ? apiGet('/usuarios').catch(() => []) : Promise.resolve([])
     ]);
+    fillOptions('produtoFilter', all.map((r) => r.produto));
+    fillOptions('origemFilter', all.map(origemDe));
     render();
   }
-  function render() {
+  // Mantém a opção escolhida ao recarregar a lista.
+  function fillOptions(id, values) {
+    const sel = document.getElementById(id), current = sel.value, first = sel.options[0].outerHTML;
+    sel.innerHTML = first + [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      .map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    sel.value = current;
+  }
+  function filtered() {
     const q = (document.getElementById('search').value || '').toLowerCase();
     const s = document.getElementById('statusFilter').value;
     const af = document.getElementById('assignFilter').value;
-    const rows = all.filter(r =>
-      (!s || r.status === s) &&
-      (af === '' || (af === 'nao' && !r.corretor_id) || (af === 'meus' && r.corretor_id === user.id)) &&
-      (!q || (r.nome+' '+(r.telefone||'')+' '+(r.produto||'')+' '+(r.email||'')).toLowerCase().includes(q))
-    );
+    const rf = document.getElementById('retornoFilter').value;
+    const pf = document.getElementById('produtoFilter').value;
+    const of = document.getElementById('origemFilter').value;
+    const today = localDate(), week = localDate(7);
+    return all.filter(r => {
+      const ret = (r.proximo_retorno || '').slice(0, 10);
+      const aberto = !['fechado', ...LOST].includes(r.status);
+      return (!s || r.status === s) &&
+        (af === '' || (af === 'nao' && !r.corretor_id) || (af === 'meus' && r.corretor_id === user.id)) &&
+        (!rf || (rf === 'atrasado' && aberto && ret && ret < today) || (rf === 'hoje' && ret === today)
+          || (rf === 'semana' && ret >= today && ret <= week) || (rf === 'sem' && aberto && !ret)) &&
+        (!pf || r.produto === pf) && (!of || origemDe(r) === of) &&
+        (!q || (r.nome+' '+(r.telefone||'')+' '+(r.produto||'')+' '+(r.email||'')).toLowerCase().includes(q));
+    });
+  }
+  function render() {
+    const rows = filtered();
+    // Mesmo telefone em mais de um lead (ex.: um fechado e outro novo)
+    const telCount = {};
+    for (const r of all) { const t = normTel(r.telefone); if (t) telCount[t] = (telCount[t] || 0) + 1; }
+    const dupBadge = (r) => telCount[normTel(r.telefone)] > 1 ? ' <span class="badge badge--dup" title="Há outro lead com este telefone">Duplicado?</span>' : '';
     document.getElementById('countLabel').textContent = `${rows.length} de ${all.length}`;
     const pg = paginate(rows, page); page = pg.page;
     document.getElementById('tableBody').innerHTML = rows.length
       ? pg.slice.map(r => `<tr>
-          <td><button type="button" class="lead-name" title="Abrir ficha e histórico" onclick="abrirLead(${Number(r.id)})">${esc(r.nome)}</button>${r.email ? `<br><span class="text-small text-muted">${esc(r.email)}</span>` : ''}</td>
+          <td><button type="button" class="lead-name" title="Abrir ficha e histórico" onclick="abrirLead(${Number(r.id)})">${esc(r.nome)}</button>${dupBadge(r)}${r.email ? `<br><span class="text-small text-muted">${esc(r.email)}</span>` : ''}</td>
           <td>${r.telefone ? `<a href="${wppLink(r.telefone)}" target="_blank" rel="noopener" title="Chamar no WhatsApp">${esc(r.telefone)}</a>` : '-'}</td>
           <td>${esc(r.produto || '-')}</td>
           <td>${esc(r.cidade || '-')}</td>
@@ -106,8 +158,25 @@ if (requireAuth()) {
     ['aguardando_retorno','Aguardando retorno'],['fechado','Fechado'],['desistiu','Desistiu'],['sem_interesse','Não tem interesse']
   ];
   const statusSelect = (current, attrs = '') => '<select ' + attrs + '>' + KANBAN.map(([v, l]) => '<option value="' + v + '"' + (current === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
+  // Pergunta o motivo da perda; resolve null se o modal for fechado sem salvar.
+  function pedirMotivo(nome) {
+    return new Promise((resolve) => {
+      let answered = false;
+      const m = openModal('Por que o lead foi perdido?',
+        `<form><p class="text-small text-muted" style="margin:0 0 12px">${esc(nome)}</p><div class="form-group"><label>Motivo *</label>${motivoField('motivo', '', true)}</div></form>`,
+        '', (data) => { answered = true; closeModal(); resolve(String(data.motivo || '').trim() || null); });
+      const obs = new MutationObserver(() => { if (!m.classList.contains('show')) { obs.disconnect(); if (!answered) resolve(null); } });
+      obs.observe(m, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
   async function moveLead(id, status) {
-    try { await apiPut('/leads/' + id, { status }); toast('Lead movido!'); load(); } catch (err) { toast(err.message, true); }
+    const lead = all.find((x) => x.id === Number(id));
+    const body = { status };
+    if (LOST.includes(status) && lead && !LOST.includes(lead.status)) {
+      body.motivo_perda = await pedirMotivo(lead.nome);
+      if (!body.motivo_perda) { render(); return; } // cancelado: volta o cartão para a etapa atual
+    }
+    try { await apiPut('/leads/' + id, body); toast('Lead movido!'); load(); } catch (err) { toast(err.message, true); render(); }
   }
   function renderKanban(rows) {
     document.getElementById('kanbanBoard').innerHTML = KANBAN.map(([status,label]) => {
@@ -116,7 +185,8 @@ if (requireAuth()) {
         + (r.proximo_retorno ? '<span class="kanban-card__retorno">Retorno: '+fmtDateTime(r.proximo_retorno)+'</span>' : '')
         + '<div class="kanban-card__actions"><button type="button" data-open-id="'+r.id+'">Abrir</button>'
         + statusSelect(r.status, 'class="kanban-card__status" data-status-id="'+r.id+'" aria-label="Mover para etapa"') + '</div></article>').join('');
-      return '<section class="kanban-column" data-status="'+status+'"><header><strong>'+label+'</strong><span>'+cards.length+'</span></header><div class="kanban-column__body">'+(cardHtml||'<div class="kanban-empty">Solte aqui</div>')+'</div></section>';
+      const total = cards.reduce((s, r) => s + (Number(r.valor_estimado) || 0), 0);
+      return '<section class="kanban-column" data-status="'+status+'"><header><strong>'+label+(total ? '<small class="kanban-total">'+brl(total)+'</small>' : '')+'</strong><span>'+cards.length+'</span></header><div class="kanban-column__body">'+(cardHtml||'<div class="kanban-empty">Solte aqui</div>')+'</div></section>';
     }).join('');
     document.querySelectorAll('.kanban-card').forEach(c=>c.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',c.dataset.id);c.classList.add('dragging');}));
     document.querySelectorAll('[data-open-id]').forEach(b=>b.addEventListener('click',()=>abrirLead(Number(b.dataset.openId))));
@@ -130,7 +200,24 @@ if (requireAuth()) {
   });
   document.getElementById('search').addEventListener('input', () => { page = 1; render(); });
   document.getElementById('statusFilter').addEventListener('change', () => { page = 1; render(); });
-  document.getElementById('assignFilter').addEventListener('change', () => { page = 1; render(); });
+  ['assignFilter', 'retornoFilter', 'produtoFilter', 'origemFilter'].forEach((id) =>
+    document.getElementById(id).addEventListener('change', () => { page = 1; render(); }));
+
+  // Exporta o que está filtrado na tela (UTF-8 com BOM e ";" para abrir direto no Excel).
+  document.getElementById('exportCsv').addEventListener('click', () => {
+    const cols = [['id', 'ID'], ['nome', 'Nome'], ['telefone', 'Telefone'], ['email', 'E-mail'], ['cidade', 'Cidade'],
+      ['produto', 'Produto'], ['status', 'Status'], ['motivo_perda', 'Motivo da perda'], ['valor_estimado', 'Valor estimado'],
+      ['corretor_nome', 'Corretor'], ['origem', 'Origem'], ['origem_pagina', 'Página'], ['utm_source', 'utm_source'],
+      ['utm_medium', 'utm_medium'], ['utm_campaign', 'utm_campaign'], ['ultimo_contato', 'Último contato'],
+      ['proximo_retorno', 'Próximo retorno'], ['criado_em', 'Recebido em (UTC)'], ['mensagem', 'Mensagem']];
+    // Prefixa ' em valores que começam com = + - @ para o Excel não executar fórmula.
+    const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+    const csv = [cols.map(([, l]) => cell(l)).join(';'), ...filtered().map((r) => cols.map(([k]) => cell(r[k])).join(';'))].join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `leads-${localDate()}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
 
   window.assumirLead = async (id) => {
     try { await apiPost('/leads/'+id+'/assumir', {}); toast('Lead atribuído a você!'); load(); }
@@ -166,29 +253,38 @@ if (requireAuth()) {
           <select name="corretor_id"><option value="">— Sem corretor —</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
         </div>` : ''}
       </div>
+      <div class="form-group loss-row" ${LOST.includes(r.status) ? '' : 'hidden'}><label>Motivo da perda *</label>${motivoField('motivo_perda', r.motivo_perda, LOST.includes(r.status))}</div>
       <div class="form-row">
         <div class="form-group"><label>Último contato</label><input name="ultimo_contato" type="datetime-local" value="${lc}"></div>
         <div class="form-group"><label>Próximo retorno</label><input name="proximo_retorno" type="datetime-local" value="${pr}"></div>
       </div>
+      <div class="form-group"><label>Valor estimado (prêmio anual, R$)</label><input name="valor_estimado" inputmode="decimal" placeholder="Ex.: 2.400,00" value="${r.valor_estimado != null ? esc(String(r.valor_estimado).replace('.', ',')) : ''}"></div>
     </form>`;
+  }
+  // Mostra (e exige) o motivo só quando a etapa escolhida é de perda.
+  function bindLossToggle(modal) {
+    const sel = modal.querySelector('select[name=status]'), row = modal.querySelector('.loss-row');
+    if (!sel || !row) return;
+    const sync = () => { const lost = LOST.includes(sel.value); row.hidden = !lost; row.querySelector('input').required = lost; };
+    sel.addEventListener('change', sync); sync();
   }
   function normDate(v) { return v ? String(v).replace('T', ' ').slice(0, 16) : v; }
   window.novoLead = () => {
-    openModal('Novo lead', formHTML(), '', async (data) => {
+    bindLossToggle(openModal('Novo lead', formHTML(), '', async (data) => {
       data.ultimo_contato = normDate(data.ultimo_contato);
       data.proximo_retorno = normDate(data.proximo_retorno);
       try { await apiPost('/leads', { ...data, origem: 'manual' }); closeModal(); toast('Lead criado!'); load(); }
       catch (e) { toast(e.message, true); }
-    });
+    }));
   };
   window.editLead = (id) => {
     const r = all.find((x) => x.id === Number(id)); if (!r) return;
-    openModal('Editar lead #' + r.id, formHTML(r), '', async (data) => {
+    bindLossToggle(openModal('Editar lead #' + r.id, formHTML(r), '', async (data) => {
       data.ultimo_contato = normDate(data.ultimo_contato);
       data.proximo_retorno = normDate(data.proximo_retorno);
       try { await apiPut('/leads/' + r.id, data); closeModal(); toast('Lead atualizado!'); load(); }
       catch (e) { toast(e.message, true); }
-    });
+    }));
   };
   /* ---- Ficha do lead: dados, registrar contato e histórico ---- */
   const TIPOS = {
@@ -218,6 +314,8 @@ if (requireAuth()) {
           ${info('Telefone', esc(r.telefone))}${info('E-mail', esc(r.email))}${info('Produto', esc(r.produto))}
           ${info('Cidade', esc(r.cidade))}${info('Origem', esc(r.origem))}${info('Recebido em', fmtUtc(r.criado_em))}
           ${info('Último contato', r.ultimo_contato ? fmtDateTime(r.ultimo_contato) : '')}${info('Próximo retorno', r.proximo_retorno ? fmtDateTime(r.proximo_retorno) : '')}
+          ${info('Valor estimado', r.valor_estimado ? brl(r.valor_estimado) : '')}${info('Motivo da perda', esc(r.motivo_perda))}
+          ${info('Página de origem', esc(r.origem_pagina))}${info('Campanha', esc([r.utm_source, r.utm_medium, r.utm_campaign].filter(Boolean).join(' / ')))}
         </dl>
         ${r.mensagem ? `<p class="lead-sheet__msg"><strong>Mensagem do site:</strong> ${esc(r.mensagem)}</p>` : ''}
         <form class="lead-contact">
@@ -226,6 +324,7 @@ if (requireAuth()) {
             <div class="form-group"><label>Tipo</label><select name="tipo">${Object.entries(TIPOS).filter(([k]) => k !== 'status').map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></div>
             <div class="form-group"><label>Mover para</label><select name="status"><option value="">Manter etapa atual</option>${KANBAN.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
           </div>
+          <div class="form-group loss-row" hidden><label>Motivo da perda *</label>${motivoField('motivo_perda', r.motivo_perda)}</div>
           <div class="form-group"><label>O que foi conversado? *</label><textarea name="descricao" required maxlength="2000" placeholder="Ex.: Enviei a cotação da Porto; cliente vai comparar e retornar sexta."></textarea></div>
           <div class="form-group"><label>Próximo retorno</label><input name="proximo_retorno" type="datetime-local" value="${r.proximo_retorno ? esc(r.proximo_retorno.replace(' ', 'T').slice(0, 16)) : ''}"></div>
         </form>
@@ -246,6 +345,7 @@ if (requireAuth()) {
     });
     m.querySelector('.modal').classList.add('modal--wide');
     m.querySelector('[data-edit-lead]').onclick = () => editLead(r.id);
+    bindLossToggle(m);
   };
 
   window.delLead = async (id) => {
@@ -273,7 +373,11 @@ if (requireAuth()) {
     });
   };
 
-  load().catch(e => toast(e.message, true));
+  // Link do e-mail de aviso (leads.html?lead=ID) abre direto a ficha.
+  load().then(() => {
+    const id = Number(new URLSearchParams(location.search).get('lead'));
+    if (id) abrirLead(id);
+  }).catch(e => toast(e.message, true));
 }
 </script>
 </body>
