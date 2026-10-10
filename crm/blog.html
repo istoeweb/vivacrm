@@ -98,7 +98,7 @@ if (requireAuth()) {
     <div class="form-group"><label>Resumo <button type="button" class="btn btn-outline btn-sm" id="genResumo" style="margin-left:8px">Gerar do conteúdo</button></label><textarea name="resumo" maxlength="500" placeholder="Texto exibido na listagem do blog">${esc(p.resumo||'')}</textarea></div>
     <div class="form-group"><label>Conteúdo *</label><div class="editor-toolbar"><button type="button" data-insert="## ">Título</button><button type="button" data-insert="• ">Lista</button><button type="button" id="previewArticle">Pré-visualizar</button></div><textarea name="conteudo" required placeholder="Escreva o artigo. Separe os parágrafos com uma linha em branco.">${esc(p.conteudo||'')}</textarea><div class="blog-help" id="contentStats"></div><div class="article-preview" id="articlePreview"></div></div>
     <div class="form-group"><label>Palavras-chave (SEO)</label><div class="kw-row"><input name="palavras_chave" maxlength="300" value="${esc(p.palavras_chave||'')}" placeholder="Ex.: seguro auto, proteção veicular"><button type="button" class="btn btn-outline btn-sm" id="genKeywords">Gerar automaticamente</button></div><div class="blog-help">Separe por vírgulas. Usadas como meta keywords no artigo (SEO).</div><div class="kw-tags" id="kwTags"></div></div>
-    <div class="form-group"><label>Imagem destacada</label><input name="imagem_arquivo" type="file" accept="image/jpeg,image/png,image/webp"><input name="imagem_url" type="hidden" value="${esc(p.imagem_url||'')}"><div class="blog-help">JPG, PNG ou WebP, com no máximo 5 MB.</div><img id="imagePreview" class="image-preview ${p.imagem_url?'show':''}" src="${esc(p.imagem_url||'')}" alt="Pré-visualização"></div>
+    <div class="form-group"><label>Imagem destacada</label><input name="imagem_arquivo" type="file" accept="image/jpeg,image/png,image/webp"><input name="imagem_url" type="hidden" value="${esc(p.imagem_url||'')}"><div class="blog-help">JPG, PNG ou WebP, até 20 MB (a imagem é otimizada automaticamente).</div><img id="imagePreview" class="image-preview ${p.imagem_url?'show':''}" src="${esc(p.imagem_url||'')}" alt="Pré-visualização"></div>
     <div class="form-group"><label>Status</label><select name="status"><option value="rascunho" ${p.status!=='publicado'?'selected':''}>Rascunho</option><option value="publicado" ${p.status==='publicado'?'selected':''}>Publicado</option></select></div>
   </form>`; }
 
@@ -147,7 +147,21 @@ if (requireAuth()) {
     kwInput.addEventListener('input',()=>renderKwTags(kwInput.value));
     renderKwTags(kwInput.value);
   }
-  async function preparePostData(data) { const file=data.imagem_arquivo; delete data.imagem_arquivo; if(file&&file.size){if(file.size>5*1024*1024)throw new Error('A imagem deve ter no máximo 5 MB');const encoded=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Não foi possível ler a imagem'));reader.readAsDataURL(file);});const uploaded=await apiPost('/blog/admin/upload',{type:file.type,data:encoded});data.imagem_url=uploaded.url;}data.slug=data.slug||slugify(data.titulo);return data; }
+  // Redimensiona (máx. 1600px) e comprime para WebP/JPEG antes do envio: o corpo
+  // da requisição tem limite (4,5 MB na Vercel) e imagens menores deixam o site mais rápido.
+  async function compressImage(file) {
+    const MAX=1600;
+    const bmp=await createImageBitmap(file).catch(()=>{throw new Error('Não foi possível ler a imagem');});
+    const scale=Math.min(1,MAX/Math.max(bmp.width,bmp.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.round(bmp.width*scale);canvas.height=Math.round(bmp.height*scale);
+    canvas.getContext('2d').drawImage(bmp,0,0,canvas.width,canvas.height);bmp.close?.();
+    for(const [type,q] of [['image/webp',0.82],['image/jpeg',0.82],['image/jpeg',0.6]]){
+      const dataUrl=canvas.toDataURL(type,q);
+      if(dataUrl.startsWith(`data:${type}`)&&dataUrl.length*0.75<3*1024*1024)return {type,data:dataUrl};
+    }
+    throw new Error('Imagem muito grande mesmo após compressão. Tente outra imagem.');
+  }
+  async function preparePostData(data) { const file=data.imagem_arquivo; delete data.imagem_arquivo; if(file&&file.size){if(file.size>20*1024*1024)throw new Error('A imagem deve ter no máximo 20 MB');const uploaded=await apiPost('/blog/admin/upload',await compressImage(file));data.imagem_url=uploaded.url;}data.slug=data.slug||slugify(data.titulo);return data; }
   window.novoPost = () => { openModal('Novo artigo', formHTML(), '', async data => {
     try { await apiPost('/blog/admin', await preparePostData(data)); closeModal(); toast('Artigo criado!'); load(); } catch(e){toast(e.message,true);}
   }); setupEditor(); };

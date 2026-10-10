@@ -37,7 +37,8 @@ async function apiSend(method, path, body) {
   }
   const r = await fetch(API(path), opts);
   if (r.status === 401) { logout(); throw new Error('Sessão expirada'); }
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro');
+  if (r.status === 413) throw new Error('Arquivo grande demais para envio');
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `Erro (${r.status})`);
   return r.json();
 }
 function authHeaders() {
