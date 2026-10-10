@@ -15,6 +15,17 @@ function asyncHandler(fn) {
   };
 }
 
+// express.Router cujos handlers podem ser async: erros/rejeições vão para next(),
+// como o Express 4 faz sozinho apenas com handlers síncronos.
+function asyncRouter() {
+  const router = require('express').Router();
+  for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
+    const original = router[method].bind(router);
+    router[method] = (path, ...handlers) => original(path, ...handlers.flat().map(asyncHandler));
+  }
+  return router;
+}
+
 // Middleware final de tratamento de erros.
 function errorHandler(err, req, res, _next) {
   const status = err.status || 500;
@@ -53,7 +64,9 @@ function isValidEmail(email) {
 
 // Telefone válido: 10 ou 11 dígitos (com DDD), ignorando formatação.
 function isValidPhone(tel) {
-  const digits = String(tel).replace(/\D/g, '');
+  let digits = String(tel).replace(/\D/g, '');
+  // Aceita o DDI 55 ("+55 12 99999-0000"), comum quando copiado do WhatsApp.
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) digits = digits.slice(2);
   return digits.length === 10 || digits.length === 11;
 }
 
@@ -71,6 +84,15 @@ function getPagination(req, { defaultLimit = 50, maxLimit = 200 } = {}) {
 // Indica se o cliente pediu paginação explicitamente (?page= ou ?limit=)
 function wantsPagination(req) {
   return req.query.page !== undefined || req.query.limit !== undefined;
+}
+
+// Id vindo de formulário (select): undefined mantém o atual; '' ou null = "nenhum";
+// demais valores viram número. Sem isso, '' quebra colunas INTEGER no Postgres.
+function idOr(value, fallback) {
+  if (value === undefined) return fallback;
+  if (value === '' || value === null) return null;
+  const n = Number(value);
+  return Number.isInteger(n) ? n : fallback;
 }
 
 // Converte um prêmio informado (número ou texto tipo "R$ 4.500/ano") em número (reais).
@@ -97,6 +119,7 @@ function parsePremio(v) {
 module.exports = {
   ApiError,
   asyncHandler,
+  asyncRouter,
   errorHandler,
   notFound,
   isValidEmail,
@@ -104,6 +127,7 @@ module.exports = {
   getPagination,
   wantsPagination,
   parsePremio,
+  idOr,
   LEAD_STATUSES,
   isValidLeadStatus,
 };

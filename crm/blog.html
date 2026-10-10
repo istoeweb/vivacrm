@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blog | CRM Vida de Ouro</title>
-  <link rel="stylesheet" href="assets/crm.css" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+    <link rel="stylesheet" href="assets/crm.css" />
   <style>
     .post-title { max-width: 430px; }
     .post-title small { display:block; margin-top:4px; color:var(--text-muted); font-weight:400; }
@@ -17,8 +18,13 @@
     #appModal .modal { width:min(1080px,calc(100vw - 32px)); max-width:none; }
     .editor-toolbar { display:flex; gap:8px; margin-bottom:8px; padding:8px; background:var(--gray-100); border-radius:8px; }
     .editor-toolbar button { padding:6px 10px; color:var(--gray-700); background:var(--white); border:1px solid var(--gray-200); border-radius:6px; font-weight:700; }
-    .article-preview { display:none; margin-top:16px; padding:28px; color:var(--gray-700); background:var(--white); border:1px solid var(--gray-200); border-radius:12px; white-space:pre-line; line-height:1.8; }
+    .article-preview { display:none; margin-top:16px; padding:28px; color:var(--gray-700); background:var(--white); border:1px solid var(--gray-200); border-radius:12px; line-height:1.8; }
     .article-preview.show { display:block; }
+    .article-preview p { margin:0 0 1em; }
+    .kw-row { display:flex; gap:8px; align-items:flex-start; }
+    .kw-row input { flex:1; }
+    .kw-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .kw-tag { padding:3px 10px; color:var(--blue-700); background:var(--blue-50); border-radius:20px; font-size:12px; font-weight:600; }
   </style>
 </head>
 <body>
@@ -38,6 +44,7 @@
       <div class="table-toolbar__filters">
         <input type="search" id="search" placeholder="Buscar artigo..." />
         <select id="statusFilter"><option value="">Todos os status</option><option value="publicado">Publicados</option><option value="rascunho">Rascunhos</option></select>
+        <select id="categoryFilter"><option value="">Todas as categorias</option></select>
       </div>
       <span class="text-muted text-small" id="countLabel"></span>
     </div>
@@ -60,7 +67,11 @@ if (requireAuth()) {
   function render() {
     const q = document.getElementById('search').value.toLowerCase();
     const status = document.getElementById('statusFilter').value;
-    const rows = posts.filter(p => (!status || p.status === status) && (!q || `${p.titulo} ${p.categoria||''} ${p.resumo||''}`.toLowerCase().includes(q)));
+    const categoria = document.getElementById('categoryFilter').value;
+    const catSel = document.getElementById('categoryFilter');
+    const cats = [...new Set(posts.map(p => p.categoria).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    catSel.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option value="${esc(c)}"${c === categoria ? ' selected' : ''}>${esc(c)}</option>`).join('');
+    const rows = posts.filter(p => (!status || p.status === status) && (!categoria || p.categoria === categoria) && (!q || `${p.titulo} ${p.categoria||''} ${p.resumo||''} ${p.palavras_chave||''}`.toLowerCase().includes(q)));
     document.getElementById('totalPosts').textContent = posts.length;
     document.getElementById('publishedPosts').textContent = posts.filter(p=>p.status==='publicado').length;
     document.getElementById('draftPosts').textContent = posts.filter(p=>p.status==='rascunho').length;
@@ -72,6 +83,7 @@ if (requireAuth()) {
       <td>${esc(p.autor_nome || '-')}</td><td class="text-small">${p.publicado_em ? fmtDate(p.publicado_em) : '-'}</td>
       <td><div class="row-actions">
         ${p.status === 'publicado' ? `<a class="icon-btn" title="Ver no site" href="../artigo.html?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">↗</a>` : ''}
+        <button class="icon-btn" title="${p.status === 'publicado' ? 'Despublicar' : 'Publicar'}" onclick="togglePublish(${p.id})">${p.status === 'publicado' ? '⇩' : '⇧'}</button>
         <button class="icon-btn" title="Editar" onclick="editarPost(${p.id})">✎</button>
         <button class="icon-btn icon-btn--del" title="Excluir" onclick="excluirPost(${p.id})">×</button>
       </div></td></tr>`).join('') : '<tr class="empty-row"><td colspan="6">Nenhum artigo encontrado.</td></tr>';
@@ -81,23 +93,84 @@ if (requireAuth()) {
   function slugify(v) { return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
   function formHTML(p={}) { return `<form class="blog-form">
     <div class="form-group"><label>Título *</label><input name="titulo" required maxlength="180" value="${esc(p.titulo||'')}"></div>
-    <div class="form-row"><div class="form-group"><label>Endereço (slug)</label><input name="slug" maxlength="140" value="${esc(p.slug||'')}" placeholder="gerado pelo título"><div class="blog-help">Use letras, números e hífens.</div></div>
+    <div class="form-row"><div class="form-group"><label>Endereço (slug)</label><input name="slug" maxlength="140" value="${esc(p.slug||'')}" placeholder="gerado pelo título"><div class="blog-help" id="slugPreview">Use letras, números e hífens.</div></div>
     <div class="form-group"><label>Categoria</label><input name="categoria" maxlength="80" value="${esc(p.categoria||'')}" placeholder="Ex.: Seguro Auto"></div></div>
-    <div class="form-group"><label>Resumo</label><textarea name="resumo" maxlength="500" placeholder="Texto exibido na listagem do blog">${esc(p.resumo||'')}</textarea></div>
-    <div class="form-group"><label>Conteúdo *</label><div class="editor-toolbar"><button type="button" data-insert="## ">Título</button><button type="button" data-insert="• ">Lista</button><button type="button" id="previewArticle">Pré-visualizar</button></div><textarea name="conteudo" required placeholder="Escreva o artigo. Separe os parágrafos com uma linha em branco.">${esc(p.conteudo||'')}</textarea><div class="article-preview" id="articlePreview"></div></div>
-    <div class="form-group"><label>Imagem destacada</label><input name="imagem_arquivo" type="file" accept="image/jpeg,image/png,image/webp"><input name="imagem_url" type="hidden" value="${esc(p.imagem_url||'')}"><div class="blog-help">JPG, PNG ou WebP, com no máximo 5 MB.</div><img id="imagePreview" class="image-preview ${p.imagem_url?'show':''}" src="${esc(p.imagem_url||'')}" alt="Pré-visualização"></div>
+    <div class="form-group"><label>Resumo <button type="button" class="btn btn-outline btn-sm" id="genResumo" style="margin-left:8px">Gerar do conteúdo</button></label><textarea name="resumo" maxlength="500" placeholder="Texto exibido na listagem do blog">${esc(p.resumo||'')}</textarea></div>
+    <div class="form-group"><label>Conteúdo *</label><div class="editor-toolbar"><button type="button" data-insert="## ">Título</button><button type="button" data-insert="• ">Lista</button><button type="button" id="previewArticle">Pré-visualizar</button></div><textarea name="conteudo" required placeholder="Escreva o artigo. Separe os parágrafos com uma linha em branco.">${esc(p.conteudo||'')}</textarea><div class="blog-help" id="contentStats"></div><div class="article-preview" id="articlePreview"></div></div>
+    <div class="form-group"><label>Palavras-chave (SEO)</label><div class="kw-row"><input name="palavras_chave" maxlength="300" value="${esc(p.palavras_chave||'')}" placeholder="Ex.: seguro auto, proteção veicular"><button type="button" class="btn btn-outline btn-sm" id="genKeywords">Gerar automaticamente</button></div><div class="blog-help">Separe por vírgulas. Usadas como meta keywords no artigo (SEO).</div><div class="kw-tags" id="kwTags"></div></div>
+    <div class="form-group"><label>Imagem destacada</label><input name="imagem_arquivo" type="file" accept="image/jpeg,image/png,image/webp"><input name="imagem_url" type="hidden" value="${esc(p.imagem_url||'')}"><div class="blog-help">JPG, PNG ou WebP, até 20 MB (a imagem é otimizada automaticamente).</div><img id="imagePreview" class="image-preview ${p.imagem_url?'show':''}" src="${esc(p.imagem_url||'')}" alt="Pré-visualização"></div>
     <div class="form-group"><label>Status</label><select name="status"><option value="rascunho" ${p.status!=='publicado'?'selected':''}>Rascunho</option><option value="publicado" ${p.status==='publicado'?'selected':''}>Publicado</option></select></div>
   </form>`; }
 
-  function setupImagePreview() { const input=document.querySelector('#appModal [name="imagem_arquivo"]'),preview=document.getElementById('imagePreview'),area=document.querySelector('#appModal [name="conteudo"]'); if(!input||!preview)return; input.addEventListener('change',()=>{const file=input.files[0];if(!file)return;preview.src=URL.createObjectURL(file);preview.classList.add('show');});document.querySelectorAll('#appModal [data-insert]').forEach(b=>b.addEventListener('click',()=>{const start=area.selectionStart;area.setRangeText(b.dataset.insert,start,start,'end');area.focus();}));document.getElementById('previewArticle').addEventListener('click',()=>{const box=document.getElementById('articlePreview');box.textContent=area.value||'A prévia do conteúdo aparecerá aqui.';box.classList.toggle('show');}); }
-  async function preparePostData(data) { const file=data.imagem_arquivo; delete data.imagem_arquivo; if(file&&file.size){if(file.size>5*1024*1024)throw new Error('A imagem deve ter no máximo 5 MB');const encoded=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Não foi possível ler a imagem'));reader.readAsDataURL(file);});const uploaded=await apiPost('/blog/admin/upload',{type:file.type,data:encoded});data.imagem_url=uploaded.url;}data.slug=data.slug||slugify(data.titulo);return data; }
+  const STOPWORDS = new Set('a o as os um uns uma umas de do da dos das em no na nos nas por para com sem sob sobre entre ate que se e ou mas nem como quando onde qual quais quem cujo porque pois entao assim aqui ali la ao aos sao foi ser sua seu suas seus mais menos muito pouco muita muitas muitos ja nao sim tambem esse essa isso este esta isto aquele aquela aquilo ele ela eles elas voce voces nos lhe me te dele dela deles delas num numa pelo pela pelos pelas desde apos cada todo toda todos todas outro outra outros outras seus contra ainda apenas enquanto durante conforme tem ter tinha havia gente coisa muito bem mal aos das dos ainda depois antes'.normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/\s+/));
+  function gerarPalavrasChave(texto, categoria) {
+    const freq = new Map();
+    const forms = new Map();
+    const tokens = String(texto||'').toLowerCase().match(/[\p{L}0-9]+/gu) || [];
+    for (const raw of tokens) {
+      const norm = raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if (norm.length < 4 || STOPWORDS.has(norm) || /^\d+$/.test(norm)) continue;
+      freq.set(norm, (freq.get(norm)||0)+1);
+      if (!forms.has(norm)) forms.set(norm, raw);
+    }
+    const top = [...freq.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>forms.get(x[0]));
+    const kws = [];
+    if (categoria && categoria.trim()) kws.push(categoria.trim().toLowerCase());
+    for (const t of top) if (!kws.some(k=>k.toLowerCase()===t)) kws.push(t);
+    return kws.slice(0,8).join(', ');
+  }
+  function previewHTML(text) {
+    return String(text||'').split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean).map(x=>'<p>'+esc(x).replace(/\n/g,'<br>')+'</p>').join('') || '<p style="color:var(--text-muted)">A prévia do conteúdo aparecerá aqui.</p>';
+  }
+  function renderKwTags(value) {
+    const box = document.getElementById('kwTags'); if(!box) return;
+    const tags = String(value||'').split(',').map(t=>t.trim()).filter(Boolean);
+    box.innerHTML = tags.map(t=>`<span class="kw-tag">${esc(t)}</span>`).join('');
+  }
+  function setupEditor() {
+    const q = s => document.querySelector('#appModal '+s);
+    const fileInput=q('[name="imagem_arquivo"]'), preview=document.getElementById('imagePreview'), area=q('[name="conteudo"]'), tituloInput=q('[name="titulo"]'), slugInput=q('[name="slug"]'), resumoInput=q('[name="resumo"]'), catInput=q('[name="categoria"]'), kwInput=q('[name="palavras_chave"]');
+    if(!area) return;
+    if(fileInput&&preview) fileInput.addEventListener('change',()=>{const file=fileInput.files[0];if(!file)return;preview.src=URL.createObjectURL(file);preview.classList.add('show');});
+    const statsBox=document.getElementById('contentStats');
+    const updateStats=()=>{const words=area.value.trim().split(/\s+/).filter(Boolean).length;const min=Math.max(1,Math.round(words/200));statsBox.textContent=words?`${words} palavra(s) · ~${min} min de leitura`:'';};
+    document.querySelectorAll('#appModal [data-insert]').forEach(b=>b.addEventListener('click',()=>{const start=area.selectionStart;area.setRangeText(b.dataset.insert,start,start,'end');area.focus();updateStats();}));
+    document.getElementById('previewArticle').addEventListener('click',()=>{const box=document.getElementById('articlePreview');box.innerHTML=previewHTML(area.value);box.classList.toggle('show');});
+    area.addEventListener('input',updateStats); updateStats();
+    let slugTouched=!!slugInput.value;
+    const updateSlugPreview=()=>{const s=slugInput.value.trim()||slugify(tituloInput.value);document.getElementById('slugPreview').textContent=s?`/blog/artigo.html?slug=${s}`:'Use letras, números e hífens.';};
+    slugInput.addEventListener('input',()=>{slugTouched=true;updateSlugPreview();});
+    tituloInput.addEventListener('input',()=>{if(!slugTouched)slugInput.value=slugify(tituloInput.value);updateSlugPreview();});
+    updateSlugPreview();
+    document.getElementById('genResumo').addEventListener('click',()=>{const first=area.value.split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean)[0]||'';if(!first){toast('Escreva o conteúdo primeiro.',true);return;}resumoInput.value=first.replace(/\s+/g,' ').slice(0,300);toast('Resumo gerado a partir do conteúdo.');});
+    document.getElementById('genKeywords').addEventListener('click',()=>{const kws=gerarPalavrasChave(`${tituloInput.value} ${resumoInput.value} ${area.value}`,catInput.value);if(!kws){toast('Adicione mais conteúdo para gerar palavras-chave.',true);return;}kwInput.value=kws;renderKwTags(kws);toast('Palavras-chave geradas!');});
+    kwInput.addEventListener('input',()=>renderKwTags(kwInput.value));
+    renderKwTags(kwInput.value);
+  }
+  // Redimensiona (máx. 1600px) e comprime para WebP/JPEG antes do envio: o corpo
+  // da requisição tem limite (4,5 MB na Vercel) e imagens menores deixam o site mais rápido.
+  async function compressImage(file) {
+    const MAX=1600;
+    const bmp=await createImageBitmap(file).catch(()=>{throw new Error('Não foi possível ler a imagem');});
+    const scale=Math.min(1,MAX/Math.max(bmp.width,bmp.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.round(bmp.width*scale);canvas.height=Math.round(bmp.height*scale);
+    canvas.getContext('2d').drawImage(bmp,0,0,canvas.width,canvas.height);bmp.close?.();
+    for(const [type,q] of [['image/webp',0.82],['image/jpeg',0.82],['image/jpeg',0.6]]){
+      const dataUrl=canvas.toDataURL(type,q);
+      if(dataUrl.startsWith(`data:${type}`)&&dataUrl.length*0.75<3*1024*1024)return {type,data:dataUrl};
+    }
+    throw new Error('Imagem muito grande mesmo após compressão. Tente outra imagem.');
+  }
+  async function preparePostData(data) { const file=data.imagem_arquivo; delete data.imagem_arquivo; if(file&&file.size){if(file.size>20*1024*1024)throw new Error('A imagem deve ter no máximo 20 MB');const uploaded=await apiPost('/blog/admin/upload',await compressImage(file));data.imagem_url=uploaded.url;}data.slug=data.slug||slugify(data.titulo);return data; }
   window.novoPost = () => { openModal('Novo artigo', formHTML(), '', async data => {
     try { await apiPost('/blog/admin', await preparePostData(data)); closeModal(); toast('Artigo criado!'); load(); } catch(e){toast(e.message,true);}
-  }); setupImagePreview(); };
-  window.editarPost = async id => { const p=await apiGet('/blog/admin/'+id); openModal('Editar artigo',formHTML(p),'',async data=>{try{await apiPut('/blog/admin/'+id,await preparePostData(data));closeModal();toast('Artigo atualizado!');load();}catch(e){toast(e.message,true);}});setupImagePreview(); };
+  }); setupEditor(); };
+  window.editarPost = async id => { const p=await apiGet('/blog/admin/'+id); openModal('Editar artigo',formHTML(p),'',async data=>{try{await apiPut('/blog/admin/'+id,await preparePostData(data));closeModal();toast('Artigo atualizado!');load();}catch(e){toast(e.message,true);}});setupEditor(); };
   window.excluirPost = async id => { if(!confirm('Excluir este artigo?')) return; await apiDel('/blog/admin/'+id); toast('Artigo excluído.'); load(); };
+  window.togglePublish = async id => { const p=posts.find(x=>x.id===id); if(!p) return; const novo=p.status==='publicado'?'rascunho':'publicado'; try{await apiPut('/blog/admin/'+id,{status:novo});toast(novo==='publicado'?'Artigo publicado!':'Artigo movido para rascunho.');load();}catch(e){toast(e.message,true);} };
   document.getElementById('search').addEventListener('input',()=>{page=1;render();});
   document.getElementById('statusFilter').addEventListener('change',()=>{page=1;render();});
+  document.getElementById('categoryFilter').addEventListener('change',()=>{page=1;render();});
   load().catch(e=>toast(e.message,true));
 }
 </script>

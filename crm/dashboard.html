@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | CRM Vida de Ouro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/crm.css" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+    <link rel="stylesheet" href="assets/crm.css" />
 </head>
 <body>
 <aside class="sidebar" id="sidebar"></aside>
@@ -117,6 +117,25 @@ function distCard(title, rows) {
   </div>`;
 }
 
+// Barras genéricas: rows = [{ label, n, extra? }]
+function barsCard(title, rows) {
+  const max = Math.max(...rows.map(r => r.n));
+  return `<div class="dist-card">
+    <div class="dist-card__title">${esc(title)}</div>
+    ${rows.map(r => `<div class="dist-row">
+      <div class="dist-row__label" title="${esc(r.label)}">${esc(r.label)}${r.extra ? `<small class="text-muted"> · ${esc(r.extra)}</small>` : ''}</div>
+      <div class="dist-row__track"><div class="dist-row__fill" style="width:${max ? Math.round((r.n / max) * 100) : 0}%"></div></div>
+      <div class="dist-row__count">${r.n}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function fmtHoras(h) {
+  if (h < 1) return Math.max(1, Math.round(h * 60)) + ' min';
+  if (h < 48) return (h < 10 ? h.toFixed(1).replace('.', ',') : Math.round(h)) + ' h';
+  return Math.round(h / 24) + ' dias';
+}
+
 function daysUntil(d) {
   const dt = new Date(d);
   if (isNaN(dt)) return null;
@@ -145,17 +164,22 @@ if (requireAuth()) {
       { v: d.sinistrosTotal, l: 'Sinistros', cls: d.sinistrosTotal > 0 ? '--red' : '--gray', href: 'sinistros.html' },
       ...(d.agendamentosAtrasados > 0 ? [{ v: d.agendamentosAtrasados, l: 'Agend. atrasados', cls: '--red', href: 'agendamentos.html' }] : []),
       ...(d.leadsNaoAtribuidos > 0 ? [{ v: d.leadsNaoAtribuidos, l: 'Leads não atribuídos', cls: '--amber', href: 'leads.html' }] : []),
+      ...(d.tempoPrimeiroContatoHoras !== null ? [{ v: fmtHoras(d.tempoPrimeiroContatoHoras), l: '1º contato (média 30d)', cls: d.tempoPrimeiroContatoHoras > 24 ? '--red' : d.tempoPrimeiroContatoHoras > 2 ? '--amber' : '--green', href: 'leads.html' }] : []),
+      ...(d.semContato30d > 0 ? [{ v: d.semContato30d, l: 'Leads novos sem contato', cls: '--red', href: 'leads.html' }] : []),
+      ...(d.funilValorAberto > 0 ? [{ v: fmtMoney(d.funilValorAberto), l: 'Funil em aberto', cls: '', href: 'leads.html' }] : []),
       ...(d.usuariosTotal !== null ? [{ v: d.usuariosTotal, l: 'Usuários', cls: '--gray', href: 'usuarios.html' }] : [])
     ];
     document.getElementById('statsGrid').innerHTML = stats.map(s =>
-      `<a class="stat-card stat-card${s.cls}" href="${s.href}"><div class="stat-card__value">${s.v}</div><div class="stat-card__label">${s.l}</div></a>`
+      `<a class="stat-card stat-card${s.cls}" href="${s.href}"><div class="stat-card__value${String(s.v).length > 6 ? ' stat-card__value--long' : ''}">${s.v}</div><div class="stat-card__label">${s.l}</div></a>`
     ).join('');
 
     // Distribuições por status (funil de leads, apólices, sinistros)
     document.getElementById('distGrid').innerHTML = [
       distCard('Funil de leads', sortByOrder(d.leadsPorStatus, LEAD_ORDER)),
       distCard('Apólices por status', d.apolicesStatus),
-      distCard('Sinistros por status', d.sinistrosStatus)
+      distCard('Sinistros por status', d.sinistrosStatus),
+      ...(d.leadsPorOrigem.length ? [barsCard('Leads por origem', d.leadsPorOrigem.map(o => ({ label: o.origem, n: o.n, extra: o.fechados ? `${o.fechados} fechado${o.fechados > 1 ? 's' : ''}` : '' })))] : []),
+      ...(d.motivosPerda.length ? [barsCard('Motivos de perda', d.motivosPerda.map(m => ({ label: m.motivo, n: m.n })))] : [])
     ].join('');
 
     const v = d.vencendo.length

@@ -10,7 +10,12 @@ function getUser() {
   try { return JSON.parse(sessionStorage.getItem('crm_user') || '{}'); } catch { return {}; }
 }
 function requireAuth() {
-  if (!getToken()) { location.href = 'index.html'; return false; }
+  if (!getToken()) {
+    // Volta para esta página após o login (ex.: link do e-mail de aviso de lead).
+    const here = location.pathname.split('/').pop() + location.search;
+    location.href = 'index.html' + (here && here !== 'dashboard.html' ? '?next=' + encodeURIComponent(here) : '');
+    return false;
+  }
   return true;
 }
 function logout() {
@@ -37,7 +42,8 @@ async function apiSend(method, path, body) {
   }
   const r = await fetch(API(path), opts);
   if (r.status === 401) { logout(); throw new Error('Sessão expirada'); }
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro');
+  if (r.status === 413) throw new Error('Arquivo grande demais para envio');
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `Erro (${r.status})`);
   return r.json();
 }
 function authHeaders() {
@@ -176,10 +182,12 @@ function openModal(title, fieldsHTML, footerHTML = '', onSubmit = null) {
     m.querySelector('.modal__close').onclick = () => m.classList.remove('show');
     m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
   }
+  m.querySelector('.modal').classList.remove('modal--wide'); // variante larga é opt-in por modal
   m.querySelector('.modal__title').textContent = title;
   m.querySelector('.modal__body').innerHTML = fieldsHTML;
   m.querySelector('.modal__footer').innerHTML = footerHTML || '<button class="btn btn-ghost" type="button" data-close>Cancelar</button><button class="btn btn-primary" type="submit" data-save>Salvar</button>';
-  m.querySelector('[data-close]').onclick = () => m.classList.remove('show');
+  const closeBtn = m.querySelector('[data-close]');
+  if (closeBtn) closeBtn.onclick = () => m.classList.remove('show');
   const doSave = () => {
     const form = m.querySelector('form');
     if (!form) { if (onSubmit) onSubmit({}); return; }
@@ -187,7 +195,8 @@ function openModal(title, fieldsHTML, footerHTML = '', onSubmit = null) {
     const data = Object.fromEntries(new FormData(form).entries());
     if (onSubmit) onSubmit(data);
   };
-  m.querySelector('[data-save]').onclick = doSave;
+  const saveBtn = m.querySelector('[data-save]');
+  if (saveBtn) saveBtn.onclick = doSave;
   // Enter num campo dispara o submit nativo do form (GET) — previne e salva pela mesma lógica.
   // Como o botão "Salvar" fica no rodapé (fora do form), adiciona-se um submit oculto para
   // que o Enter dispare o submit implícito também em forms com múltiplos campos.
@@ -219,7 +228,9 @@ function renderSidebar(activeKey) {
   ];
   if (user.role === 'admin') {
     links.push({ key: 'blog', href: 'blog.html', label: 'Blog', icon: 'M4 19.5A2.5 2.5 0 016.5 17H20V5H6.5A2.5 2.5 0 004 7.5v12z M8 9h8 M8 13h6' });
+    links.push({ key: 'conteudo', href: 'conteudo.html', label: 'Conteúdo do Site', icon: 'M3 3h18v18H3z M3 9h18 M9 21V9' });
     links.push({ key: 'usuarios', href: 'usuarios.html', label: 'Usuários', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' });
+    links.push({ key: 'configuracoes', href: 'configuracoes.html', label: 'Configurações', icon: 'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z' });
   }
   const html = `
     <div class="sidebar__brand">Vida de <strong>Ouro</strong><br><span style="font-size:10.5px;opacity:.6;letter-spacing:.08em;font-weight:500;">CRM Corretora</span></div>
@@ -297,8 +308,82 @@ function enhanceCrmShell() {
     }catch(_){results.classList.remove('show');}},250);
   });
   document.addEventListener('click',(e)=>{if(!e.target.closest('.global-search'))results.classList.remove('show');});
+  function pendItem(href, title, sub) {
+    return '<a class="pend-item" href="' + href + '"><strong>' + esc(title) + '</strong><small>' + esc(sub) + '</small></a>';
+  }
+  function renderPendencias(d) {
+    const parts = [];
+    const follow = d.followupsLeads || [];
+    const venc = d.vencendo || [];
+    const prox = d.proximosAgendamentos || [];
+    const atrasados = d.agendamentosAtrasados || 0;
+    const naoAtrib = d.leadsNaoAtribuidos || 0;
+    if (naoAtrib) parts.push(pendItem('leads.html', naoAtrib + ' lead(s) sem corretor', 'Fila de captação. Clique para assumir'));
+    if (atrasados) parts.push(pendItem('agendamentos.html', atrasados + ' agendamento(s) atrasado(s)', 'Compromissos pendentes já vencidos'));
+    if (follow.length) {
+      parts.push('<div class="pend-group">Follow-ups de leads (hoje/atrasados)</div>');
+      follow.forEach((l) => parts.push(pendItem('leads.html', l.nome, 'Retorno ' + fmtDate(l.proximo_retorno) + ' · ' + (l.telefone || 'sem telefone'))));
+    }
+    if (prox.length) {
+      parts.push('<div class="pend-group">Próximos agendamentos</div>');
+      prox.forEach((g) => parts.push(pendItem('agendamentos.html', g.titulo || 'Agendamento', fmtDateTime(g.data_hora) + ' · ' + (g.cliente_nome || g.lead_nome || ''))));
+    }
+    if (venc.length) {
+      parts.push('<div class="pend-group">Apólices vencendo (30 dias)</div>');
+      venc.forEach((a) => parts.push(pendItem('apolices.html', (a.numero || 'Apólice') + ' · ' + (a.cliente_nome || ''), 'Vence em ' + fmtDate(a.vigencia_fim))));
+    }
+    return parts.length ? '<div class="pend-list">' + parts.join('') + '</div>' : '<p class="pend-empty">Nenhuma pendência. Tudo em dia! 🎉</p>';
+  }
+  function openPendencias() {
+    openModal('Pendências', '<p class="pend-empty">Carregando…</p>', '<button class="btn btn-ghost" type="button" data-close>Fechar</button>');
+    const setBody = (html) => { const b = document.querySelector('#appModal .modal__body'); if (b) b.innerHTML = html; };
+    apiGet('/dashboard')
+      .then((d) => setBody(renderPendencias(d)))
+      .catch(() => setBody('<p class="pend-empty">Não foi possível carregar as pendências.</p>'));
+  }
+  const notifBtn = document.getElementById('notificationBtn');
+  if (notifBtn) notifBtn.addEventListener('click', openPendencias);
   apiGet('/dashboard').then((d)=>{const n=(d.agendamentosAtrasados||0)+(d.leadsNaoAtribuidos||0)+(d.followupsLeads||[]).length;const badge=document.getElementById('notificationCount');if(n){badge.textContent=n>99?'99+':n;badge.classList.add('show');}}).catch(()=>{});
   enhanceDataTables();
+  labelResponsiveTables();
+}
+
+/*
+ * Tabelas responsivas: em telas estreitas o CSS mostra cada linha como cartão.
+ * Para isso cada <td> recebe data-label com o título da sua coluna. Como as
+ * páginas recriam o <tbody> a cada filtro, um observer reaplica os rótulos.
+ */
+function labelResponsiveTables() {
+  const content = document.querySelector('.content');
+  if (!content) return;
+  const apply = () => content.querySelectorAll('table').forEach((table) => {
+    const headRow = table.tHead && table.tHead.rows[0];
+    if (!headRow) return;
+    table.classList.add('table-responsive');
+    const heads = [...headRow.cells].map((th) => th.textContent.trim());
+    table.querySelectorAll('tbody tr').forEach((row) => {
+      let primary = false;
+      [...row.cells].forEach((td, i) => {
+        if (td.colSpan > 1) { td.removeAttribute('data-label'); return; }
+        const label = heads[i] || '';
+        if (label) td.setAttribute('data-label', label); else td.removeAttribute('data-label');
+        const isActions = !label && !!td.querySelector('button, a') && !td.classList.contains('bulk-check-cell');
+        td.classList.toggle('td-actions', isActions);
+        const text = td.textContent.trim();
+        td.classList.toggle('td-vazio', !!label && (text === '' || text === '-' || text === '—') && !td.querySelector('button, a, input, select'));
+        const isPrimary = !primary && !!label;
+        td.classList.toggle('td-primary', isPrimary);
+        if (isPrimary) primary = true;
+      });
+    });
+  });
+  let queued = false;
+  new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; apply(); });
+  }).observe(content, { subtree: true, childList: true });
+  apply();
 }
 
 function enhanceDataTables() {

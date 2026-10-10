@@ -64,6 +64,17 @@
     document.getElementById('pageH1').textContent = data.nome;
     document.getElementById('pageTagline').textContent = data.tagline;
 
+    const precosEl = document.getElementById('pagePrecos');
+    if (precosEl && data.precos && data.precos.length) {
+      precosEl.innerHTML =
+        '<div class="precos__lista">' + data.precos.map(p =>
+          '<div class="preco"><small>' + esc(p.rotulo) + '</small>' +
+          '<strong>a partir de ' + esc(p.valor) + ' <span>/mês</span></strong></div>'
+        ).join('') + '</div>' +
+        '<p class="precos__nota">Valores de referência por pessoa, sujeitos a idade, perfil e reajustes da operadora.</p>';
+      precosEl.hidden = false;
+    }
+
     document.getElementById('introCategoria').textContent = data.categoria;
     document.getElementById('introNome').textContent = data.nome;
     document.getElementById('pageDescricao').textContent = data.descricao;

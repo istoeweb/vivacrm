@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Leads | CRM Vida de Ouro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/crm.css" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+    <link rel="stylesheet" href="assets/crm.css" />
 </head>
 <body>
 <aside class="sidebar" id="sidebar"></aside>
@@ -35,8 +35,20 @@
           <option value="nao">Não atribuídos</option>
           <option value="meus">Meus leads</option>
         </select>
+        <select id="retornoFilter" aria-label="Filtrar por retorno">
+          <option value="">Qualquer retorno</option>
+          <option value="atrasado">Retorno atrasado</option>
+          <option value="hoje">Retorno hoje</option>
+          <option value="semana">Próximos 7 dias</option>
+          <option value="sem">Sem retorno agendado</option>
+        </select>
+        <select id="produtoFilter" aria-label="Filtrar por produto"><option value="">Todos os produtos</option></select>
+        <select id="origemFilter" aria-label="Filtrar por origem"><option value="">Todas as origens</option></select>
       </div>
-      <span class="text-muted text-small" id="countLabel"></span>
+      <div class="flex gap-8" style="align-items:center">
+        <span class="text-muted text-small" id="countLabel"></span>
+        <button type="button" class="btn btn-sm btn-outline" id="exportCsv">Exportar CSV</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -60,27 +72,67 @@ if (requireAuth()) {
   const isAdmin = user.role === 'admin';
   let all = [], corretores = [], page = 1;
 
+  const LOST = ['desistiu', 'sem_interesse'];
+  const MOTIVOS = ['Preço', 'Já contratou com outro corretor', 'Sem retorno do cliente', 'Não aprovado pela seguradora',
+    'Desistiu da compra', 'Apenas pesquisando', 'Fora da área de atendimento'];
+  let datalistSeq = 0;
+  // Campo de motivo com sugestões (aceita texto livre).
+  function motivoField(name = 'motivo_perda', value = '', required = false) {
+    const id = 'motivos' + (++datalistSeq);
+    return `<input name="${name}" list="${id}" maxlength="120" value="${esc(value || '')}" placeholder="Escolha ou escreva o motivo" ${required ? 'required' : ''}>
+      <datalist id="${id}">${MOTIVOS.map((m) => `<option value="${esc(m)}">`).join('')}</datalist>`;
+  }
+  const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  const origemDe = (r) => r.utm_source || r.origem || 'site';
+  const normTel = (t) => { let d = String(t || '').replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; };
+  const localDate = (offsetDays = 0) => new Date(Date.now() + offsetDays * 86400000).toLocaleString('sv-SE').slice(0, 10);
+
   async function load() {
     [all, corretores] = await Promise.all([
       apiGet('/leads'),
       isAdmin ? apiGet('/usuarios').catch(() => []) : Promise.resolve([])
     ]);
+    fillOptions('produtoFilter', all.map((r) => r.produto));
+    fillOptions('origemFilter', all.map(origemDe));
     render();
   }
-  function render() {
+  // Mantém a opção escolhida ao recarregar a lista.
+  function fillOptions(id, values) {
+    const sel = document.getElementById(id), current = sel.value, first = sel.options[0].outerHTML;
+    sel.innerHTML = first + [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      .map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    sel.value = current;
+  }
+  function filtered() {
     const q = (document.getElementById('search').value || '').toLowerCase();
     const s = document.getElementById('statusFilter').value;
     const af = document.getElementById('assignFilter').value;
-    const rows = all.filter(r =>
-      (!s || r.status === s) &&
-      (af === '' || (af === 'nao' && !r.corretor_id) || (af === 'meus' && r.corretor_id === user.id)) &&
-      (!q || (r.nome+' '+(r.telefone||'')+' '+(r.produto||'')+' '+(r.email||'')).toLowerCase().includes(q))
-    );
+    const rf = document.getElementById('retornoFilter').value;
+    const pf = document.getElementById('produtoFilter').value;
+    const of = document.getElementById('origemFilter').value;
+    const today = localDate(), week = localDate(7);
+    return all.filter(r => {
+      const ret = (r.proximo_retorno || '').slice(0, 10);
+      const aberto = !['fechado', ...LOST].includes(r.status);
+      return (!s || r.status === s) &&
+        (af === '' || (af === 'nao' && !r.corretor_id) || (af === 'meus' && r.corretor_id === user.id)) &&
+        (!rf || (rf === 'atrasado' && aberto && ret && ret < today) || (rf === 'hoje' && ret === today)
+          || (rf === 'semana' && ret >= today && ret <= week) || (rf === 'sem' && aberto && !ret)) &&
+        (!pf || r.produto === pf) && (!of || origemDe(r) === of) &&
+        (!q || (r.nome+' '+(r.telefone||'')+' '+(r.produto||'')+' '+(r.email||'')).toLowerCase().includes(q));
+    });
+  }
+  function render() {
+    const rows = filtered();
+    // Mesmo telefone em mais de um lead (ex.: um fechado e outro novo)
+    const telCount = {};
+    for (const r of all) { const t = normTel(r.telefone); if (t) telCount[t] = (telCount[t] || 0) + 1; }
+    const dupBadge = (r) => telCount[normTel(r.telefone)] > 1 ? ' <span class="badge badge--dup" title="Há outro lead com este telefone">Duplicado?</span>' : '';
     document.getElementById('countLabel').textContent = `${rows.length} de ${all.length}`;
     const pg = paginate(rows, page); page = pg.page;
     document.getElementById('tableBody').innerHTML = rows.length
       ? pg.slice.map(r => `<tr>
-          <td><strong>${esc(r.nome)}</strong>${r.email ? `<br><span class="text-small text-muted">${esc(r.email)}</span>` : ''}</td>
+          <td><button type="button" class="lead-name" title="Abrir ficha e histórico" onclick="abrirLead(${Number(r.id)})">${esc(r.nome)}</button>${dupBadge(r)}${r.email ? `<br><span class="text-small text-muted">${esc(r.email)}</span>` : ''}</td>
           <td>${r.telefone ? `<a href="${wppLink(r.telefone)}" target="_blank" rel="noopener" title="Chamar no WhatsApp">${esc(r.telefone)}</a>` : '-'}</td>
           <td>${esc(r.produto || '-')}</td>
           <td>${esc(r.cidade || '-')}</td>
@@ -91,8 +143,8 @@ if (requireAuth()) {
           <td class="text-small">${fmtDate(r.criado_em)}</td>
           <td><div class="row-actions">
             ${!r.corretor_id ? `<button class="icon-btn" title="Assumir lead" onclick="assumirLead(${r.id})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></button>` : ''}
-            <button class="icon-btn" title="Editar" onclick='editLead(${JSON.stringify(JSON.stringify(r))})'><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg></button>
-            <button class="icon-btn" title="Converter em cliente" onclick='converterCliente(${r.id},"${esc(r.nome)}")'><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></button>
+            <button class="icon-btn" title="Editar" onclick="editLead(${Number(r.id)})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg></button>
+            <button class="icon-btn" title="Converter em cliente" onclick="converterCliente(${Number(r.id)})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></button>
             ${isAdmin ? `<button class="icon-btn icon-btn--del" title="Excluir" onclick="delLead(${r.id})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>` : ''}
           </div></td>
         </tr>`).join('')
@@ -100,19 +152,47 @@ if (requireAuth()) {
     renderPager(document.getElementById('pager'), pg, (n) => { page = n; render(); });
     renderKanban(rows);
   }
+  // Etapas do funil (mesma ordem do Kanban e dos selects de status)
   const KANBAN = [
     ['novo','Novo'],['contato_realizado','Contato realizado'],['proposta_enviada','Proposta enviada'],
-    ['aguardando_retorno','Aguardando retorno'],['fechado','Fechado'],['desistiu','Desistiu']
+    ['aguardando_retorno','Aguardando retorno'],['fechado','Fechado'],['desistiu','Desistiu'],['sem_interesse','Não tem interesse']
   ];
+  const statusSelect = (current, attrs = '') => '<select ' + attrs + '>' + KANBAN.map(([v, l]) => '<option value="' + v + '"' + (current === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
+  // Pergunta o motivo da perda; resolve null se o modal for fechado sem salvar.
+  function pedirMotivo(nome) {
+    return new Promise((resolve) => {
+      let answered = false;
+      const m = openModal('Por que o lead foi perdido?',
+        `<form><p class="text-small text-muted" style="margin:0 0 12px">${esc(nome)}</p><div class="form-group"><label>Motivo *</label>${motivoField('motivo', '', true)}</div></form>`,
+        '', (data) => { answered = true; closeModal(); resolve(String(data.motivo || '').trim() || null); });
+      const obs = new MutationObserver(() => { if (!m.classList.contains('show')) { obs.disconnect(); if (!answered) resolve(null); } });
+      obs.observe(m, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+  async function moveLead(id, status) {
+    const lead = all.find((x) => x.id === Number(id));
+    const body = { status };
+    if (LOST.includes(status) && lead && !LOST.includes(lead.status)) {
+      body.motivo_perda = await pedirMotivo(lead.nome);
+      if (!body.motivo_perda) { render(); return; } // cancelado: volta o cartão para a etapa atual
+    }
+    try { await apiPut('/leads/' + id, body); toast('Lead movido!'); load(); } catch (err) { toast(err.message, true); render(); }
+  }
   function renderKanban(rows) {
     document.getElementById('kanbanBoard').innerHTML = KANBAN.map(([status,label]) => {
       const cards=rows.filter(r=>r.status===status);
-      const cardHtml=cards.map(r=>'<article class="kanban-card" draggable="true" data-id="'+r.id+'"><strong>'+esc(r.nome)+'</strong><small>'+esc(r.produto||'Produto não informado')+'</small><span>'+esc(r.telefone||r.cidade||'')+'</span><button type="button" data-edit-id="'+r.id+'">Abrir</button></article>').join('');
-      return '<section class="kanban-column" data-status="'+status+'"><header><strong>'+label+'</strong><span>'+cards.length+'</span></header><div class="kanban-column__body">'+(cardHtml||'<div class="kanban-empty">Solte aqui</div>')+'</div></section>';
+      const cardHtml=cards.map(r=>'<article class="kanban-card" draggable="true" data-id="'+r.id+'"><strong>'+esc(r.nome)+'</strong><small>'+esc(r.produto||'Produto não informado')+'</small><span>'+esc(r.telefone||r.cidade||'')+'</span>'
+        + (r.proximo_retorno ? '<span class="kanban-card__retorno">Retorno: '+fmtDateTime(r.proximo_retorno)+'</span>' : '')
+        + '<div class="kanban-card__actions"><button type="button" data-open-id="'+r.id+'">Abrir</button>'
+        + statusSelect(r.status, 'class="kanban-card__status" data-status-id="'+r.id+'" aria-label="Mover para etapa"') + '</div></article>').join('');
+      const total = cards.reduce((s, r) => s + (Number(r.valor_estimado) || 0), 0);
+      return '<section class="kanban-column" data-status="'+status+'"><header><strong>'+label+(total ? '<small class="kanban-total">'+brl(total)+'</small>' : '')+'</strong><span>'+cards.length+'</span></header><div class="kanban-column__body">'+(cardHtml||'<div class="kanban-empty">Solte aqui</div>')+'</div></section>';
     }).join('');
     document.querySelectorAll('.kanban-card').forEach(c=>c.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',c.dataset.id);c.classList.add('dragging');}));
-    document.querySelectorAll('[data-edit-id]').forEach(b=>b.addEventListener('click',()=>{const r=all.find(x=>x.id===Number(b.dataset.editId));if(r)editLead(JSON.stringify(r));}));
-    document.querySelectorAll('.kanban-column').forEach(col=>{col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over');});col.addEventListener('dragleave',()=>col.classList.remove('drag-over'));col.addEventListener('drop',async e=>{e.preventDefault();col.classList.remove('drag-over');const id=e.dataTransfer.getData('text/plain');try{await apiPut('/leads/'+id,{status:col.dataset.status});toast('Lead movido!');load();}catch(err){toast(err.message,true);}});});
+    document.querySelectorAll('[data-open-id]').forEach(b=>b.addEventListener('click',()=>abrirLead(Number(b.dataset.openId))));
+    // Arrastar não funciona em tela de toque: o select no cartão move o lead no celular.
+    document.querySelectorAll('[data-status-id]').forEach(s=>s.addEventListener('change',()=>moveLead(s.dataset.statusId, s.value)));
+    document.querySelectorAll('.kanban-column').forEach(col=>{col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over');});col.addEventListener('dragleave',()=>col.classList.remove('drag-over'));col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('drag-over');moveLead(e.dataTransfer.getData('text/plain'), col.dataset.status);});});
   }
   document.getElementById('viewToggle').addEventListener('click',()=>{
     const board=document.getElementById('kanbanBoard'),table=document.getElementById('leadsTable'),show=board.hidden;
@@ -120,7 +200,24 @@ if (requireAuth()) {
   });
   document.getElementById('search').addEventListener('input', () => { page = 1; render(); });
   document.getElementById('statusFilter').addEventListener('change', () => { page = 1; render(); });
-  document.getElementById('assignFilter').addEventListener('change', () => { page = 1; render(); });
+  ['assignFilter', 'retornoFilter', 'produtoFilter', 'origemFilter'].forEach((id) =>
+    document.getElementById(id).addEventListener('change', () => { page = 1; render(); }));
+
+  // Exporta o que está filtrado na tela (UTF-8 com BOM e ";" para abrir direto no Excel).
+  document.getElementById('exportCsv').addEventListener('click', () => {
+    const cols = [['id', 'ID'], ['nome', 'Nome'], ['telefone', 'Telefone'], ['email', 'E-mail'], ['cidade', 'Cidade'],
+      ['produto', 'Produto'], ['status', 'Status'], ['motivo_perda', 'Motivo da perda'], ['valor_estimado', 'Valor estimado'],
+      ['corretor_nome', 'Corretor'], ['origem', 'Origem'], ['origem_pagina', 'Página'], ['utm_source', 'utm_source'],
+      ['utm_medium', 'utm_medium'], ['utm_campaign', 'utm_campaign'], ['ultimo_contato', 'Último contato'],
+      ['proximo_retorno', 'Próximo retorno'], ['criado_em', 'Recebido em (UTC)'], ['mensagem', 'Mensagem']];
+    // Prefixa ' em valores que começam com = + - @ para o Excel não executar fórmula.
+    const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+    const csv = [cols.map(([, l]) => cell(l)).join(';'), ...filtered().map((r) => cols.map(([k]) => cell(r[k])).join(';'))].join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `leads-${localDate()}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
 
   window.assumirLead = async (id) => {
     try { await apiPost('/leads/'+id+'/assumir', {}); toast('Lead atribuído a você!'); load(); }
@@ -153,40 +250,111 @@ if (requireAuth()) {
           </select>
         </div>
         ${isAdmin ? `<div class="form-group"><label>Atribuir ao corretor</label>
-          <select name="corretor_id"><option value="">— Sem corretor —</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
+          <select name="corretor_id"><option value="">Sem corretor</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
         </div>` : ''}
       </div>
+      <div class="form-group loss-row" ${LOST.includes(r.status) ? '' : 'hidden'}><label>Motivo da perda *</label>${motivoField('motivo_perda', r.motivo_perda, LOST.includes(r.status))}</div>
       <div class="form-row">
         <div class="form-group"><label>Último contato</label><input name="ultimo_contato" type="datetime-local" value="${lc}"></div>
         <div class="form-group"><label>Próximo retorno</label><input name="proximo_retorno" type="datetime-local" value="${pr}"></div>
       </div>
+      <div class="form-group"><label>Valor estimado (prêmio anual, R$)</label><input name="valor_estimado" inputmode="decimal" placeholder="Ex.: 2.400,00" value="${r.valor_estimado != null ? esc(String(r.valor_estimado).replace('.', ',')) : ''}"></div>
     </form>`;
+  }
+  // Mostra (e exige) o motivo só quando a etapa escolhida é de perda.
+  function bindLossToggle(modal) {
+    const sel = modal.querySelector('select[name=status]'), row = modal.querySelector('.loss-row');
+    if (!sel || !row) return;
+    const sync = () => { const lost = LOST.includes(sel.value); row.hidden = !lost; row.querySelector('input').required = lost; };
+    sel.addEventListener('change', sync); sync();
   }
   function normDate(v) { return v ? String(v).replace('T', ' ').slice(0, 16) : v; }
   window.novoLead = () => {
-    openModal('Novo lead', formHTML(), '', async (data) => {
+    bindLossToggle(openModal('Novo lead', formHTML(), '', async (data) => {
       data.ultimo_contato = normDate(data.ultimo_contato);
       data.proximo_retorno = normDate(data.proximo_retorno);
-      await apiPost('/leads', { ...data, origem: 'manual' });
-      closeModal(); toast('Lead criado!'); load();
-    });
+      try { await apiPost('/leads', { ...data, origem: 'manual' }); closeModal(); toast('Lead criado!'); load(); }
+      catch (e) { toast(e.message, true); }
+    }));
   };
-  window.editLead = (json) => {
-    const r = JSON.parse(json);
-    openModal('Editar lead #' + r.id, formHTML(r), '', async (data) => {
+  window.editLead = (id) => {
+    const r = all.find((x) => x.id === Number(id)); if (!r) return;
+    bindLossToggle(openModal('Editar lead #' + r.id, formHTML(r), '', async (data) => {
       data.ultimo_contato = normDate(data.ultimo_contato);
       data.proximo_retorno = normDate(data.proximo_retorno);
-      await apiPut('/leads/' + r.id, data);
-      closeModal(); toast('Lead atualizado!'); load();
-    });
+      try { await apiPut('/leads/' + r.id, data); closeModal(); toast('Lead atualizado!'); load(); }
+      catch (e) { toast(e.message, true); }
+    }));
   };
+  /* ---- Ficha do lead: dados, registrar contato e histórico ---- */
+  const TIPOS = {
+    whatsapp: 'WhatsApp', ligacao: 'Ligação', email: 'E-mail', reuniao: 'Reunião',
+    proposta: 'Proposta enviada', nota: 'Anotação', status: 'Mudança de status'
+  };
+  // criado_em é gravado em UTC ("YYYY-MM-DD HH:MM:SS"); exibe no horário local.
+  const fmtUtc = (s) => { const d = new Date(String(s).replace(' ', 'T') + 'Z'); return isNaN(d) ? s : d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }); };
+  function wppComMensagem(r) {
+    const primeiro = String(r.nome || '').trim().split(/\s+/)[0];
+    const texto = `Olá, ${primeiro}! Aqui é ${user.nome || 'a equipe'}, da Vida de Ouro Seguros.` + (r.produto ? ` Recebemos seu interesse em ${r.produto} e vou te ajudar com a cotação.` : ' Como posso te ajudar?');
+    return wppLink(r.telefone) + '?text=' + encodeURIComponent(texto);
+  }
+  window.abrirLead = async (id) => {
+    let r, hist;
+    try { [r, hist] = await Promise.all([apiGet('/leads/' + id), apiGet('/leads/' + id + '/interacoes')]); }
+    catch (e) { toast(e.message, true); return; }
+    const info = (label, value) => value ? `<div><dt>${label}</dt><dd>${value}</dd></div>` : '';
+    const body = `
+      <div class="lead-sheet">
+        <div class="lead-sheet__top">
+          ${badgeForStatus(r.status)}
+          <span class="text-small text-muted">${r.corretor_nome ? 'Corretor: ' + esc(r.corretor_nome) : 'Sem corretor (fila)'}</span>
+          ${r.telefone ? `<a class="btn btn-sm btn-whatsapp" href="${esc(wppComMensagem(r))}" target="_blank" rel="noopener">Chamar no WhatsApp</a>` : ''}
+        </div>
+        <dl class="lead-sheet__info">
+          ${info('Telefone', esc(r.telefone))}${info('E-mail', esc(r.email))}${info('Produto', esc(r.produto))}
+          ${info('Cidade', esc(r.cidade))}${info('Origem', esc(r.origem))}${info('Recebido em', fmtUtc(r.criado_em))}
+          ${info('Último contato', r.ultimo_contato ? fmtDateTime(r.ultimo_contato) : '')}${info('Próximo retorno', r.proximo_retorno ? fmtDateTime(r.proximo_retorno) : '')}
+          ${info('Valor estimado', r.valor_estimado ? brl(r.valor_estimado) : '')}${info('Motivo da perda', esc(r.motivo_perda))}
+          ${info('Página de origem', esc(r.origem_pagina))}${info('Campanha', esc([r.utm_source, r.utm_medium, r.utm_campaign].filter(Boolean).join(' / ')))}
+        </dl>
+        ${r.mensagem ? `<p class="lead-sheet__msg"><strong>Mensagem do site:</strong> ${esc(r.mensagem)}</p>` : ''}
+        <form class="lead-contact">
+          <h3>Registrar contato</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Tipo</label><select name="tipo">${Object.entries(TIPOS).filter(([k]) => k !== 'status').map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Mover para</label><select name="status"><option value="">Manter etapa atual</option>${KANBAN.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
+          </div>
+          <div class="form-group loss-row" hidden><label>Motivo da perda *</label>${motivoField('motivo_perda', r.motivo_perda)}</div>
+          <div class="form-group"><label>O que foi conversado? *</label><textarea name="descricao" required maxlength="2000" placeholder="Ex.: Enviei a cotação da Porto; cliente vai comparar e retornar sexta."></textarea></div>
+          <div class="form-group"><label>Próximo retorno</label><input name="proximo_retorno" type="datetime-local" value="${r.proximo_retorno ? esc(r.proximo_retorno.replace(' ', 'T').slice(0, 16)) : ''}"></div>
+        </form>
+        <h3>Histórico</h3>
+        <ol class="timeline">
+          ${hist.length ? hist.map(h => `<li class="timeline__item timeline__item--${esc(h.tipo)}">
+            <div class="timeline__meta"><strong>${TIPOS[h.tipo] || esc(h.tipo)}</strong> · ${fmtUtc(h.criado_em)}${h.usuario_nome ? ' · ' + esc(h.usuario_nome) : ''}</div>
+            <div class="timeline__text">${esc(h.descricao)}</div></li>`).join('')
+          : '<li class="timeline__empty">Nenhum contato registrado ainda.</li>'}
+        </ol>
+      </div>`;
+    const footer = '<button class="btn btn-ghost" type="button" data-close>Fechar</button><button class="btn btn-outline" type="button" data-edit-lead>Editar dados</button><button class="btn btn-primary" type="submit" data-save>Registrar contato</button>';
+    const m = openModal('Lead #' + r.id + ': ' + r.nome, body, footer, async (data) => {
+      try {
+        await apiPost('/leads/' + r.id + '/interacoes', data);
+        toast('Contato registrado!'); load(); abrirLead(r.id);
+      } catch (e) { toast(e.message, true); }
+    });
+    m.querySelector('.modal').classList.add('modal--wide');
+    m.querySelector('[data-edit-lead]').onclick = () => editLead(r.id);
+    bindLossToggle(m);
+  };
+
   window.delLead = async (id) => {
     if (!confirm('Excluir este lead?')) return;
     await apiDel('/leads/' + id); toast('Lead excluído!'); load();
   };
-  window.converterCliente = async (leadId, nome) => {
+  window.converterCliente = async (leadId) => {
     const r = await apiGet('/leads/' + leadId);
-    openModal('Converter em cliente — ' + nome, `
+    openModal('Converter em cliente: ' + r.nome, `
       <form>
         <div class="form-group"><label>Nome *</label><input name="nome" required value="${esc(r.nome||'')}"></div>
         <div class="form-row">
@@ -205,7 +373,11 @@ if (requireAuth()) {
     });
   };
 
-  load().catch(e => toast(e.message, true));
+  // Link do e-mail de aviso (leads.html?lead=ID) abre direto a ficha.
+  load().then(() => {
+    const id = Number(new URLSearchParams(location.search).get('lead'));
+    if (id) abrirLead(id);
+  }).catch(e => toast(e.message, true));
 }
 </script>
 </body>

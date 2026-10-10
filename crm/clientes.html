@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clientes | CRM Vida de Ouro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/crm.css" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+    <link rel="stylesheet" href="assets/crm.css" />
 </head>
 <body>
 <aside class="sidebar" id="sidebar"></aside>
@@ -60,7 +60,7 @@ if (requireAuth()) {
           <td>${esc(r.corretor_nome||'-')}</td>
           <td class="text-small">${fmtDate(r.criado_em)}</td>
           <td><div class="row-actions">
-            <button class="icon-btn" title="Editar" onclick='editCliente(${JSON.stringify(JSON.stringify(r))})'><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg></button>
+            <button class="icon-btn" title="Editar" onclick="editCliente(${Number(r.id)})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/></svg></button>
             <button class="icon-btn icon-btn--del" title="Excluir" onclick="delCliente(${r.id})"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/></svg></button>
           </div></td>
         </tr>`).join('')
@@ -82,13 +82,13 @@ if (requireAuth()) {
       </div>
       <div class="form-group"><label>Endereço</label><input name="endereco" value="${esc(r.endereco||'')}"></div>
       ${isAdmin ? `<div class="form-group"><label>Corretor responsável</label>
-        <select name="corretor_id"><option value="">—</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
+        <select name="corretor_id"><option value="">Nenhum</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
     </form>`;
   }
   window.novoCliente = () => openModal('Novo cliente', formHTML(), '', async (d) => {
     await apiPost('/clientes', d); closeModal(); toast('Cliente criado!'); load();
   });
-  window.editCliente = (j) => { const r = JSON.parse(j);
+  window.editCliente = (id) => { const r = all.find((x) => x.id === Number(id)); if (!r) return;
     openModal('Editar cliente #'+r.id, formHTML(r), '', async (d) => {
       await apiPut('/clientes/'+r.id, d); closeModal(); toast('Cliente atualizado!'); load();
     });

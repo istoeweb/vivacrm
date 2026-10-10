@@ -11,7 +11,7 @@
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg" />
   <link rel="apple-touch-icon" href="assets/img/logo.svg" />
-  <meta name="theme-color" content="#1E3A5F" />
+  <meta name="theme-color" content="#0E1F3D" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
@@ -31,7 +31,6 @@
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
   <!-- Dados estruturados: negócio local -->
   <script type="application/ld+json">
@@ -44,8 +43,10 @@
     "telephone": "+55-12-97600-2718",
     "image": "https://vidadeouro.com.br/assets/img/logo.svg",
     "priceRange": "$$",
+    "email": "jacarei@vidadeouro.com.br",
     "address": {
       "@type": "PostalAddress",
+      "streetAddress": "Rua Dr. Pompílio Mercadante, 398, Sala 2010 – Boulevard Office Mall",
       "addressLocality": "Jacareí",
       "addressRegion": "SP",
       "addressCountry": "BR"
@@ -89,7 +90,7 @@
           <li class="nav__item nav__item--dropdown">
             <a href="#saude" class="nav__link">Saúde <span class="nav__arrow">&#9660;</span></a>
             <ul class="nav__dropdown">
-              <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li>
+              <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li><li><a href="produto.html?slug=sao-francisco-vida">São Francisco Vida</a></li><li><a href="produto.html?slug=santa-casa-saude">Santa Casa Saúde SJC</a></li><li><a href="produto.html?slug=planos-odontologicos">Planos Odontológicos</a></li>
               <li><a href="produto.html?slug=porto-saude">Porto Saúde</a></li>
               <li><a href="produto.html?slug=sulamerica-saude">SulAmérica Saúde</a></li>
               <li><a href="produto.html?slug=bradesco-saude">Bradesco Saúde</a></li>
@@ -153,28 +154,29 @@
         </div>
       </div>
       <div class="hero__visual">
-        <div class="hero__shield-wrap">
-          <svg class="hero__shield-svg" viewBox="0 0 280 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M140 15 L265 65 L265 175 C265 235 210 285 140 310 C70 285 15 235 15 175 L15 65 Z" fill="url(#heroShield1)" opacity="0.12"/>
-            <path d="M140 30 L250 76 L250 177 C250 231 200 278 140 300 C80 278 30 231 30 177 L30 76 Z" fill="url(#heroShield2)" opacity="0.2"/>
-            <path d="M140 50 L232 91 L232 178 C232 226 196 268 140 288 C84 268 48 226 48 178 L48 91 Z" fill="url(#heroShield3)"/>
-            <circle cx="140" cy="165" r="55" fill="white" opacity="0.08"/>
-            <path d="M112 162 L128 180 L170 138" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-            <defs>
-              <linearGradient id="heroShield1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient>
-              <linearGradient id="heroShield2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1D4ED8"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient>
-              <linearGradient id="heroShield3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2563EB"/></linearGradient>
-            </defs>
-          </svg>
-          <div class="hero__float hero__float--tl">
-            <span class="hero__float-icon">&#11088;</span>
-            <div><strong>5 estrelas</strong><span>no Google</span></div>
+        <form class="quick-quote" id="quickQuote" novalidate>
+          <span class="quick-quote__tag">Cotação em 1 minuto</span>
+          <h2 class="quick-quote__title">O que você quer proteger?</h2>
+          <fieldset class="quick-quote__options">
+            <legend>Produto</legend>
+            <button type="button" class="quick-quote__opt" data-produto="Seguro Auto" aria-pressed="true">Auto</button>
+            <button type="button" class="quick-quote__opt" data-produto="Seguro Moto" aria-pressed="false">Moto</button>
+            <button type="button" class="quick-quote__opt" data-produto="Seguro de Vida" aria-pressed="false">Vida</button>
+            <button type="button" class="quick-quote__opt" data-produto="Plano de Saúde Individual / Familiar" aria-pressed="false">Saúde</button>
+            <button type="button" class="quick-quote__opt" data-produto="Seguro Residencial / Imóvel" aria-pressed="false">Residência</button>
+            <button type="button" class="quick-quote__opt" data-produto="Seguro Empresarial" aria-pressed="false">Empresa</button>
+          </fieldset>
+          <div class="form__group">
+            <label for="qqNome">Seu nome</label>
+            <input type="text" id="qqNome" placeholder="Nome completo" autocomplete="name" />
           </div>
-          <div class="hero__float hero__float--br">
-            <span class="hero__float-icon">&#128274;</span>
-            <div><strong>Cotação grátis</strong><span>sem compromisso</span></div>
+          <div class="form__group">
+            <label for="qqTelefone">WhatsApp</label>
+            <input type="tel" id="qqTelefone" placeholder="(12) 9 0000-0000" autocomplete="tel" />
           </div>
-        </div>
+          <button type="submit" class="btn btn--primary btn--lg btn--full">Continuar cotação</button>
+          <p class="quick-quote__note">Gratuito e sem compromisso. Seus dados ficam protegidos.</p>
+        </form>
       </div>
     </div>
   </section>
@@ -593,6 +595,116 @@
     </div>
   </section>
 
+  <!-- ========== PLANOS DE SAÚDE, HOSPITAIS E ODONTO ========== -->
+  <section class="saude" id="saude">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Planos de Saúde</span>
+        <h2 class="section-title">Planos nacionais e regionais <strong>com preço de verdade</strong></h2>
+        <p class="section-subtitle">Pessoa física, MEI, PME e empresas. Ideal para quem teve reajuste elevado, quer reduzir custos, ampliar a rede médica ou fazer portabilidade de carências.</p>
+      </div>
+
+      <div class="planos-grid">
+        <a class="plano" href="produto.html?slug=unimed">
+          <span class="plano__nome">Unimed SJC</span>
+          <span class="plano__regra">Pessoa física · a partir de 1 vida</span>
+          <span class="plano__preco"><small>a partir de</small> R$ 154,90</span>
+        </a>
+        <a class="plano" href="produto.html?slug=sao-francisco-vida">
+          <span class="plano__nome">São Francisco Vida</span>
+          <span class="plano__regra">PJ R$ 171,37 · PF R$ 211,34</span>
+          <span class="plano__preco"><small>a partir de</small> R$ 171,37</span>
+        </a>
+        <a class="plano" href="produto.html?slug=porto-saude">
+          <span class="plano__nome">Porto Saúde</span>
+          <span class="plano__regra">Empresarial · a partir de 3 vidas</span>
+          <span class="plano__preco"><small>a partir de</small> R$ 208,82</span>
+        </a>
+        <a class="plano" href="produto.html?slug=santa-casa-saude">
+          <span class="plano__nome">Santa Casa Saúde SJC</span>
+          <span class="plano__regra">Rede própria em SJC</span>
+          <span class="plano__preco"><small>a partir de</small> R$ 250,84</span>
+        </a>
+        <a class="plano" href="produto.html?slug=sulamerica-saude">
+          <span class="plano__nome">SulAmérica Saúde</span>
+          <span class="plano__regra">Empresarial · a partir de 3 vidas</span>
+          <span class="plano__preco"><small>a partir de</small> R$ 324,10</span>
+        </a>
+        <a class="plano" href="produto.html?slug=amil">
+          <span class="plano__nome">Amil</span>
+          <span class="plano__regra">Empresarial · a partir de 2 vidas</span>
+          <span class="plano__preco"><small>a partir de</small> R$ 363,03</span>
+        </a>
+        <a class="plano" href="produto.html?slug=bradesco-saude">
+          <span class="plano__nome">Bradesco Saúde</span>
+          <span class="plano__regra">Empresarial · a partir de 3 vidas</span>
+          <span class="plano__preco"><small>a partir de</small> R$ 495,93</span>
+        </a>
+        <a class="plano plano--cta" href="produto.html?slug=planos-saude">
+          <span class="plano__nome">Comparar todos</span>
+          <span class="plano__regra">Também trabalhamos com Omint, Care Plus e Hapvida</span>
+          <span class="plano__preco">Ver planos →</span>
+        </a>
+      </div>
+      <p class="saude__nota">Valores mensais de referência por pessoa, sujeitos a idade, perfil e reajustes da operadora.</p>
+
+      <div class="hospitais">
+        <div class="hospitais__head">
+          <h3>Escolha pelo hospital</h3>
+          <p>Indicamos o plano certo para ter acesso aos hospitais de referência da região, além de Einstein, Sírio-Libanês e Beneficência Portuguesa em São Paulo.</p>
+        </div>
+        <div class="hospitais__grid">
+          <a class="hospital" href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+quero+um+plano+com+o+Hospital+Vivalle" target="_blank" rel="noopener noreferrer">
+            <strong>Hospital Vivalle · Rede D'Or</strong>
+            <span>São José dos Campos</span>
+            <small>Amil, Porto Saúde, Bradesco, SulAmérica, Care Plus, Omint</small>
+          </a>
+          <a class="hospital" href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+quero+um+plano+com+o+Hospital+Policlin" target="_blank" rel="noopener noreferrer">
+            <strong>Hospitais Policlin</strong>
+            <span>SJC, Jacareí, Caçapava e Taubaté</span>
+            <small>SulAmérica, Bradesco, Porto Saúde, Omint, Care Plus</small>
+          </a>
+          <a class="hospital" href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+quero+um+plano+com+a+Santa+Casa+de+SJC" target="_blank" rel="noopener noreferrer">
+            <strong>Santa Casa de SJC</strong>
+            <span>Alta complexidade, maternidade e pediatria</span>
+            <small>Santa Casa Saúde, SulAmérica, Bradesco, Amil, Porto Saúde</small>
+          </a>
+          <a class="hospital" href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+quero+um+plano+com+o+Hospital+Alvorada" target="_blank" rel="noopener noreferrer">
+            <strong>Hospital Alvorada</strong>
+            <span>Jacareí</span>
+            <small>Pronto atendimento, internações e especialidades</small>
+          </a>
+          <a class="hospital" href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+quero+um+plano+com+o+Hospital+S%C3%A3o+Francisco" target="_blank" rel="noopener noreferrer">
+            <strong>Hospital São Francisco de Assis</strong>
+            <span>Jacareí</span>
+            <small>São Francisco Vida, Amil, Bradesco, SulAmérica, Porto Saúde</small>
+          </a>
+          <a class="hospital" href="https://wa.me/5512976002718?text=Ol%C3%A1%2C+quero+um+plano+com+o+Hospital+Ant%C3%B4nio+Afonso" target="_blank" rel="noopener noreferrer">
+            <strong>Hospital Antônio Afonso</strong>
+            <span>Jacareí</span>
+            <small>Amil, Bradesco, SulAmérica, Porto Saúde</small>
+          </a>
+        </div>
+      </div>
+
+      <div class="odonto" id="odonto">
+        <div class="odonto__info">
+          <span class="section-tag">Planos Odontológicos</span>
+          <h3>Saúde bucal a partir de <strong>R$ 29,90</strong></h3>
+          <p>Para pessoa física, profissionais com CNPJ e empresas a partir de 2 vidas. Rol da ANS com 190 procedimentos cobertos.</p>
+          <a href="produto.html?slug=planos-odontologicos" class="btn btn--primary">Conhecer os planos</a>
+        </div>
+        <ul class="odonto__lista">
+          <li><strong>Uniodonto Jacareí</strong><span>Jacareí e Guararema · PJ R$ 32,90 · PF R$ 49,30</span></li>
+          <li><strong>Porto Odonto</strong><span>Nacional · PJ a partir de R$ 29,90</span></li>
+          <li><strong>Bradesco Dental</strong><span>Nacional · PJ a partir de R$ 29,90</span></li>
+          <li><strong>SulAmérica Odonto</strong><span>Nacional · PJ R$ 29,90 · PF R$ 49,90</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
   <!-- ========== COMO FUNCIONA ========== -->
   <section class="como-funciona" id="como-funciona">
     <div class="container">
@@ -721,7 +833,7 @@
         <h2 class="section-title">O que nossos <strong>clientes dizem</strong></h2>
         <div class="google-stars">
           <span class="google-stars__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          <span>5.0 no Google · Avaliações de clientes reais do Vale do Paraíba</span>
+          <span>5,0 no Google · 54 avaliações de clientes reais · <a href="https://search.google.com/local/writereview?placeid=ChIJmeLmY1jLzZQRhDs6XET-AMQ" target="_blank" rel="noopener noreferrer">Avalie-nos</a></span>
         </div>
       </div>
 
@@ -729,50 +841,50 @@
         <div class="reviews-slider" id="reviewsSlider">
           <div class="review">
             <div class="review__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p>"Atendimento nota 10! Encontraram o melhor seguro auto para meu perfil com condições muito melhores do que eu renovava antes. Suporte rápido e eficiente."</p>
+            <p>"Sou cliente da Vida de Ouro Corretora há alguns anos e sempre fui muito bem atendido. A equipe é atenciosa, ágil e está sempre disposta a esclarecer dúvidas e buscar as melhores opções de seguro. É uma empresa que transmite confiança e profissionalismo."</p>
             <div class="review__author">
-              <div class="review__avatar">MS</div>
-              <div><strong>Marcos S.</strong><span>Seguro Auto · Jacareí</span></div>
+              <div class="review__avatar">BR</div>
+              <div><strong>Bruno R.</strong><span>Avaliação no Google</span></div>
             </div>
           </div>
           <div class="review">
             <div class="review__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p>"Contratei o plano de saúde empresarial para minha empresa. A consultoria foi excelente, compararam várias operadoras e encontraram a melhor opção para minha equipe."</p>
+            <p>"Serviço excelente. Sempre me lembram do meu seguro dias antes de vencer. Desde que estou com eles, nunca mais esqueci de renovar o seguro do meu carro no tempo certo!"</p>
             <div class="review__author">
-              <div class="review__avatar">RP</div>
-              <div><strong>Rodrigo P.</strong><span>Plano de Saúde · SJC</span></div>
+              <div class="review__avatar">AM</div>
+              <div><strong>Adriana M.</strong><span>Avaliação no Google</span></div>
             </div>
           </div>
           <div class="review">
             <div class="review__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p>"Tive um sinistro com minha moto e a Vida de Ouro me acompanhou em todo o processo. Resolução rápida e sem estresse. Recomendo a todos os motociclistas!"</p>
+            <p>"Muito bom! A Maria Julia é super prestativa e me ajudou muito a resolver os problemas com o seguro do meu carro. Recomendo."</p>
             <div class="review__author">
-              <div class="review__avatar">AF</div>
-              <div><strong>Ana F.</strong><span>Seguro Moto · Taubaté</span></div>
+              <div class="review__avatar">EB</div>
+              <div><strong>Elisa B.</strong><span>Avaliação no Google</span></div>
             </div>
           </div>
           <div class="review">
             <div class="review__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p>"Emiti meu certificado digital de forma muito rápida e prática. Atendimento presencial em Jacareí com muita qualidade. Toda a instalação foi feita com suporte."</p>
+            <p>"O atendimento que recebi foi impecável, marcado pela cordialidade, atenção e, principalmente, pela clareza com que explicaram todos os detalhes dos seguros e consórcios que fechei."</p>
             <div class="review__author">
-              <div class="review__avatar">LC</div>
-              <div><strong>Luciana C.</strong><span>Certificado Digital · Jacareí</span></div>
+              <div class="review__avatar">GM</div>
+              <div><strong>Gerson M.</strong><span>Avaliação no Google</span></div>
             </div>
           </div>
           <div class="review">
             <div class="review__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p>"Seguro empresarial contratado com ótimo custo-benefício. A análise de riscos foi muito detalhada e o atendimento pós-venda é realmente presente. Parabéns!"</p>
+            <p>"Agradecemos à Vida de Ouro o excelente atendimento e atenção prestada à nossa empresa. Sempre com grande disposição e sondagem dos melhores negócios para seu cliente."</p>
             <div class="review__author">
-              <div class="review__avatar">JB</div>
-              <div><strong>João B.</strong><span>Seguro Empresarial · Pindamonhangaba</span></div>
+              <div class="review__avatar">SJ</div>
+              <div><strong>Anderson · SpeedJob</strong><span>Avaliação no Google</span></div>
             </div>
           </div>
           <div class="review">
             <div class="review__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p>"Consórcio de imóvel contratado sem burocracia. Acompanhamento desde a adesão até a contemplação. Equipe muito atenciosa e transparente em todo o processo."</p>
+            <p>"Registro minha total satisfação com a empresa e em especial a corretora Maria Júlia, que prestou um atendimento incrível, profissional, com muita educação e conhecimento. Recomendo a todos!"</p>
             <div class="review__author">
-              <div class="review__avatar">CT</div>
-              <div><strong>Cláudia T.</strong><span>Consórcio Imóvel · Caçapava</span></div>
+              <div class="review__avatar">DP</div>
+              <div><strong>Douglas P.</strong><span>Avaliação no Google</span></div>
             </div>
           </div>
         </div>
@@ -860,6 +972,7 @@
             <optgroup label="Saúde e Benefícios">
               <option>Plano de Saúde Individual / Familiar</option>
               <option>Plano de Saúde Empresarial</option>
+              <option>Plano Odontológico</option>
               <option>Previdência Privada</option>
             </optgroup>
             <optgroup label="Outros">
@@ -867,6 +980,10 @@
               <option>Certificado Digital</option>
             </optgroup>
           </select>
+        </div>
+        <div class="form__checks">
+          <label class="form__check"><input type="checkbox" id="possuiCnpj" name="possuiCnpj" /> Possuo CNPJ (MEI ou empresa)</label>
+          <label class="form__check"><input type="checkbox" id="possuiPlano" name="possuiPlano" /> Já tenho plano ou seguro atual</label>
         </div>
         <div class="form__group">
           <label for="mensagem">Observações</label>
@@ -948,7 +1065,37 @@
             <span class="faq__ic">+</span>
           </button>
           <div class="faq__a">
-            <p>Sim! Realizamos emissão de certificado digital 100% online para todo o Vale do Paraíba, São Paulo e Brasil. O processo é seguro, rápido e com suporte completo na instalação e configuração.</p>
+            <p>Sim! Realizamos emissão de certificado digital 100% online, por videoconferência, para todo o Vale do Paraíba, São Paulo e Brasil. e-CPF e e-CNPJ com validade de 1 ou 3 anos, e suporte completo na instalação e configuração.</p>
+          </div>
+        </div>
+
+        <div class="faq__item">
+          <button class="faq__q" aria-expanded="false">
+            Quais seguros vocês oferecem?
+            <span class="faq__ic">+</span>
+          </button>
+          <div class="faq__a">
+            <p>Seguro auto, moto, caminhão, frota, vida, residencial, empresarial, condomínio, transporte, equipamentos, viagem, celular e náutico, além de planos de saúde, planos odontológicos, consórcios, previdência e certificado digital.</p>
+          </div>
+        </div>
+
+        <div class="faq__item">
+          <button class="faq__q" aria-expanded="false">
+            Consigo reduzir o valor do meu plano de saúde?
+            <span class="faq__ic">+</span>
+          </button>
+          <div class="faq__a">
+            <p>Sim. Fazemos um estudo gratuito para redução de custo ou upgrade de cobertura, com portabilidade de carências quando possível. Há planos para MEI, PME e empresas a partir de 1 vida, com ou sem coparticipação, inclusive para idosos e crianças.</p>
+          </div>
+        </div>
+
+        <div class="faq__item">
+          <button class="faq__q" aria-expanded="false">
+            Posso usar o FGTS no consórcio?
+            <span class="faq__ic">+</span>
+          </button>
+          <div class="faq__a">
+            <p>Sim, no consórcio de imóvel, conforme as regras da Caixa. O consórcio não tem juros (apenas taxa administrativa), permite lance livre ou fixo e é regulamentado pelo Banco Central.</p>
           </div>
         </div>
 
@@ -999,7 +1146,7 @@
         <div class="footer__col">
           <h4>Saúde e Outros</h4>
           <ul>
-            <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li>
+            <li><a href="produto.html?slug=planos-saude">Planos de Saúde</a></li><li><a href="produto.html?slug=sao-francisco-vida">São Francisco Vida</a></li><li><a href="produto.html?slug=santa-casa-saude">Santa Casa Saúde SJC</a></li><li><a href="produto.html?slug=planos-odontologicos">Planos Odontológicos</a></li>
             <li><a href="produto.html?slug=porto-saude">Porto Saúde Empresarial</a></li>
             <li><a href="produto.html?slug=sulamerica-saude">SulAmérica Saúde</a></li>
             <li><a href="produto.html?slug=bradesco-saude">Bradesco Saúde</a></li>
@@ -1022,6 +1169,8 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               <a href="https://wa.me/5512976002718" target="_blank">WhatsApp</a>
             </li>
+            <li data-cms-show="contato.email"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg><a href="mailto:jacarei@vidadeouro.com.br" data-cms-mailto="contato.email" data-cms="contato.email">jacarei@vidadeouro.com.br</a></li>
+            <li data-cms-show="contato.telefone_fixo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.01 1.18 2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14v2.92z"/></svg><a href="tel:+551233513875" data-cms="contato.telefone_fixo">(12) 3351-3875</a></li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
               Jacareí – SP · Vale do Paraíba
@@ -1053,5 +1202,6 @@
 
   <script src="assets/js/main.js"></script>
   <script src="assets/js/thumbs.js"></script>
+  <script src="assets/js/site-content.js" defer></script>
 </body>
 </html>

@@ -7,9 +7,11 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 
-require('./db'); // garante criação das tabelas
+const db = require('./db');
+const { localDir: blogLocalDir } = require('./storage');
 
-const { errorHandler, notFound } = require('./utils');
+const { errorHandler, notFound, asyncHandler } = require('./utils');
+const articlePage = require('./article-page');
 
 const authRoutes = require('./routes/auth');
 const leadsRoutes = require('./routes/leads');
@@ -20,6 +22,8 @@ const agendamentosRoutes = require('./routes/agendamentos');
 const usuariosRoutes = require('./routes/usuarios');
 const dashboardRoutes = require('./routes/dashboard');
 const blogRoutes = require('./routes/blog');
+const siteRoutes = require('./routes/site');
+const configRoutes = require('./routes/config');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,8 +31,25 @@ const PORT = process.env.PORT || 3001;
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
-// Headers de segurança (CSP desligada por padrão para não quebrar o CRM estático)
-app.use(helmet({ contentSecurityPolicy: false }));
+// Schema/migrações rodam ao carregar o db; as requisições esperam terminar.
+app.use((_req, _res, next) => { db.ready.then(() => next(), next); });
+
+// Headers de segurança + CSP. Como o CRM/site usam scripts inline e handlers
+// onclick, o script precisa de 'unsafe-inline'; ainda assim mantemos restrição
+// de origens, object-src 'none', base-uri e frame-ancestors (anti-clickjacking).
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      'script-src': ["'self'", "'unsafe-inline'"],
+      'script-src-attr': ["'unsafe-inline'"],
+      'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      'img-src': ["'self'", 'data:', 'https:'],
+      'connect-src': ["'self'"],
+    },
+  },
+}));
 
 // CORS restrito por origem quando ALLOWED_ORIGINS estiver definido
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
@@ -79,9 +100,8 @@ if (fs.existsSync(crmDir)) {
 
 // Servir assets do site institucional (logo, imagens) usados também pelo CRM
 const assetsDir = path.join(__dirname, '..', 'assets');
-const blogUploadDir = process.env.BLOG_UPLOAD_DIR
-  ? path.resolve(process.env.BLOG_UPLOAD_DIR)
-  : path.join(assetsDir, 'img', 'blog');
+// Imagens do blog gravadas em disco (quando o Supabase Storage não está configurado)
+const blogUploadDir = blogLocalDir();
 fs.mkdirSync(blogUploadDir, { recursive: true });
 app.use('/assets/img/blog', express.static(blogUploadDir));
 if (fs.existsSync(assetsDir)) {
@@ -101,16 +121,20 @@ const publicPages = new Set([
   'artigo.html',
 ]);
 app.get('/', (_req, res) => res.sendFile(path.join(siteDir, 'index.html')));
+app.get('/artigo.html', asyncHandler(articlePage(siteDir)));
 app.get('/:page', (req, res, next) => {
   if (!publicPages.has(req.params.page)) return next();
   res.sendFile(path.join(siteDir, req.params.page));
 });
 app.get('/robots.txt', (_req, res) => res.sendFile(path.join(siteDir, 'robots.txt')));
 app.get('/sitemap.xml', (_req, res) => res.sendFile(path.join(siteDir, 'sitemap.xml')));
+// Favicon global (site + CRM): usa a logo SVG da marca e evita o 404 de /favicon.ico
+app.get('/favicon.ico', (_req, res) => res.sendFile(path.join(assetsDir, 'img', 'logo.svg')));
 
 // Rate limit estrito nas rotas públicas antes das rotas gerais
 app.use('/api/auth/login', publicLimiter);
-app.use('/api/leads', (req, res, next) => (req.method === 'POST' ? publicLimiter(req, res, next) : next()));
+// Só o envio público do formulário (POST /api/leads); ações do CRM em /api/leads/:id/* ficam no limite geral.
+app.use('/api/leads', (req, res, next) => (req.method === 'POST' && req.path === '/' ? publicLimiter(req, res, next) : next()));
 
 // Rotas
 app.use('/api/auth', authRoutes);
@@ -122,6 +146,8 @@ app.use('/api/agendamentos', agendamentosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/site', siteRoutes);
+app.use('/api/config', configRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
@@ -130,10 +156,11 @@ app.use('/api', notFound);
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
+  db.ready.then(() => app.listen(PORT, '0.0.0.0', () => {
     console.log(`CRM Vida de Ouro rodando em http://localhost:${PORT}`);
     console.log(`Admin: http://localhost:${PORT}/crm/`);
-  });
+    console.log(`Banco: ${db.driver}`);
+  }), () => process.exit(1));
 }
 
 module.exports = app;

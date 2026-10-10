@@ -1,3 +1,0 @@
-# Protege o banco de dados e arquivos internos contra download direto
-Require all denied
-Deny from all

@@ -6,3 +6,5 @@ node_modules/
 *.db-wal
 *.zip
 api/data/ratelimit/
+.vercel
+.env*

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" width="160" height="100">
+  <!-- Blue square background -->
+  <rect width="160" height="100" rx="8" fill="#003087"/>
+  <!-- Sail/wave icon in white -->
+  <path d="M30,70 C30,70 50,40 80,30 C80,30 70,55 65,70 Z" fill="white"/>
+  <path d="M35,70 C35,70 50,50 70,45 C70,45 60,60 58,70 Z" fill="rgba(255,255,255,0.5)"/>
+  <!-- PORTO SEGURO text -->
+  <text x="80" y="52" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle">PORTO</text>
+  <text x="80" y="72" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="white" text-anchor="middle">SEGURO</text>
+</svg>

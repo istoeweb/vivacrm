@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" rx="8" fill="white"/>
+  <!-- Green/red square -->
+  <rect x="12" y="14" width="52" height="52" rx="4" fill="#007A33"/>
+  <!-- HDI letters -->
+  <text x="38" y="48" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle">HDI</text>
+  <!-- Red accent bar -->
+  <rect x="12" y="48" width="16" height="18" rx="0 0 4 4" fill="#CC0000"/>
+  <!-- HDI SEGUROS text -->
+  <text x="76" y="36" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#007A33">HDI</text>
+  <text x="76" y="58" font-family="Arial,sans-serif" font-size="14" letter-spacing="2" fill="#555">SEGUROS</text>
+</svg>
