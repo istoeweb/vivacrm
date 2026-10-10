@@ -662,3 +662,23 @@ tbody tr:hover { background: #FBFAF6; }
 .kanban-card strong, .kanban-card small, .kanban-card span { overflow-wrap: anywhere; }
 .badge--dup { margin-left: 6px; color: var(--amber); background: var(--amber-bg); font-size: 10px; vertical-align: middle; }
 .kanban-total { display: block; margin-top: 2px; color: var(--gray-500); font-size: 11px; font-weight: 700; text-transform: none; }
+
+/* ---- Kanban colorido: uma cor por etapa do funil ---- */
+.kanban-column { --stage: #64748B; border-top: 4px solid var(--stage); background: color-mix(in srgb, var(--stage) 7%, var(--gray-100)); }
+.kanban-column[data-status="novo"]               { --stage: #3B82F6; }
+.kanban-column[data-status="contato_realizado"]  { --stage: #0EA5E9; }
+.kanban-column[data-status="proposta_enviada"]   { --stage: #8B5CF6; }
+.kanban-column[data-status="aguardando_retorno"] { --stage: #F59E0B; }
+.kanban-column[data-status="fechado"]            { --stage: #16A34A; }
+.kanban-column[data-status="desistiu"]           { --stage: #EF4444; }
+.kanban-column[data-status="sem_interesse"]      { --stage: #64748B; }
+.kanban-column > header strong { display: flex; flex-direction: column; padding-left: 16px; position: relative; }
+.kanban-column > header strong::before { content: ''; position: absolute; left: 0; top: 4px; width: 9px; height: 9px; background: var(--stage); border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--stage) 25%, transparent); }
+.kanban-column > header span { color: #fff; background: var(--stage); font-weight: 800; }
+.kanban-card { border-left: 4px solid var(--stage); transition: transform .15s ease, box-shadow .15s ease; }
+.kanban-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px color-mix(in srgb, var(--stage) 22%, transparent); }
+.kanban-card .kanban-card__status { border-color: color-mix(in srgb, var(--stage) 45%, var(--gray-200)); }
+.kanban-empty { border-color: color-mix(in srgb, var(--stage) 40%, var(--gray-300)); color: color-mix(in srgb, var(--stage) 60%, var(--gray-500)); }
+.kanban-column.drag-over { background: color-mix(in srgb, var(--stage) 16%, var(--gray-100)); outline: 2px dashed var(--stage); }
+.kanban-card .kanban-card__actions button { padding: 5px 12px; color: color-mix(in srgb, var(--stage) 65%, var(--gray-900)); background: color-mix(in srgb, var(--stage) 14%, transparent); border-radius: 999px; }
+.kanban-card .kanban-card__actions button:hover { background: color-mix(in srgb, var(--stage) 24%, transparent); }
