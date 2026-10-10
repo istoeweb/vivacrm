@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { auth } = require('../middleware/auth');
-const { asyncRouter, getPagination, wantsPagination, parsePremio } = require('../utils');
+const { asyncRouter, idOr, getPagination, wantsPagination, parsePremio } = require('../utils');
 
 const router = asyncRouter();
 
@@ -68,14 +68,14 @@ router.put('/:id', auth, async (req, res) => {
     return res.status(403).json({ error: 'Acesso negado' });
   }
   const b = req.body || {};
-  const cid = (req.user.role !== 'admin') ? existing.corretor_id : (b.corretor_id ?? existing.corretor_id);
+  const cid = (req.user.role !== 'admin') ? existing.corretor_id : idOr(b.corretor_id, existing.corretor_id);
   await db.run(`
     UPDATE apolices SET
       cliente_id=?, produto=?, seguradora=?, numero=?,
       vigencia_inicio=?, vigencia_fim=?, premio=?, status=?, corretor_id=?
     WHERE id=?
   `, 
-    b.cliente_id ?? existing.cliente_id,
+    idOr(b.cliente_id, existing.cliente_id) ?? existing.cliente_id,
     b.produto ?? existing.produto,
     b.seguradora ?? existing.seguradora,
     b.numero ?? existing.numero,

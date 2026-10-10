@@ -84,6 +84,15 @@ function wantsPagination(req) {
   return req.query.page !== undefined || req.query.limit !== undefined;
 }
 
+// Id vindo de formulário (select): undefined mantém o atual; '' ou null = "nenhum";
+// demais valores viram número. Sem isso, '' quebra colunas INTEGER no Postgres.
+function idOr(value, fallback) {
+  if (value === undefined) return fallback;
+  if (value === '' || value === null) return null;
+  const n = Number(value);
+  return Number.isInteger(n) ? n : fallback;
+}
+
 // Converte um prêmio informado (número ou texto tipo "R$ 4.500/ano") em número (reais).
 // Regras BR: ponto = milhar, vírgula = decimal. Retorna null se não houver dígitos.
 function parsePremio(v) {
@@ -116,6 +125,7 @@ module.exports = {
   getPagination,
   wantsPagination,
   parsePremio,
+  idOr,
   LEAD_STATUSES,
   isValidLeadStatus,
 };

@@ -55,7 +55,7 @@ thead th{position:sticky;top:0;z-index:1}.table-card{border:1px solid var(--gray
 [data-theme="dark"]{--gray-900:#F8FAFC;--gray-700:#CBD5E1;--gray-500:#94A3B8;--gray-300:#475569;--gray-200:#334155;--gray-100:#1E293B;--gray-50:#172033;--white:#111827;--shadow:0 2px 14px rgba(0,0,0,.25);--shadow-lg:0 12px 38px rgba(0,0,0,.45)}[data-theme="dark"] body{background:#0B1120}[data-theme="dark"] .sidebar{background:#070D1B}[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{color-scheme:dark}
 
 /* ---------- Kanban ---------- */
-.kanban-board{display:grid;grid-template-columns:repeat(6,minmax(260px,1fr));gap:14px;overflow-x:auto;padding-bottom:18px}.kanban-column{min-height:480px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px}.kanban-column>header{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid var(--gray-200);color:var(--gray-900);font-size:12px;text-transform:uppercase}.kanban-column>header span{display:grid;place-items:center;min-width:24px;height:24px;background:var(--gray-200);border-radius:12px}.kanban-column__body{display:flex;min-height:420px;flex-direction:column;gap:10px;padding:10px}.kanban-column.drag-over{border-color:var(--blue-500);background:var(--blue-50)}.kanban-card{display:flex;flex-direction:column;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:9px;box-shadow:var(--shadow);cursor:grab}.kanban-card:active{cursor:grabbing}.kanban-card strong{color:var(--gray-900)}.kanban-card small,.kanban-card span{margin-top:4px;color:var(--gray-500)}.kanban-card button{align-self:flex-start;margin-top:10px;color:var(--blue-600);font-size:12px;font-weight:700}.kanban-empty{padding:24px;text-align:center;color:var(--gray-500);font-size:12px;border:1px dashed var(--gray-300);border-radius:8px}
+.kanban-board{display:grid;grid-template-columns:repeat(7,minmax(260px,1fr));gap:14px;overflow-x:auto;padding-bottom:18px}.kanban-column{min-height:480px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px}.kanban-column>header{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid var(--gray-200);color:var(--gray-900);font-size:12px;text-transform:uppercase}.kanban-column>header span{display:grid;place-items:center;min-width:24px;height:24px;background:var(--gray-200);border-radius:12px}.kanban-column__body{display:flex;min-height:420px;flex-direction:column;gap:10px;padding:10px}.kanban-column.drag-over{border-color:var(--blue-500);background:var(--blue-50)}.kanban-card{display:flex;flex-direction:column;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:9px;box-shadow:var(--shadow);cursor:grab}.kanban-card:active{cursor:grabbing}.kanban-card strong{color:var(--gray-900)}.kanban-card small,.kanban-card span{margin-top:4px;color:var(--gray-500)}.kanban-card button{align-self:flex-start;margin-top:10px;color:var(--blue-600);font-size:12px;font-weight:700}.kanban-empty{padding:24px;text-align:center;color:var(--gray-500);font-size:12px;border:1px dashed var(--gray-300);border-radius:8px}
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -627,3 +627,36 @@ tbody tr:hover { background: #FBFAF6; }
 @media (max-width: 520px) {
   .stat-card__value { font-size: 28px; }
 }
+/* ---- Leads: ficha, registro de contato e histórico ---- */
+@media (min-width: 901px) { .modal.modal--wide { max-width: 760px; } }
+.lead-name { padding: 0; color: var(--gray-900); background: none; border: 0; font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+.lead-name:hover { color: var(--blue-600); text-decoration: underline; }
+.btn-whatsapp { color: #fff; background: #25d366; border-color: #25d366; }
+.btn-whatsapp:hover { background: #1ebe5a; }
+.lead-sheet h3 { margin: 22px 0 10px; color: var(--gray-900); font-size: 15px; }
+.lead-sheet__top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.lead-sheet__top .btn-whatsapp { margin-left: auto; }
+.lead-sheet__info { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px 16px; margin: 16px 0 0; }
+.lead-sheet__info dt { color: var(--gray-500); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.lead-sheet__info dd { margin: 2px 0 0; color: var(--gray-900); font-size: 13px; word-break: break-word; }
+.lead-sheet__msg { margin: 14px 0 0; padding: 12px; color: var(--gray-700); background: var(--gray-50); border-radius: 8px; font-size: 13px; }
+.lead-contact { padding: 4px 16px 2px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; }
+.lead-contact h3 { margin-top: 14px; }
+.lead-contact textarea { min-height: 76px; }
+.timeline { margin: 0; padding: 0; list-style: none; }
+.timeline__item { position: relative; padding: 0 0 14px 22px; border-left: 2px solid var(--gray-200); margin-left: 6px; }
+.timeline__item::before { content: ''; position: absolute; left: -7px; top: 2px; width: 12px; height: 12px; background: var(--blue-500); border: 2px solid var(--white); border-radius: 50%; }
+.timeline__item--status::before { background: var(--gray-300); }
+.timeline__item--nota::before { background: var(--gold); }
+.timeline__item--whatsapp::before { background: #25d366; }
+.timeline__item--proposta::before { background: var(--green); }
+.timeline__meta { color: var(--gray-500); font-size: 12px; }
+.timeline__meta strong { color: var(--gray-900); }
+.timeline__item--status .timeline__text { color: var(--gray-500); }
+.timeline__text { margin-top: 3px; color: var(--gray-700); font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+.timeline__empty { padding: 14px; color: var(--gray-500); text-align: center; font-size: 13px; border: 1px dashed var(--gray-300); border-radius: 8px; }
+.kanban-card__retorno { color: var(--amber) !important; font-size: 12px; font-weight: 700; }
+.kanban-card__actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.kanban-card__actions button { margin-top: 0 !important; }
+.kanban-card__status { max-width: 150px; padding: 4px 6px; font-size: 12px; }
+.kanban-card strong, .kanban-card small, .kanban-card span { overflow-wrap: anywhere; }

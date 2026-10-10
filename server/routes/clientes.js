@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { auth } = require('../middleware/auth');
-const { asyncRouter, getPagination, wantsPagination } = require('../utils');
+const { asyncRouter, idOr, getPagination, wantsPagination } = require('../utils');
 
 const router = asyncRouter();
 
@@ -79,7 +79,7 @@ router.put('/:id', auth, async (req, res) => {
     email ?? existing.email,
     cidade ?? existing.cidade,
     endereco ?? existing.endereco,
-    (req.user.role !== 'admin') ? existing.corretor_id : (corretor_id ?? existing.corretor_id),
+    (req.user.role !== 'admin') ? existing.corretor_id : idOr(corretor_id, existing.corretor_id),
     db.now(),
     req.params.id
   );

@@ -132,7 +132,8 @@ app.get('/favicon.ico', (_req, res) => res.sendFile(path.join(assetsDir, 'img', 
 
 // Rate limit estrito nas rotas públicas antes das rotas gerais
 app.use('/api/auth/login', publicLimiter);
-app.use('/api/leads', (req, res, next) => (req.method === 'POST' ? publicLimiter(req, res, next) : next()));
+// Só o envio público do formulário (POST /api/leads); ações do CRM em /api/leads/:id/* ficam no limite geral.
+app.use('/api/leads', (req, res, next) => (req.method === 'POST' && req.path === '/' ? publicLimiter(req, res, next) : next()));
 
 // Rotas
 app.use('/api/auth', authRoutes);

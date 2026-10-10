@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { auth } = require('../middleware/auth');
-const { asyncRouter, getPagination, wantsPagination } = require('../utils');
+const { asyncRouter, idOr, getPagination, wantsPagination } = require('../utils');
 
 const router = asyncRouter();
 
@@ -76,8 +76,8 @@ router.put('/:id', auth, async (req, res) => {
       cliente_id=?, lead_id=?, data_hora=?, titulo=?, observacao=?, status=?
     WHERE id=?
   `, 
-    b.cliente_id ?? existing.cliente_id,
-    b.lead_id ?? existing.lead_id,
+    idOr(b.cliente_id, existing.cliente_id),
+    idOr(b.lead_id, existing.lead_id),
     b.data_hora ?? existing.data_hora,
     b.titulo ?? existing.titulo,
     b.observacao ?? existing.observacao,

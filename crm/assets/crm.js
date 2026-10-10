@@ -177,6 +177,7 @@ function openModal(title, fieldsHTML, footerHTML = '', onSubmit = null) {
     m.querySelector('.modal__close').onclick = () => m.classList.remove('show');
     m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
   }
+  m.querySelector('.modal').classList.remove('modal--wide'); // variante larga é opt-in por modal
   m.querySelector('.modal__title').textContent = title;
   m.querySelector('.modal__body').innerHTML = fieldsHTML;
   m.querySelector('.modal__footer').innerHTML = footerHTML || '<button class="btn btn-ghost" type="button" data-close>Cancelar</button><button class="btn btn-primary" type="submit" data-save>Salvar</button>';

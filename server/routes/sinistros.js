@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { auth } = require('../middleware/auth');
-const { asyncRouter, getPagination, wantsPagination } = require('../utils');
+const { asyncRouter, idOr, getPagination, wantsPagination } = require('../utils');
 
 const router = asyncRouter();
 
@@ -64,14 +64,14 @@ router.put('/:id', auth, async (req, res) => {
     return res.status(403).json({ error: 'Acesso negado' });
   }
   const b = req.body || {};
-  const cid = (req.user.role !== 'admin') ? existing.corretor_id : (b.corretor_id ?? existing.corretor_id);
+  const cid = (req.user.role !== 'admin') ? existing.corretor_id : idOr(b.corretor_id, existing.corretor_id);
   await db.run(`
     UPDATE sinistros SET
       cliente_id=?, apolice_id=?, descricao=?, data_evento=?, status=?, corretor_id=?
     WHERE id=?
   `, 
-    b.cliente_id ?? existing.cliente_id,
-    b.apolice_id ?? existing.apolice_id,
+    idOr(b.cliente_id, existing.cliente_id) ?? existing.cliente_id,
+    idOr(b.apolice_id, existing.apolice_id),
     b.descricao ?? existing.descricao,
     b.data_evento ?? existing.data_evento,
     b.status ?? existing.status,

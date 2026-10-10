@@ -335,3 +335,62 @@ test('dashboard do corretor: filtros por dono e janelas de data', async () => {
   assert.equal(r.data.receitaEstimada, 1500);
   assert.equal(r.data.usuariosTotal, null);
 });
+
+test('selects vazios do CRM ("— Sem corretor —") viram null, não quebram o Postgres', async () => {
+  const lead = await api('POST', '/api/leads', { body: { nome: 'Lead Select', telefone: '12999990003' } });
+  const upd = await api('PUT', `/api/leads/${lead.data.id}`, { token: adminToken, body: { corretor_id: '', status: 'novo' } });
+  assert.equal(upd.status, 200);
+  assert.equal((await api('GET', `/api/leads/${lead.data.id}`, { token: adminToken })).data.corretor_id, null);
+
+  const cli = await api('POST', '/api/clientes', { token: adminToken, body: { nome: 'Cliente Select' } });
+  assert.equal((await api('PUT', `/api/clientes/${cli.data.id}`, { token: adminToken, body: { corretor_id: '' } })).status, 200);
+  const apo = await api('POST', '/api/apolices', { token: adminToken, body: { cliente_id: cli.data.id, produto: 'Auto' } });
+  assert.equal((await api('PUT', `/api/apolices/${apo.data.id}`, { token: adminToken, body: { cliente_id: '', corretor_id: '' } })).status, 200);
+  const sin = await api('POST', '/api/sinistros', { token: adminToken, body: { cliente_id: cli.data.id } });
+  assert.equal((await api('PUT', `/api/sinistros/${sin.data.id}`, { token: adminToken, body: { apolice_id: '', cliente_id: '' } })).status, 200);
+  const ag = await api('POST', '/api/agendamentos', { token: adminToken, body: { titulo: 'Ag Select', data_hora: '2030-01-01 10:00' } });
+  assert.equal((await api('PUT', `/api/agendamentos/${ag.data.id}`, { token: adminToken, body: { cliente_id: '', lead_id: '' } })).status, 200);
+});
+
+test('histórico do lead: registrar contato, status automático, dono e permissões', async () => {
+  const lead = await api('POST', '/api/leads', { body: { nome: 'Lead Histórico', telefone: '12999990004' } });
+  const id = lead.data.id;
+
+  const bad = await api('POST', `/api/leads/${id}/interacoes`, { token: corretorToken, body: { tipo: 'status', descricao: 'x' } });
+  assert.equal(bad.status, 400);
+  const empty = await api('POST', `/api/leads/${id}/interacoes`, { token: corretorToken, body: { tipo: 'nota', descricao: '  ' } });
+  assert.equal(empty.status, 400);
+
+  // Anotação não conta como contato
+  await api('POST', `/api/leads/${id}/interacoes`, { token: corretorToken, body: { tipo: 'nota', descricao: 'Cliente prefere à tarde' } });
+  let l = (await api('GET', `/api/leads/${id}`, { token: adminToken })).data;
+  assert.equal(l.ultimo_contato, null);
+  assert.equal(l.status, 'novo');
+
+  // Primeiro contato: vira "contato realizado", corretor vira dono, agenda retorno
+  const wa = await api('POST', `/api/leads/${id}/interacoes`, { token: corretorToken, body: {
+    tipo: 'whatsapp', descricao: 'Enviei a cotação inicial', proximo_retorno: '2030-05-10T14:30' } });
+  assert.equal(wa.status, 201);
+  l = (await api('GET', `/api/leads/${id}`, { token: adminToken })).data;
+  assert.equal(l.status, 'contato_realizado');
+  assert.equal(l.corretor_id, corretorId);
+  assert.match(l.ultimo_contato, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+  assert.equal(l.proximo_retorno, '2030-05-10 14:30');
+
+  // Mudança de status pelo PUT (Kanban) também entra no histórico
+  await api('PUT', `/api/leads/${id}`, { token: corretorToken, body: { status: 'proposta_enviada' } });
+  const hist = (await api('GET', `/api/leads/${id}/interacoes`, { token: corretorToken })).data;
+  assert.deepEqual(hist.map((h) => h.tipo), ['status', 'status', 'whatsapp', 'nota']);
+  assert.equal(hist[0].descricao, 'Contato realizado → Proposta enviada');
+  assert.equal(hist[2].usuario_nome, 'Corretor Teste');
+
+  // Outro corretor não vê nem registra no lead que já tem dono
+  await api('POST', '/api/usuarios', { token: adminToken, body: { nome: 'Outro', email: 'outro@test.com', senha: 'outro123', role: 'corretor' } });
+  const outroToken = (await api('POST', '/api/auth/login', { body: { email: 'outro@test.com', senha: 'outro123' } })).data.token;
+  assert.equal((await api('GET', `/api/leads/${id}/interacoes`, { token: outroToken })).status, 403);
+  assert.equal((await api('POST', `/api/leads/${id}/interacoes`, { token: outroToken, body: { tipo: 'nota', descricao: 'x' } })).status, 403);
+
+  // Excluir o lead apaga o histórico (ON DELETE CASCADE)
+  await api('DELETE', `/api/leads/${id}`, { token: adminToken });
+  assert.equal((await db.get('SELECT COUNT(*) AS n FROM lead_interacoes WHERE lead_id = ?', id)).n, 0);
+});

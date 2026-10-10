@@ -121,6 +121,15 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   atualizado_em TEXT NOT NULL DEFAULT ${nowDefault}
 );
 
+CREATE TABLE IF NOT EXISTS lead_interacoes (
+  id ${id},
+  lead_id INTEGER NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+  tipo TEXT NOT NULL CHECK(tipo IN ('nota','ligacao','whatsapp','email','reuniao','proposta','status')),
+  descricao TEXT NOT NULL,
+  criado_em TEXT NOT NULL DEFAULT ${nowDefault}
+);
+
 CREATE TABLE IF NOT EXISTS site_conteudo (
   chave TEXT PRIMARY KEY,
   valor TEXT NOT NULL DEFAULT '',
@@ -152,6 +161,7 @@ CREATE INDEX IF NOT EXISTS idx_agendamentos_lead ON agendamentos(lead_id);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_status ON agendamentos(status);
 CREATE INDEX IF NOT EXISTS idx_blog_status_data ON blog_posts(status, publicado_em);
 CREATE INDEX IF NOT EXISTS idx_blog_categoria ON blog_posts(categoria);
+CREATE INDEX IF NOT EXISTS idx_interacoes_lead ON lead_interacoes(lead_id, criado_em);
 `;
 
 /*
