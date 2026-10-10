@@ -9,12 +9,12 @@ window.PRODUTOS = {
     categoria: "Seguros de Veículos",
     tag: "Mais Vendido",
     tagline: "Proteção completa para o seu carro, do começo ao fim da apólice.",
-    descricao: "O Seguro Auto da Vida de Ouro Jacareí oferece proteção inteligente contra roubo, furto, colisão, incêndio, vidros e danos a terceiros. Trabalhamos com as melhores seguradoras do mercado para encontrar a melhor cobertura pelo melhor preço para o seu perfil de motorista e o seu veículo — seja carro novo, usado ou renovação.",
+    descricao: "O Seguro Auto da Vida de Ouro Jacareí oferece proteção inteligente contra roubo, furto, colisão, incêndio, vidros e danos a terceiros. Trabalhamos com as melhores seguradoras do mercado para encontrar a melhor cobertura pelo melhor preço para o seu perfil de motorista e o seu veículo, seja carro novo, usado ou renovação.",
     publico: "Para motoristas de carros nacionais e importados, novos ou usados, que querem tranquilidade no trânsito do Vale do Paraíba e em todo o Brasil.",
     coberturas: [
       { t: "Roubo e Furto Total e Parcial", d: "Indenização em caso de perda do veículo por roubo, furto ou tentativa qualificada." },
       { t: "Colisão e Perda Total", d: "Cobertura contra colisões, capotagem, queda e derramamento em acidentes." },
-      { t: "Carro Reserva", d: "Veículo substituto enquanto o seu está em reparo — disponível em varias classes." },
+      { t: "Carro Reserva", d: "Veículo substituto enquanto o seu está em reparo, disponível em varias classes." },
       { t: "Guincho 24h", d: "Assistência 24 horas em todo o território nacional para panes e acidentes." },
       { t: "Vidros, Retrovisores e Faróis", d: "Cobertura para vidros, lanternas, faróis e retrovisores." },
       { t: "Danos a Terceiros", d: "Cobertura de responsabilidade civil facultativa para danos materiais e corporais." }
@@ -78,7 +78,7 @@ window.PRODUTOS = {
     tag: "Proteção Familiar",
     tagline: "Tranquilidade financeira para você e para quem você ama.",
     descricao: "O Seguro de Vida oferece proteção financeira individual para garantir tranquilidade em momentos inesperados. Planos flexíveis e acessíveis para diferentes perfis, com assistência funeral, cobertura por doenças graves e invalidez permanente.",
-    publico: "Para qualquer pessoa que deseja proteção financeira para a família — autônomos, profissionais, donos de casa, empresários e famílias.",
+    publico: "Para qualquer pessoa que deseja proteção financeira para a família: autônomos, profissionais, donos de casa, empresários e famílias.",
     coberturas: [
       { t: "Morte por Qualquer Causa", d: "Indenização aos beneficiários em caso de falecimento do segurado." },
       { t: "Invalidez Permanente", d: "Indenização em caso de invalidez por acidente ou doença." },
@@ -110,7 +110,7 @@ window.PRODUTOS = {
     faq: [
       { q: "Cobre apartamento alugado?", a: "Sim. Existe cobertura para inquilinos (conteúdo) e para proprietários (estrutura). Analisamos o seu caso para encontrar a melhor opção." },
       { q: "Tem aluguel de imóvel reserva?", a: "Sim. A maioria das apólices oferece assistência de moradia temporária em caso de imóvel sinistrado." },
-      { q: "Cobre energia solar?", a: "Depende da apólice. É possível incluir cobertura para painéis solares — informe no momento da cotação." }
+      { q: "Cobre energia solar?", a: "Depende da apólice. É possível incluir cobertura para painéis solares. Informe no momento da cotação." }
     ]
   },
 
@@ -141,7 +141,7 @@ window.PRODUTOS = {
     tag: "Nacional e Internacional",
     tagline: "Viaje tranquilo. Nós cuidamos dos imprevistos.",
     descricao: "O Seguro Viagem oferece proteção para viagens nacionais e internacionais: despesas médicas, extravio de bagagem, cancelamentos e imprevistos. Contratação rápida, com suporte 24 horas onde você estiver.",
-    publico: "Para viajantes nacionais e internacionais — turismo, negócios, intercâmbio, cruzeiros e muito mais.",
+    publico: "Para viajantes nacionais e internacionais: turismo, negócios, intercâmbio, cruzeiros e muito mais.",
     coberturas: [
       { t: "Despesas Médicas e Hospitalares", d: "Cobertura médica no exterior e em território nacional." },
       { t: "Extravio de Bagagem", d: "Indenização em caso de perda ou atraso da bagagem pela companhia." },
@@ -151,7 +151,7 @@ window.PRODUTOS = {
     seguradoras: ["Porto Seguro", "Allianz", "Zurich", "Mapfre", "Affinity", "Chubb"],
     faq: [
       { q: "Cobro antes ou depois da viagem?", a: "O contrato deve ser feito antes do início da viagem. A vigência começa na data prevista em apólice." },
-      { q: "Cobre Covid e epidemias?", a: "Depende da apólice. Existem coberturas específicas para despesas médicas por doenças pré-existentes — informe na cotação." },
+      { q: "Cobre Covid e epidemias?", a: "Depende da apólice. Existem coberturas específicas para despesas médicas por doenças pré-existentes. Informe na cotação." },
       { q: "Como aciono no exterior?", a: "Você liga no número 24h da seguradora indicado na apólice. Nossa equipe também orienta caso você precise." }
     ]
   },
@@ -173,7 +173,7 @@ window.PRODUTOS = {
     faq: [
       { q: "Substitui seguro obrigatório?", a: "Sim. O seguro de condomínio atende às exigências do Código Civil (art. 1.266) e amplia as coberturas para áreas comuns e RC." },
       { q: "Cobre vidros e fachadas?", a: "Possível mediante contratação adicional. Avaliamos o caso para incluir coberturas específicas." },
-      { q: "Síndico tem desconto?", a: "Condomínios têm condições especiais — solicitamos cotação comparando várias seguradoras para a melhor condição." }
+      { q: "Síndico tem desconto?", a: "Condomínios têm condições especiais. Solicitamos cotação comparando várias seguradoras para a melhor condição." }
     ]
   },
 
@@ -215,7 +215,7 @@ window.PRODUTOS = {
     faq: [
       { q: "Cobra notebooks e celulares corporativos?", a: "Sim. Equipamentos eletrônicos móveis podem ser cobertos individualmente ou em blocos." },
       { q: "Cobre equipamentos arrendados?", a: "Possível mediante análise. Avaliamos o contrato de arrendamento para definir a cobertura." },
-      { q: "Tem franquia?", a: "Sim, há franquia variável conforme o tipo de equipamento e seguradora — sempre buscamos a melhor condição." }
+      { q: "Tem franquia?", a: "Sim, há franquia variável conforme o tipo de equipamento e seguradora. Sempre buscamos a melhor condição." }
     ]
   },
 
@@ -255,7 +255,7 @@ window.PRODUTOS = {
     ],
     seguradoras: ["MetLife", "Prudential", "Icatu", "Mongeral", "Previsul", "Zurich", "Porto Seguro", "Bradesco", "SulAmérica"],
     faq: [
-      { q: "Mínimo de vidas para contratar?", a: "Depende da seguradora — muitas aceitam a partir de poucos vidas. Fazemos análise para encontrar o plano ideal ao seu porte." },
+      { q: "Mínimo de vidas para contratar?", a: "Depende da seguradora. Muitas aceitam a partir de poucos vidas. Fazemos análise para encontrar o plano ideal ao seu porte." },
       { q: "Colaborador pode somar dependentes?", a: "Sim. Existem planos que permitem inclusão de dependentes em condições especiais." },
       { q: "É benefício dedutível no IR?", a: "Há possibilidades. Recomendamos validação contábil, mas em geral é dedutível como despesa operacional." }
     ]
@@ -271,7 +271,7 @@ window.PRODUTOS = {
       { rotulo: "São Francisco Vida (PJ)", valor: "R$ 171,37" },
       { rotulo: "Santa Casa Saúde SJC", valor: "R$ 250,84" }
     ],
-    descricao: "Especialistas em planos de saúde nacionais e regionais para pessoa física, MEI, PME e empresas. Comparamos as principais operadoras para encontrar a melhor cobertura, rede credenciada e custo-benefício — ideal para quem teve reajuste elevado, quer reduzir custos, ampliar a rede médica ou fazer portabilidade de carências com segurança.",
+    descricao: "Especialistas em planos de saúde nacionais e regionais para pessoa física, MEI, PME e empresas. Comparamos as principais operadoras para encontrar a melhor cobertura, rede credenciada e custo-benefício, ideal para quem teve reajuste elevado, quer reduzir custos, ampliar a rede médica ou fazer portabilidade de carências com segurança.",
     publico: "Para pessoas físicas, crianças, idosos, profissionais liberais, MEI e empresas no Vale do Paraíba, Litoral Norte, São Paulo e Brasil.",
     coberturas: [
       { t: "Individual, Familiar e Empresarial", d: "Planos para diferentes perfis e portes de empresa." },
@@ -304,7 +304,7 @@ window.PRODUTOS = {
       { rotulo: "Pessoa jurídica", valor: "R$ 171,37" }
     ],
     descricao: "O São Francisco Vida oferece planos de saúde em Jacareí, São José dos Campos e Litoral Norte para pessoas físicas, crianças, idosos, médicos, advogados, dentistas, profissionais liberais e empresas (MEI, PME, médias e grandes), com contratação a partir de 1 vida.",
-    publico: "Para quem busca um plano regional acessível — ótimo para crianças, idosos e empresas.",
+    publico: "Para quem busca um plano regional acessível, ótimo para crianças, idosos e empresas.",
     coberturas: [
       { t: "A partir de 1 Vida", d: "Pessoa física, MEI, PME e grandes empresas." },
       { t: "Hospitais na Rede", d: "Hospital São Francisco, Antoninho da Rocha Marmo, Pio XII, Prontil, Plani e Tomovale." },
@@ -386,7 +386,7 @@ window.PRODUTOS = {
     ],
     seguradoras: ["Porto Saúde"],
     faq: [
-      { q: "Linha Pró Vale o que é?", a: "É uma linha regional com rede enxuta e custo otimizado para empresas do Vale do Paraíba — ideal para reduzir o valor por vida." },
+      { q: "Linha Pró Vale o que é?", a: "É uma linha regional com rede enxuta e custo otimizado para empresas do Vale do Paraíba, ideal para reduzir o valor por vida." },
       { q: "MEI pode contratar?", a: "Os planos empresariais Porto Saúde são a partir de 3 vidas. Para menos vidas, apresentamos outras operadoras na cotação." },
       { q: "Cobre Spalla e Sírio Libanês?", a: "Sim, conforme a contratada. As linhas premium dão acesso à rede D'Or, Sírio Libanês e outros." }
     ]
@@ -400,7 +400,7 @@ window.PRODUTOS = {
     precos: [
       { rotulo: "Empresarial a partir de 3 vidas", valor: "R$ 324,10" }
     ],
-    descricao: "A SulAmérica Saúde oferece planos empresariais para MEI e empresas em Jacareí, São José dos Campos, Taubaté e Vale do Paraíba, com ampla rede credenciada e atendimento nacional — incluindo Hospital Vivalle, Hospital Antônio Afonso, clínicas e consultórios. Ideal para reduzir custos, dar upgrade de cobertura ou trocar de plano após reajuste elevado.",
+    descricao: "A SulAmérica Saúde oferece planos empresariais para MEI e empresas em Jacareí, São José dos Campos, Taubaté e Vale do Paraíba, com ampla rede credenciada e atendimento nacional, incluindo Hospital Vivalle, Hospital Antônio Afonso, clínicas e consultórios. Ideal para reduzir custos, dar upgrade de cobertura ou trocar de plano após reajuste elevado.",
     publico: "Para empresas e famílias que buscam flexibilidade, ampla rede e hospitais premium.",
     coberturas: [
       { t: "Rede D'Or Inclusa", d: "Acesso à maior rede privada de hospitais do Brasil." },
@@ -424,7 +424,7 @@ window.PRODUTOS = {
     precos: [
       { rotulo: "Empresarial a partir de 3 vidas", valor: "R$ 495,93" }
     ],
-    descricao: "O Bradesco Saúde oferece plano de saúde empresarial com cobertura nacional, ampla rede credenciada e serviços diferenciados. Tradição, solidez e diversas opções de planos em Jacareí, São José dos Campos, Taubaté e Vale do Paraíba — ideal para empresas que precisam reduzir custo sem perder qualidade.",
+    descricao: "O Bradesco Saúde oferece plano de saúde empresarial com cobertura nacional, ampla rede credenciada e serviços diferenciados. Tradição, solidez e diversas opções de planos em Jacareí, São José dos Campos, Taubaté e Vale do Paraíba, ideal para empresas que precisam reduzir custo sem perder qualidade.",
     publico: "Para empresas de pequeno, médio e grande porte e famílias que buscam flexibilidade de rede.",
     coberturas: [
       { t: "Rede Ampla", d: "Acesso a hospitais e clínicas em todo o Brasil." },
@@ -483,7 +483,7 @@ window.PRODUTOS = {
     seguradoras: ["Unimed SJC"],
     faq: [
       { q: "Tem cobertura nacional?", a: "Sim, mediante a rede nacional Unimed para urgência e emergência em todo o Brasil." },
-      { q: "Unimed tem plano empresarial pequeno?", a: "Sim, existem planos empresariais a partir de poucas vidas — verificamos a elegibilidade." },
+      { q: "Unimed tem plano empresarial pequeno?", a: "Sim, existem planos empresariais a partir de poucas vidas. Verificamos a elegibilidade." },
       { q: "Ajuda em troca de operadora?", a: "Sim. Portamos carências conforme a regulamentação da ANS." }
     ]
   },
@@ -503,13 +503,13 @@ window.PRODUTOS = {
     ],
     seguradoras: ["Rodobens", "Porto", "Caixa Seguradora", "Brasilprev", "BTG Pactual"],
     faq: [
-      { q: "Consórcio tem juros?", a: "Não. O consórcio cobra taxa administrativa, diluída nas parcelas — sem juros como no financiamento." },
+      { q: "Consórcio tem juros?", a: "Não. O consórcio cobra taxa administrativa, diluída nas parcelas, sem juros como no financiamento." },
       { q: "Posso antecipar parcelas?", a: "Sim. A antecipação reduz o prazo e aumenta suas chances de contemplação por lance livre." },
       { q: "Existe lance?", a: "Sim, lance livre ou fixo, conforme o grupo." },
       { q: "Posso usar o FGTS?", a: "Sim, no consórcio de imóvel, conforme as regras da Caixa." },
       { q: "Posso transferir minha cota?", a: "Sim, a transferência de cota é permitida." },
       { q: "Consórcio é seguro?", a: "Sim. É regulamentado e fiscalizado pelo Banco Central." },
-      { q: "Cota contemplada pode ser usada para reforma?", a: "Depende do tipo de consórcio. O imobiliário permite destinar parte para construção ou reforma — verifique nas condições." }
+      { q: "Cota contemplada pode ser usada para reforma?", a: "Depende do tipo de consórcio. O imobiliário permite destinar parte para construção ou reforma. Verifique nas condições." }
     ]
   },
 
@@ -529,7 +529,7 @@ window.PRODUTOS = {
     seguradoras: ["Brasilprev", "Icatu", "Porto Seguro", "Caixa", "BTG Pactual", "Bradesco", "SulAmérica"],
     faq: [
       { q: "PGBL ou VGBL: qual escolher?", a: "Depende da sua forma de declaração no IR. O PGBL é vantajoso para quem usa modelo completo; o VGBL, para modelo simplificado. Orientamos na escolha." },
-      { q: "Posso resgatar antes da aposentadoria?", a: "Sim, com carência. Mas o resgate antecipado pode ter tributação — avaliamos caso a caso." },
+      { q: "Posso resgatar antes da aposentadoria?", a: "Sim, com carência. Mas o resgate antecipado pode ter tributação. Avaliamos caso a caso." },
       { q: "Existe rentabilidade garantida?", a: "Depende do fundo. Existem opções conservadoras e options de perfil moderado/agressivo. Ajuda na escolha conforme perfil." }
     ]
   },
@@ -539,7 +539,7 @@ window.PRODUTOS = {
     categoria: "Outros",
     tag: "Presencial e Online",
     tagline: "Emissão rápida com suporte na instalação e renovação.",
-    descricao: "Emissão de Certificado Digital presencial em Jacareí e 100% online para todo o Brasil. e-CPF, e-CNPJ, MEI, NF-e, CT-e e muito mais. Suporte completo na instalação, configuração e renovação — você não fica sozinho.",
+    descricao: "Emissão de Certificado Digital presencial em Jacareí e 100% online para todo o Brasil. e-CPF, e-CNPJ, MEI, NF-e, CT-e e muito mais. Suporte completo na instalação, configuração e renovação. Você não fica sozinho.",
     publico: "Para PF, MEI, empresas e profissionais que precisam de certificado para NF-e, e-CNPJ, e-Social e mais.",
     coberturas: [
       { t: "e-CPF A1 e A3", d: "Certificado para pessoa física, com validade de 1 a 3 anos." },
