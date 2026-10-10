@@ -79,10 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ---- Header scroll ----
+  // Um marcador de 20px no topo: quando sai da tela, a página rolou. Evita rodar código a cada quadro de scroll.
   const header = document.getElementById('header');
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('scrolled', window.scrollY > 20);
-  });
+  if (header && 'IntersectionObserver' in window) {
+    const sentinel = document.createElement('div');
+    sentinel.setAttribute('aria-hidden', 'true');
+    sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:20px;pointer-events:none';
+    document.body.prepend(sentinel);
+    new IntersectionObserver(([entry]) => {
+      header.classList.toggle('scrolled', !entry.isIntersecting);
+    }).observe(sentinel);
+  }
 
   // ---- Hamburger menu ----
   const hamburger = document.getElementById('hamburger');
@@ -281,6 +288,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function animateCount(el) {
     const target = parseInt(el.dataset.count, 10);
     const isLarge = target > 999;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.textContent = isLarge ? '+' + target.toLocaleString('pt-BR') : target;
+      return;
+    }
     const duration = 1800;
     const step = 16;
     const increment = target / (duration / step);

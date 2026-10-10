@@ -31,6 +31,9 @@
   --gray-100: #EFEADF;
   --gray-50:  #F6F3EC;
   --white:    #FFFFFF;
+  /* Borda de campos (3:1 contra o branco) e anel de foco do teclado */
+  --field-border: #8C8471;
+  --focus:    #1E3F7A;
   --radius:   14px;
   --radius-lg: 22px;
   --shadow:   0 4px 24px rgba(14,31,61,.08);
@@ -1380,7 +1383,7 @@ main p, main li, .footer { overflow-wrap: anywhere; }
 }
 .hero__badge svg { color: var(--gold); }
 .hero__title {
-  font-size: clamp(2.4rem, 5.4vw, 4.25rem);
+  font-size: clamp(2.2rem, 3.9vw, 3.1rem);
   font-weight: 700;
   line-height: 1.02;
   letter-spacing: -.035em;
@@ -1476,7 +1479,7 @@ main p, main li, .footer { overflow-wrap: anywhere; }
 .saude__nota { margin-top: 14px; font-size: 12.5px; color: var(--gray-500); text-align: center; }
 
 .hospitais { margin-top: 72px; }
-.hospitais__head { display: flex; flex-wrap: wrap; gap: 12px 40px; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; }
+.hospitais__head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
 .hospitais__head h3, .odonto h3 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; letter-spacing: -.03em; color: var(--blue-900); line-height: 1.1; }
 .hospitais__head p { max-width: 560px; color: var(--gray-700); }
 .hospitais__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
@@ -1572,7 +1575,7 @@ main p, main li, .footer { overflow-wrap: anywhere; }
 .form__group label { font-weight: 700; color: var(--gray-700); }
 .form__group input,
 .form__group select,
-.form__group textarea { border: 1px solid var(--gray-300); border-radius: 12px; min-height: 48px; font-size: 15px; }
+.form__group textarea { border: 1px solid var(--field-border); border-radius: 12px; min-height: 48px; font-size: 15px; }
 .form__group textarea { min-height: 96px; }
 .form__group input:focus,
 .form__group select:focus,
@@ -1617,4 +1620,24 @@ main p, main li, .footer { overflow-wrap: anywhere; }
   .hero__title { font-size: 2.2rem; }
   .quick-quote__options { gap: 8px; }
   .quick-quote__opt { min-height: 54px; font-size: 13px; }
+}
+
+/* Título da seção de cotação: o h2 não usa .section-title e herdava marinho sobre marinho */
+.cotacao__info h2 { color: var(--white); font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin: 12px 0 14px; }
+.cotacao__info h2 strong { color: var(--gold); font-weight: 700; }
+
+/* ---- Acessibilidade: foco do teclado e movimento reduzido ---- */
+/* Só aparece na navegação por teclado; o clique do mouse não mostra o anel */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+:where(.como-funciona, .cotacao__info, .footer) :where(a, button):focus-visible { outline-color: var(--gold); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
