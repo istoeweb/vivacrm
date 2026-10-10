@@ -632,6 +632,8 @@ tbody tr:hover { background: #FBFAF6; }
 }
 [data-theme="dark"] .pager__btn--active { background: var(--gold); border-color: var(--gold); color: var(--blue-900); }
 [data-theme="dark"] .bulk-bar { color: var(--link); }
+[data-theme="dark"] .dist-row__fill:not([class*="dist-row__fill--"]) { background: #4A70B8; }
+[data-theme="dark"] .dist-row__fill--green { background: var(--link); }
 [data-theme="dark"] thead th,
 [data-theme="dark"] tbody tr:hover { background: var(--gray-50); }
 [data-theme="dark"] .badge--won { background: var(--gold); color: #0E1F3D; }
