@@ -30,6 +30,8 @@
   --white:    #FFFFFF;
   /* Texto sobre o marinho: fica branco nos dois temas (--white escurece no tema escuro) */
   --on-navy:  #FFFFFF;
+  /* Texto azul (badges, links, agenda); no escuro vira um azul claro */
+  --link:     #1E3F7A;
   --sidebar-w: 248px;
   --radius: 18px;
   --shadow: 0 1px 2px rgba(14,31,61,.06);
@@ -47,7 +49,7 @@ body {
 
 /* ---------- App bar / tema / navegação adaptativa ---------- */
 .crm-appbar{position:fixed;z-index:9;top:0;right:0;left:var(--sidebar-w);height:68px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 28px;background:color-mix(in srgb,var(--white) 92%,transparent);border-bottom:1px solid var(--gray-200);backdrop-filter:blur(14px);transition:left .2s}
-.crm-appbar__left,.crm-appbar__actions{display:flex;align-items:center;gap:10px}.appbar-btn{position:relative;display:grid;place-items:center;width:38px;height:38px;color:var(--gray-700);background:var(--white);border:1px solid var(--gray-200);border-radius:9px;font-size:18px}.appbar-btn:hover{color:var(--blue-600);border-color:var(--blue-500)}
+.crm-appbar__left,.crm-appbar__actions{display:flex;align-items:center;gap:10px}.appbar-btn{position:relative;display:grid;place-items:center;width:38px;height:38px;color:var(--gray-700);background:var(--white);border:1px solid var(--gray-200);border-radius:9px;font-size:18px}.appbar-btn:hover{color:var(--link);border-color:var(--blue-500)}
 .global-search{position:relative;display:flex;align-items:center;width:min(380px,36vw);height:40px;padding:0 12px;background:var(--gray-100);border:1px solid transparent;border-radius:10px}.global-search:focus-within{background:var(--white);border-color:var(--blue-500)}.global-search input{width:100%;padding:0 8px;color:var(--gray-900);background:transparent;border:0;outline:0}.global-search__results{position:absolute;top:48px;left:0;width:100%;display:none;padding:8px;background:var(--white);border:1px solid var(--gray-200);border-radius:10px;box-shadow:var(--shadow-lg)}.global-search__results.show{display:block}.global-search__results a{display:flex;flex-direction:column;padding:10px;border-radius:7px}.global-search__results a:hover{background:var(--gray-100)}.global-search__results small{color:var(--gray-500)}.search-empty{padding:16px;text-align:center;color:var(--gray-500)}
 .appbar-profile{display:flex;align-items:center;gap:9px;padding-left:8px}.appbar-profile>span:last-child{display:flex;flex-direction:column}.appbar-profile strong{color:var(--gray-900);font-size:12px}.appbar-profile small{color:var(--gray-500);font-size:10px}.appbar-avatar{display:grid;place-items:center;width:36px;height:36px;color:#fff;background:linear-gradient(135deg,var(--blue-700),var(--blue-500));border-radius:50%;font-weight:800}.appbar-notification span{position:absolute;top:-5px;right:-5px;display:none;min-width:18px;height:18px;padding:0 4px;color:#fff;background:var(--red);border:2px solid var(--white);border-radius:10px;font-size:9px;line-height:14px}.appbar-notification span.show{display:block}
 .content{padding-top:96px!important;transition:margin-left .2s}.sidebar{transition:width .2s,transform .2s}.sidebar-overlay{position:fixed;z-index:9;inset:0;display:none;background:rgba(15,23,42,.5)}
@@ -57,7 +59,7 @@ thead th{position:sticky;top:0;z-index:1}.table-card{border:1px solid var(--gray
 [data-theme="dark"]{--gray-900:#F8FAFC;--gray-700:#CBD5E1;--gray-500:#94A3B8;--gray-300:#475569;--gray-200:#334155;--gray-100:#1E293B;--gray-50:#172033;--white:#111827;--shadow:0 2px 14px rgba(0,0,0,.25);--shadow-lg:0 12px 38px rgba(0,0,0,.45)}[data-theme="dark"] body{background:#0B1120}[data-theme="dark"] .sidebar{background:#070D1B}[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{color-scheme:dark}
 
 /* ---------- Kanban ---------- */
-.kanban-board{display:grid;grid-template-columns:repeat(7,minmax(260px,1fr));gap:14px;overflow-x:auto;padding-bottom:18px}.kanban-column{min-height:480px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px}.kanban-column>header{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid var(--gray-200);color:var(--gray-900);font-size:12px;text-transform:uppercase}.kanban-column>header span{display:grid;place-items:center;min-width:24px;height:24px;background:var(--gray-200);border-radius:12px}.kanban-column__body{display:flex;min-height:420px;flex-direction:column;gap:10px;padding:10px}.kanban-column.drag-over{border-color:var(--blue-500);background:var(--blue-50)}.kanban-card{display:flex;flex-direction:column;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:9px;box-shadow:var(--shadow);cursor:grab}.kanban-card:active{cursor:grabbing}.kanban-card strong{color:var(--gray-900)}.kanban-card small,.kanban-card span{margin-top:4px;color:var(--gray-500)}.kanban-card button{align-self:flex-start;margin-top:10px;color:var(--blue-600);font-size:12px;font-weight:700}.kanban-empty{padding:24px;text-align:center;color:var(--gray-500);font-size:12px;border:1px dashed var(--gray-300);border-radius:8px}
+.kanban-board{display:grid;grid-template-columns:repeat(7,minmax(260px,1fr));gap:14px;overflow-x:auto;padding-bottom:18px}.kanban-column{min-height:480px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px}.kanban-column>header{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid var(--gray-200);color:var(--gray-900);font-size:12px;text-transform:uppercase}.kanban-column>header span{display:grid;place-items:center;min-width:24px;height:24px;background:var(--gray-200);border-radius:12px}.kanban-column__body{display:flex;min-height:420px;flex-direction:column;gap:10px;padding:10px}.kanban-column.drag-over{border-color:var(--blue-500);background:var(--blue-50)}.kanban-card{display:flex;flex-direction:column;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:9px;box-shadow:var(--shadow);cursor:grab}.kanban-card:active{cursor:grabbing}.kanban-card strong{color:var(--gray-900)}.kanban-card small,.kanban-card span{margin-top:4px;color:var(--gray-500)}.kanban-card button{align-self:flex-start;margin-top:10px;color:var(--link);font-size:12px;font-weight:700}.kanban-empty{padding:24px;text-align:center;color:var(--gray-500);font-size:12px;border:1px dashed var(--gray-300);border-radius:8px}
 
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -280,7 +282,7 @@ tbody tr:last-child td { border-bottom: none; }
   cursor: pointer;
   transition: all .15s;
 }
-.pager__btn:hover:not(:disabled):not(.pager__btn--active) { border-color: var(--blue-500); color: var(--blue-600); }
+.pager__btn:hover:not(:disabled):not(.pager__btn--active) { border-color: var(--blue-500); color: var(--link); }
 .pager__btn--active { background: var(--blue-600); border-color: var(--blue-600); color: var(--on-navy); cursor: default; }
 .pager__btn:disabled { opacity: .45; cursor: not-allowed; }
 .pager__gap { padding: 0 2px; color: var(--gray-500); }
@@ -295,7 +297,7 @@ tbody tr:last-child td { border-bottom: none; }
   text-transform: uppercase;
   letter-spacing: .03em;
 }
-.badge--new     { background: var(--blue-50);   color: var(--blue-600); }
+.badge--new     { background: var(--blue-50);   color: var(--link); }
 .badge--contacted{ background: var(--amber-bg); color: #B45309; }
 .badge--quoted  { background: var(--amber-bg); color: #B45309; }
 .badge--won     { background: var(--green-bg); color: var(--green); }
@@ -303,17 +305,17 @@ tbody tr:last-child td { border-bottom: none; }
 .badge--sem-interesse { background: var(--gray-100); color: var(--gray-700); }
 .badge--ativo   { background: var(--green-bg); color: var(--green); }
 .badge--cancelada{ background: var(--red-bg);  color: var(--red); }
-.badge--renovada{ background: var(--blue-50);  color: var(--blue-600); }
+.badge--renovada{ background: var(--blue-50);  color: var(--link); }
 .badge--vencida { background: var(--gray-100); color: var(--gray-700); }
 .badge--aberto  { background: var(--red-bg);   color: var(--red); }
 .badge--analise { background: var(--amber-bg); color: #B45309; }
 .badge--aprovado{ background: var(--green-bg); color: var(--green); }
 .badge--negado  { background: var(--gray-100); color: var(--gray-700); }
-.badge--final   { background: var(--blue-50); color: var(--blue-600); }
+.badge--final   { background: var(--blue-50); color: var(--link); }
 .badge--pendente{ background: var(--amber-bg); color: #B45309; }
 .badge--concluido{background: var(--green-bg); color: var(--green); }
 .badge--admin   { background: var(--gold); color: var(--white); }
-.badge--corretor{ background: var(--blue-50); color: var(--blue-600); }
+.badge--corretor{ background: var(--blue-50); color: var(--link); }
 .badge--ativo2  { background: var(--green-bg); color: var(--green); }
 .badge--inativo { background: var(--gray-100); color: var(--gray-500); }
 
@@ -501,7 +503,7 @@ tbody tr:hover { background: #FBFAF6; }
 /* Badges: texto normal, cores da marca */
 .badge { text-transform: none; letter-spacing: 0; font-size: 12px; padding: 4px 10px; }
 .badge--new { background: var(--gray-100); color: var(--gray-700); }
-.badge--contacted { background: var(--blue-50); color: var(--blue-600); }
+.badge--contacted { background: var(--blue-50); color: var(--link); }
 .badge--quoted, .badge--analise, .badge--pendente { background: var(--amber-bg); color: var(--amber); }
 .badge--won { background: var(--blue-900); color: var(--on-navy); }
 .badge--admin { background: var(--gold); color: var(--blue-900); }
@@ -531,7 +533,7 @@ tbody tr:hover { background: #FBFAF6; }
 
 /* Calendário */
 .calendar-day--today { background: var(--blue-50); }
-.calendar-event { color: var(--blue-600); }
+.calendar-event { color: var(--link); }
 
 /* ====================================
    RESPONSIVO — celular e tablet
@@ -619,6 +621,17 @@ tbody tr:hover { background: #FBFAF6; }
 }
 
 /* Tema escuro: troca os tons claros fixos do redesign */
+/* Fundos de status escurecidos (mesmo matiz) e textos clareados para ler sobre eles */
+[data-theme="dark"] {
+  --link: #A9C2F0;
+  --blue-50: #1A2B4C;
+  --green: #6FD49A;  --green-bg: #133224;
+  --red: #FF8A7A;    --red-bg: #3A1A1C;
+  --amber: #E2C275;  --amber-bg: #33290F;
+  --gold-dark: #E2C275;
+}
+[data-theme="dark"] .pager__btn--active { background: var(--gold); border-color: var(--gold); color: var(--blue-900); }
+[data-theme="dark"] .bulk-bar { color: var(--link); }
 [data-theme="dark"] thead th,
 [data-theme="dark"] tbody tr:hover { background: var(--gray-50); }
 [data-theme="dark"] .badge--won { background: var(--gold); color: #0E1F3D; }
@@ -637,7 +650,7 @@ tbody tr:hover { background: #FBFAF6; }
 /* ---- Leads: ficha, registro de contato e histórico ---- */
 @media (min-width: 901px) { .modal.modal--wide { max-width: 760px; } }
 .lead-name { padding: 0; color: var(--gray-900); background: none; border: 0; font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
-.lead-name:hover { color: var(--blue-600); text-decoration: underline; }
+.lead-name:hover { color: var(--link); text-decoration: underline; }
 .btn-whatsapp { color: #fff; background: #25d366; border-color: #25d366; }
 .btn-whatsapp:hover { background: #1ebe5a; }
 .lead-sheet h3 { margin: 22px 0 10px; color: var(--gray-900); font-size: 15px; }
