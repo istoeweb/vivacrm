@@ -318,7 +318,7 @@ function enhanceCrmShell() {
     const prox = d.proximosAgendamentos || [];
     const atrasados = d.agendamentosAtrasados || 0;
     const naoAtrib = d.leadsNaoAtribuidos || 0;
-    if (naoAtrib) parts.push(pendItem('leads.html', naoAtrib + ' lead(s) sem corretor', 'Fila de captação — clique para assumir'));
+    if (naoAtrib) parts.push(pendItem('leads.html', naoAtrib + ' lead(s) sem corretor', 'Fila de captação. Clique para assumir'));
     if (atrasados) parts.push(pendItem('agendamentos.html', atrasados + ' agendamento(s) atrasado(s)', 'Compromissos pendentes já vencidos'));
     if (follow.length) {
       parts.push('<div class="pend-group">Follow-ups de leads (hoje/atrasados)</div>');

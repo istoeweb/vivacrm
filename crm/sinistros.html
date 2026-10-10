@@ -89,8 +89,8 @@ if (requireAuth()) {
       </div>
       <div class="form-group"><label>Apólice (opcional)</label>
         <select name="apolice_id">
-          <option value="">—</option>
-          ${apolices.filter(a=>!r.cliente_id || a.cliente_id===r.cliente_id).map(a=>`<option value="${a.id}" ${r.apolice_id===a.id?'selected':''}>${esc(a.numero||'apolice #'+a.id)} — ${esc(a.produto)}</option>`).join('')}
+          <option value="">Nenhuma</option>
+          ${apolices.filter(a=>!r.cliente_id || a.cliente_id===r.cliente_id).map(a=>`<option value="${a.id}" ${r.apolice_id===a.id?'selected':''}>${esc(a.numero||'apolice #'+a.id)} · ${esc(a.produto)}</option>`).join('')}
         </select>
       </div>
       <div class="form-row">
@@ -101,7 +101,7 @@ if (requireAuth()) {
       </div>
       <div class="form-group"><label>Descrição</label><textarea name="descricao">${esc(r.descricao||'')}</textarea></div>
       ${isAdmin ? `<div class="form-group"><label>Corretor</label>
-        <select name="corretor_id"><option value="">—</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
+        <select name="corretor_id"><option value="">Nenhum</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
     </form>`;
   }
   window.novoSinistro = () => openModal('Novo sinistro', formHTML(), '', async (d) => {

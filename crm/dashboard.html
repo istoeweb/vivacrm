@@ -170,7 +170,7 @@ if (requireAuth()) {
       ...(d.usuariosTotal !== null ? [{ v: d.usuariosTotal, l: 'Usuários', cls: '--gray', href: 'usuarios.html' }] : [])
     ];
     document.getElementById('statsGrid').innerHTML = stats.map(s =>
-      `<a class="stat-card stat-card${s.cls}" href="${s.href}"><div class="stat-card__value">${s.v}</div><div class="stat-card__label">${s.l}</div></a>`
+      `<a class="stat-card stat-card${s.cls}" href="${s.href}"><div class="stat-card__value${String(s.v).length > 6 ? ' stat-card__value--long' : ''}">${s.v}</div><div class="stat-card__label">${s.l}</div></a>`
     ).join('');
 
     // Distribuições por status (funil de leads, apólices, sinistros)

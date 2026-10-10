@@ -32,6 +32,9 @@
   --on-navy:  #FFFFFF;
   /* Texto azul (badges, links, agenda); no escuro vira um azul claro */
   --link:     #1E3F7A;
+  /* Borda de campos (3:1 contra o fundo) e anel de foco do teclado */
+  --field-border: #8C8471;
+  --focus:    #1E3F7A;
   --sidebar-w: 248px;
   --radius: 18px;
   --shadow: 0 1px 2px rgba(14,31,61,.06);
@@ -477,11 +480,13 @@ a.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .form-group select,
 .form-group textarea,
 .table-toolbar input,
-.table-toolbar select { border: 1px solid var(--gray-300); border-radius: 12px; min-height: 42px; }
+.table-toolbar select { border: 1px solid var(--field-border); border-radius: 12px; min-height: 42px; }
 .form-group textarea { min-height: 84px; }
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus { border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(30,63,122,.15); }
+.form-group textarea:focus,
+.table-toolbar input:focus,
+.table-toolbar select:focus { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent); }
 
 /* Cartões de métricas: borda fina no lugar da faixa lateral */
 .stat-card, a.stat-card { display: flex; flex-direction: column; border: 1px solid var(--gray-200); border-left: 1px solid var(--gray-200); box-shadow: none; padding: 22px; }
@@ -624,6 +629,8 @@ tbody tr:hover { background: #FBFAF6; }
 /* Fundos de status escurecidos (mesmo matiz) e textos clareados para ler sobre eles */
 [data-theme="dark"] {
   --link: #A9C2F0;
+  --field-border: #64748B;
+  --focus: var(--gold);
   --blue-50: #1A2B4C;
   --green: #6FD49A;  --green-bg: #133224;
   --red: #FF8A7A;    --red-bg: #3A1A1C;
@@ -704,3 +711,23 @@ tbody tr:hover { background: #FBFAF6; }
 .kanban-column.drag-over { background: color-mix(in srgb, var(--stage) 16%, var(--gray-100)); outline: 2px dashed var(--stage); }
 .kanban-card .kanban-card__actions button { padding: 5px 12px; color: color-mix(in srgb, var(--stage) 65%, var(--gray-900)); background: color-mix(in srgb, var(--stage) 14%, transparent); border-radius: 999px; }
 .kanban-card .kanban-card__actions button:hover { background: color-mix(in srgb, var(--stage) 24%, transparent); }
+
+/* ---- Acessibilidade: foco do teclado e movimento reduzido ---- */
+/* Só aparece na navegação por teclado; o clique do mouse não mostra o anel */
+:where(a, button, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.sidebar :where(a, button):focus-visible { outline-color: var(--gold); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Valores longos (ex.: R$ 5.700,00) encolhem para caber no card em vez de cortar */
+.stat-card { container-type: inline-size; }
+.stat-card__value--long { font-size: clamp(20px, 14cqi, 34px); white-space: nowrap; }

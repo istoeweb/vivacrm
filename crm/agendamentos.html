@@ -102,15 +102,15 @@ if (requireAuth()) {
       <div class="form-group"><label>Título *</label><input name="titulo" required value="${esc(r.titulo||'')}"></div>
       <div class="form-row">
         <div class="form-group"><label>Cliente (opcional)</label>
-          <select name="cliente_id"><option value="">—</option>${clientes.map(c=>`<option value="${c.id}" ${r.cliente_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
+          <select name="cliente_id"><option value="">Nenhum</option>${clientes.map(c=>`<option value="${c.id}" ${r.cliente_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select>
         </div>
         <div class="form-group"><label>Lead (opcional)</label>
-          <select name="lead_id"><option value="">—</option>${leads.map(l=>`<option value="${l.id}" ${r.lead_id===l.id?'selected':''}>${esc(l.nome)}</option>`).join('')}</select>
+          <select name="lead_id"><option value="">Nenhum</option>${leads.map(l=>`<option value="${l.id}" ${r.lead_id===l.id?'selected':''}>${esc(l.nome)}</option>`).join('')}</select>
         </div>
       </div>
       <div class="form-group"><label>Observação</label><textarea name="observacao">${esc(r.observacao||'')}</textarea></div>
       ${isAdmin ? `<div class="form-group"><label>Corretor</label>
-        <select name="corretor_id"><option value="">—</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
+        <select name="corretor_id"><option value="">Nenhum</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
     </form>`;
   }
   window.novoAgendamento = () => openModal('Novo agendamento', formHTML(), '', async (d) => {

@@ -82,7 +82,7 @@ if (requireAuth()) {
       </div>
       <div class="form-group"><label>Endereço</label><input name="endereco" value="${esc(r.endereco||'')}"></div>
       ${isAdmin ? `<div class="form-group"><label>Corretor responsável</label>
-        <select name="corretor_id"><option value="">—</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
+        <select name="corretor_id"><option value="">Nenhum</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
     </form>`;
   }
   window.novoCliente = () => openModal('Novo cliente', formHTML(), '', async (d) => {

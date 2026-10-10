@@ -105,7 +105,7 @@ if (requireAuth()) {
         <select name="status">${['ativa','renovada','vencida','cancelada'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}</select>
       </div>
       ${isAdmin ? `<div class="form-group"><label>Corretor</label>
-        <select name="corretor_id"><option value="">—</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
+        <select name="corretor_id"><option value="">Nenhum</option>${corretores.map(c=>`<option value="${c.id}" ${r.corretor_id===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></div>` : ''}
     </form>`;
   }
   window.novaApolice = () => openModal('Nova apólice', formHTML(), '', async (d) => {
