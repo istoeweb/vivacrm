@@ -5,7 +5,15 @@
       "name": "vivacrm",
       "runtimeExecutable": "node",
       "runtimeArgs": ["server/server.js"],
-      "port": 3001
+      "port": 3001,
+      "autoPort": true,
+      "env": {
+        "DATABASE_URL": "",
+        "SUPABASE_URL": "",
+        "SUPABASE_SERVICE_ROLE_KEY": "",
+        "SMTP_HOST": "",
+        "MAIL_TRANSPORT": "memory"
+      }
     }
   ]
 }

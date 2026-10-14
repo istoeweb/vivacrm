@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { asyncRouter } = require('../utils');
 const { auth, requireRole } = require('../middleware/auth');
+const editable = require('../editable');
 
 const router = asyncRouter();
 const adminOnly = [auth, requireRole('admin')];
@@ -53,6 +54,63 @@ router.put('/admin', ...adminOnly, async (req, res) => {
     updated++;
   }
   res.json({ ok: true, updated, values: await readAll() });
+});
+
+/*
+ * Textos das páginas (início, sobre, contato, política, blog, produto, rodapé).
+ * Os campos vêm das marcações no HTML (ver editable.js); só o que difere do
+ * texto original é gravado, com prefixo "pg." na tabela site_conteudo.
+ */
+router.get('/admin/paginas', ...adminOnly, async (_req, res) => {
+  const valores = await editable.carregarValores(db);
+  const paginas = editable.catalogo().map((p) => ({
+    ...p,
+    campos: p.campos.map((c) => {
+      const salvo = valores[c.key];
+      let valor = c.padrao;
+      if (salvo !== undefined) {
+        if (c.type !== 'list') valor = salvo;
+        else { try { valor = JSON.parse(salvo); } catch { /* mantém o padrão */ } }
+      }
+      return { ...c, valor, personalizado: salvo !== undefined };
+    }),
+  }));
+  res.json({ paginas });
+});
+
+// Body: { valores: { "home.topo.titulo": "texto", "home.faq.lista": [...], "x": null } }
+// null (ou valor igual ao original) restaura o texto original.
+router.put('/admin/paginas', ...adminOnly, async (req, res) => {
+  const entrada = (req.body && req.body.valores) || {};
+  if (typeof entrada !== 'object' || Array.isArray(entrada)) return res.status(400).json({ error: 'Envie { valores: { chave: valor } }' });
+  const campos = editable.campoPorChave();
+  const desconhecidas = Object.keys(entrada).filter((k) => !campos.has(k));
+  if (desconhecidas.length) return res.status(400).json({ error: `Campo(s) inexistente(s): ${desconhecidas.slice(0, 5).join(', ')}` });
+
+  const upsert = `
+    INSERT INTO site_conteudo (chave, valor, atualizado_em) VALUES (?, ?, ?)
+    ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em
+  `;
+  let gravados = 0;
+  let restaurados = 0;
+  for (const [key, valor] of Object.entries(entrada)) {
+    const campo = campos.get(key);
+    if (valor === null) {
+      await db.run('DELETE FROM site_conteudo WHERE chave = ?', editable.PREFIX + key);
+      restaurados++;
+      continue;
+    }
+    const n = editable.normalizar(campo, valor);
+    if (n.error) return res.status(400).json({ error: n.error });
+    if (editable.igualAoPadrao(campo, n.value)) {
+      await db.run('DELETE FROM site_conteudo WHERE chave = ?', editable.PREFIX + key);
+      restaurados++;
+    } else {
+      await db.run(upsert, editable.PREFIX + key, n.value, db.now());
+      gravados++;
+    }
+  }
+  res.json({ ok: true, gravados, restaurados });
 });
 
 module.exports = router;

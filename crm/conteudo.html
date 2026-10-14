@@ -7,28 +7,82 @@
   <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
   <link rel="stylesheet" href="assets/crm.css" />
   <style>
-    .cms-group { margin-bottom: 28px; }
-    .cms-group__title { margin: 0 0 4px; color: var(--gray-900); font-size: 15px; font-weight: 800; }
-    .cms-group__sub { margin: 0 0 16px; color: var(--text-muted); font-size: 13px; }
+    .cms-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 6px; margin-bottom: 18px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; }
+    .cms-tab { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: 10px; font-weight: 700; color: var(--gray-700); white-space: nowrap; }
+    .cms-tab[aria-selected="true"] { background: var(--blue-900); color: #fff; }
+    .cms-tab .cms-dot { display: inline-block; width: 8px; height: 8px; margin-left: 6px; border-radius: 50%; background: var(--gold); vertical-align: middle; }
+    .cms-panel { padding: 22px; }
+    .cms-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .cms-toolbar input[type="search"] { flex: 1 1 260px; max-width: 420px; min-height: 42px; padding: 0 12px; border: 1px solid var(--gray-300); border-radius: 12px; background: var(--white); color: var(--gray-900); font: inherit; }
+    .cms-help { margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; background: var(--gray-50); color: var(--gray-700); font-size: 13px; line-height: 1.6; }
+    .cms-help code { padding: 1px 5px; border-radius: 5px; background: var(--white); border: 1px solid var(--gray-200); font-size: 12px; }
+    .cms-section { margin-bottom: 12px; border: 1px solid var(--gray-200); border-radius: 14px; background: var(--white); }
+    .cms-section > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 0 16px; cursor: pointer; font-weight: 800; color: var(--gray-900); list-style: none; }
+    .cms-section > summary::-webkit-details-marker { display: none; }
+    .cms-section > summary::after { content: '+'; font-size: 20px; color: var(--gray-500); }
+    .cms-section[open] > summary::after { content: '−'; }
+    .cms-section__body { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .cms-count { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--gray-500); }
+    .cms-field label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; font-weight: 700; color: var(--gray-700); margin-bottom: 6px; }
+    .cms-field input, .cms-field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 12px; background: var(--white); color: var(--gray-900); font: inherit; font-size: 14px; }
+    .cms-field textarea { min-height: 84px; resize: vertical; line-height: 1.55; }
+    .cms-field textarea.md { min-height: 320px; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+    .cms-field input:focus, .cms-field textarea:focus { outline: none; border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(30,63,122,.15); }
+    .cms-hint { margin-top: 4px; font-size: 12px; color: var(--gray-500); }
+    .cms-badge { padding: 2px 8px; border-radius: 999px; background: var(--amber-bg); color: var(--amber); font-size: 11px; font-weight: 800; }
+    .cms-badge--novo { background: var(--blue-50); color: var(--blue-600); }
+    .cms-reset { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--blue-600); text-decoration: underline; }
+    .repeater { display: flex; flex-direction: column; gap: 10px; }
+    .repeater__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 12px; border: 1px solid var(--gray-200); border-radius: 12px; background: var(--gray-50); }
+    .repeater__fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+    .repeater__fields label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--gray-500); margin: 0; }
+    .repeater__fields .wide { grid-column: 1 / -1; }
+    .repeater__tools { display: flex; flex-direction: column; gap: 4px; }
+    .cms-savebar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 18px; padding: 12px 16px; border: 1px solid var(--gray-200); border-radius: 14px; background: var(--white); box-shadow: 0 -8px 24px -18px rgba(14,31,61,.4); }
+    .cms-savebar__info { font-size: 13px; color: var(--gray-500); font-weight: 600; }
+    .cms-group { margin-bottom: 24px; }
+    .cms-group__title { margin: 0 0 12px; color: var(--gray-900); font-size: 15px; font-weight: 800; }
     .cms-form { max-width: 720px; }
-    .cms-actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
-    .cms-saved { color: var(--green, #16a34a); font-size: 13px; font-weight: 600; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
 <aside class="sidebar" id="sidebar"></aside>
 <div class="content">
   <div class="top-bar">
-    <div><h1>Conteúdo do Site</h1><p>Edite as informações que aparecem em todas as páginas do site</p></div>
+    <div><h1>Conteúdo do Site</h1><p>Textos de todas as páginas, contatos e redes sociais</p></div>
   </div>
-  <div class="table-card" style="padding:24px">
+
+  <div class="cms-tabs" role="tablist" id="cmsTabs" aria-label="Páginas do site"></div>
+
+  <!-- Aba de contato (campos que aparecem em todo o site) -->
+  <div class="table-card cms-panel" id="panel-contato" role="tabpanel">
     <form id="cmsForm" class="cms-form">
       <div id="cmsGroups"></div>
-      <div class="cms-actions">
-        <button type="submit" class="btn btn-primary">Salvar alterações</button>
-        <span class="cms-saved" id="cmsSaved" style="display:none">Salvo!</span>
+      <div class="cms-savebar">
+        <button type="submit" class="btn btn-primary">Salvar contatos</button>
       </div>
     </form>
+  </div>
+
+  <!-- Abas das páginas -->
+  <div class="table-card cms-panel" id="panel-pagina" role="tabpanel" hidden>
+    <div class="cms-toolbar">
+      <input type="search" id="cmsSearch" placeholder="Buscar texto nesta página..." aria-label="Buscar texto nesta página">
+      <div class="flex gap-8">
+        <button type="button" class="btn btn-outline btn-sm" id="openAll">Abrir todas as seções</button>
+        <a class="btn btn-outline btn-sm" id="viewPage" href="../index.html" target="_blank" rel="noopener">Ver página ↗</a>
+      </div>
+    </div>
+    <p class="cms-help">
+      Use <code>**texto**</code> para destacar um trecho (negrito/cor de destaque) e <code>[texto](contato.html)</code> para criar um link.
+      Nos textos longos: linha em branco separa parágrafos, <code>## </code> no início cria um título e <code>- </code> cria um item de lista.
+    </p>
+    <div id="cmsSections"></div>
+    <div class="cms-savebar">
+      <button type="button" class="btn btn-primary" id="savePage">Salvar alterações</button>
+      <span class="cms-savebar__info" id="dirtyInfo">Nenhuma alteração</span>
+    </div>
   </div>
 </div>
 <script src="assets/crm.js"></script>
@@ -38,40 +92,210 @@ if (requireAuth()) {
   if (user.role !== 'admin') location.href = 'dashboard.html';
   renderSidebar('conteudo');
 
+  /* ================= Contatos e redes (CMS original) ================= */
   const groupsEl = document.getElementById('cmsGroups');
-
-  function fieldHTML(f, value) {
+  function contatoFieldHTML(f, value) {
     const inputType = f.tipo === 'email' ? 'email' : (f.tipo === 'url' ? 'url' : 'text');
     return `<div class="form-group">
-      <label>${esc(f.label)}</label>
-      <input name="${esc(f.chave)}" type="${inputType}" maxlength="500" value="${esc(value || '')}">
+      <label for="c_${esc(f.chave)}">${esc(f.label)}</label>
+      <input id="c_${esc(f.chave)}" name="${esc(f.chave)}" type="${inputType}" maxlength="500" value="${esc(value || '')}">
       ${f.help ? `<div class="text-muted text-small" style="margin-top:4px">${esc(f.help)}</div>` : ''}
     </div>`;
   }
-
-  async function load() {
+  async function loadContato() {
     const { fields, values } = await apiGet('/site/admin');
     const grupos = [...new Set(fields.map(f => f.grupo))];
-    groupsEl.innerHTML = grupos.map(g => `
-      <div class="cms-group">
-        <h2 class="cms-group__title">${esc(g)}</h2>
-        ${fields.filter(f => f.grupo === g).map(f => fieldHTML(f, values[f.chave])).join('')}
-      </div>`).join('');
+    groupsEl.innerHTML = grupos.map(g => `<div class="cms-group"><h2 class="cms-group__title">${esc(g)}</h2>
+      ${fields.filter(f => f.grupo === g).map(f => contatoFieldHTML(f, values[f.chave])).join('')}</div>`).join('');
   }
-
   document.getElementById('cmsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.target).entries());
+    try { await apiPut('/site/admin', Object.fromEntries(new FormData(e.target).entries())); toast('Contatos atualizados!'); }
+    catch (err) { toast(err.message, true); }
+  });
+
+  /* ================= Páginas ================= */
+  let paginas = [], atual = null;
+  const dirty = new Map();          // chave → valor novo (null = restaurar original)
+  const sectionsEl = document.getElementById('cmsSections');
+  const PAGE_URL = { home: '../index.html', sobre: '../sobre.html', contato: '../contato.html', politica: '../politica-de-privacidade.html', blog: '../blog.html', produto: '../produto.html?slug=seguro-auto', global: '../index.html#rodape' };
+  const HINT = { lines: 'Um item por linha.', spans: 'Um item por linha.', md: 'Texto longo: parágrafos, ## títulos e - listas.', area: 'Quebras de linha são mantidas.' };
+
+  // "Seção · Campo" → seção e nome do campo
+  const splitLabel = l => { const i = l.indexOf(' · '); return i < 0 ? ['Geral', l] : [l.slice(0, i), l.slice(i + 3)]; };
+  const fieldId = k => 'f_' + k.replace(/[^a-z0-9]/gi, '_');
+
+  function inputHTML(c, value) {
+    const id = fieldId(c.key);
+    if (c.type === 'text') return `<input id="${id}" data-key="${esc(c.key)}" maxlength="500" value="${esc(value)}">`;
+    const rows = c.type === 'md' ? '' : ` rows="${Math.min(10, Math.max(3, String(value).split('\n').length + 1))}"`;
+    return `<textarea id="${id}" data-key="${esc(c.key)}" class="${c.type === 'md' ? 'md' : ''}"${rows}>${esc(value)}</textarea>`;
+  }
+
+  function listRowHTML(c, item = {}) {
+    const fields = c.fields.map(f => {
+      const v = item[f.name] ?? '';
+      const ctl = f.type === 'area'
+        ? `<textarea data-field="${f.name}" rows="3">${esc(v)}</textarea>`
+        : `<input data-field="${f.name}" value="${esc(v)}" ${f.type === 'url' ? 'inputmode="url"' : ''}>`;
+      return `<label class="${f.type === 'area' ? 'wide' : ''}">${esc(f.label)}${ctl}</label>`;
+    }).join('');
+    return `<div class="repeater__row"><div class="repeater__fields">${fields}</div>
+      <div class="repeater__tools">
+        <button type="button" class="icon-btn" data-move="-1" title="Subir" aria-label="Subir item">↑</button>
+        <button type="button" class="icon-btn" data-move="1" title="Descer" aria-label="Descer item">↓</button>
+        <button type="button" class="icon-btn icon-btn--del" data-remove title="Remover" aria-label="Remover item">×</button>
+      </div></div>`;
+  }
+
+  function fieldHTML(c) {
+    const [, nome] = splitLabel(c.label);
+    const badge = dirty.has(c.key) ? '<span class="cms-badge cms-badge--novo">não salvo</span>'
+      : c.personalizado ? '<span class="cms-badge">alterado</span>' : '';
+    const reset = (c.personalizado || dirty.has(c.key)) ? `<button type="button" class="cms-reset" data-reset="${esc(c.key)}">Restaurar original</button>` : '';
+    const value = dirty.has(c.key) && dirty.get(c.key) !== null ? dirty.get(c.key) : (dirty.get(c.key) === null ? c.padrao : c.valor);
+    if (c.type === 'list') {
+      return `<div class="cms-field" data-field-key="${esc(c.key)}"><label>${esc(nome)} ${badge} ${reset}</label>
+        <div class="repeater" data-list="${esc(c.key)}">${(value || []).map(i => listRowHTML(c, i)).join('')}</div>
+        <button type="button" class="btn btn-outline btn-sm" data-add="${esc(c.key)}" style="margin-top:8px">+ Adicionar item</button></div>`;
+    }
+    return `<div class="cms-field" data-field-key="${esc(c.key)}"><label for="${fieldId(c.key)}">${esc(nome)} ${badge} ${reset}</label>
+      ${inputHTML(c, value)}${HINT[c.type] ? `<div class="cms-hint">${HINT[c.type]}</div>` : ''}</div>`;
+  }
+
+  function renderPagina(abertas = new Set()) {
+    const secoes = [];
+    for (const c of atual.campos) {
+      const [sec] = splitLabel(c.label);
+      let s = secoes.find(x => x.nome === sec);
+      if (!s) secoes.push(s = { nome: sec, campos: [] });
+      s.campos.push(c);
+    }
+    sectionsEl.innerHTML = secoes.map((s, i) => {
+      const alterados = s.campos.filter(c => c.personalizado || dirty.has(c.key)).length;
+      return `<details class="cms-section" data-sec="${esc(s.nome)}" ${abertas.has(s.nome) || (!abertas.size && i === 0) ? 'open' : ''}>
+        <summary>${esc(s.nome)} <span class="cms-count">${s.campos.length} campo(s)${alterados ? ` · ${alterados} alterado(s)` : ''}</span></summary>
+        <div class="cms-section__body">${s.campos.map(fieldHTML).join('')}</div></details>`;
+    }).join('');
+    document.getElementById('viewPage').href = PAGE_URL[atual.id] || '../index.html';
+    applySearch();
+    updateDirtyInfo();
+  }
+
+  const openSections = () => new Set([...sectionsEl.querySelectorAll('details[open]')].map(d => d.dataset.sec));
+
+  function readList(key) {
+    const c = atual.campos.find(x => x.key === key);
+    return [...sectionsEl.querySelectorAll(`.repeater[data-list="${CSS.escape(key)}"] .repeater__row`)].map(row => {
+      const o = {}; c.fields.forEach(f => { const el = row.querySelector(`[data-field="${f.name}"]`); o[f.name] = el ? el.value : ''; });
+      return o;
+    });
+  }
+
+  function markDirty(key) {
+    const c = atual.campos.find(x => x.key === key); if (!c) return;
+    const v = c.type === 'list' ? readList(key) : sectionsEl.querySelector(`[data-key="${CSS.escape(key)}"]`).value;
+    const original = c.type === 'list' ? JSON.stringify(c.valor) : c.valor;
+    const novo = c.type === 'list' ? JSON.stringify(v) : v;
+    if (novo === original) dirty.delete(key); else dirty.set(key, v);
+    const box = sectionsEl.querySelector(`[data-field-key="${CSS.escape(key)}"] > label`);
+    if (box && !box.querySelector('.cms-badge--novo') && dirty.has(key)) box.insertAdjacentHTML('beforeend', ' <span class="cms-badge cms-badge--novo">não salvo</span>');
+    if (box && !dirty.has(key)) box.querySelector('.cms-badge--novo')?.remove();
+    updateDirtyInfo();
+  }
+
+  function updateDirtyInfo() {
+    const n = dirty.size;
+    document.getElementById('dirtyInfo').textContent = n ? `${n} alteração(ões) não salva(s)` : 'Nenhuma alteração';
+    document.querySelectorAll('.cms-tab').forEach(t => { const p = paginas.find(x => x.id === t.dataset.tab); t.querySelector('.cms-dot')?.remove(); if (p && p === atual && n) t.insertAdjacentHTML('beforeend', '<span class="cms-dot" aria-label="alterações não salvas"></span>'); });
+  }
+
+  function applySearch() {
+    const q = document.getElementById('cmsSearch').value.trim().toLowerCase();
+    sectionsEl.querySelectorAll('.cms-section').forEach(sec => {
+      let visiveis = 0;
+      sec.querySelectorAll('.cms-field').forEach(f => {
+        const hit = !q || f.textContent.toLowerCase().includes(q) || [...f.querySelectorAll('input,textarea')].some(el => el.value.toLowerCase().includes(q));
+        f.hidden = !hit; if (hit) visiveis++;
+      });
+      sec.hidden = !visiveis;
+      if (q && visiveis) sec.open = true;
+    });
+  }
+
+  sectionsEl.addEventListener('input', e => {
+    const el = e.target;
+    if (el.dataset.key) markDirty(el.dataset.key);
+    const list = el.closest('.repeater'); if (list) markDirty(list.dataset.list);
+  });
+  sectionsEl.addEventListener('click', e => {
+    const add = e.target.closest('[data-add]');
+    if (add) {
+      const key = add.dataset.add, c = atual.campos.find(x => x.key === key);
+      sectionsEl.querySelector(`.repeater[data-list="${CSS.escape(key)}"]`).insertAdjacentHTML('beforeend', listRowHTML(c));
+      markDirty(key); return;
+    }
+    const row = e.target.closest('.repeater__row');
+    if (row && e.target.closest('[data-remove]')) { const key = row.closest('.repeater').dataset.list; row.remove(); markDirty(key); return; }
+    const mv = e.target.closest('[data-move]');
+    if (row && mv) {
+      const sib = mv.dataset.move === '-1' ? row.previousElementSibling : row.nextElementSibling;
+      if (sib) { mv.dataset.move === '-1' ? sib.before(row) : sib.after(row); markDirty(row.closest('.repeater').dataset.list); }
+      return;
+    }
+    const reset = e.target.closest('[data-reset]');
+    if (reset) {
+      const key = reset.dataset.reset, c = atual.campos.find(x => x.key === key);
+      if (c.personalizado) dirty.set(key, null); else dirty.delete(key);
+      renderPagina(openSections());
+    }
+  });
+  document.getElementById('cmsSearch').addEventListener('input', applySearch);
+  document.getElementById('openAll').addEventListener('click', () => sectionsEl.querySelectorAll('.cms-section').forEach(d => { d.open = true; }));
+
+  document.getElementById('savePage').addEventListener('click', async () => {
+    if (!dirty.size) { toast('Nenhuma alteração para salvar.'); return; }
     try {
-      await apiPut('/site/admin', data);
-      toast('Conteúdo do site atualizado!');
-      const saved = document.getElementById('cmsSaved');
-      saved.style.display = 'inline';
-      setTimeout(() => { saved.style.display = 'none'; }, 2500);
+      const r = await apiPut('/site/admin/paginas', { valores: Object.fromEntries(dirty) });
+      toast(`Página atualizada! (${r.gravados} salvo(s), ${r.restaurados} restaurado(s))`);
+      dirty.clear();
+      const abertas = openSections();
+      await loadPaginas(atual.id);
+      renderPagina(abertas);
     } catch (err) { toast(err.message, true); }
   });
 
-  load().catch(e => toast(e.message, true));
+  window.addEventListener('beforeunload', e => { if (dirty.size) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ================= Abas ================= */
+  const tabsEl = document.getElementById('cmsTabs');
+  function renderTabs(activeId) {
+    const tabs = [{ id: 'contato-geral', label: 'Contatos e redes' }, ...paginas.map(p => ({ id: p.id, label: p.label }))];
+    tabsEl.innerHTML = tabs.map(t => `<button type="button" role="tab" class="cms-tab" data-tab="${esc(t.id)}" aria-selected="${t.id === activeId}">${esc(t.label)}</button>`).join('');
+  }
+  function selectTab(id) {
+    if (dirty.size && atual && id !== atual.id && !confirm('Há alterações não salvas nesta página. Descartar?')) return;
+    dirty.clear();
+    renderTabs(id);
+    const isContato = id === 'contato-geral';
+    document.getElementById('panel-contato').hidden = !isContato;
+    document.getElementById('panel-pagina').hidden = isContato;
+    if (isContato) { atual = null; return; }
+    atual = paginas.find(p => p.id === id);
+    document.getElementById('cmsSearch').value = '';
+    renderPagina();
+    try { history.replaceState(null, '', '#' + id); } catch (_) {}
+  }
+  tabsEl.addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) selectTab(t.dataset.tab); });
+
+  async function loadPaginas(keepId) {
+    paginas = (await apiGet('/site/admin/paginas')).paginas;
+    if (keepId) atual = paginas.find(p => p.id === keepId);
+  }
+
+  Promise.all([loadContato(), loadPaginas()])
+    .then(() => { const h = location.hash.slice(1); selectTab(paginas.some(p => p.id === h) ? h : 'home'); })
+    .catch(e => toast(e.message, true));
 }
 </script>
 </body>
