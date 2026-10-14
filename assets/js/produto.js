@@ -88,7 +88,7 @@
     const heroWrap = document.getElementById('produtoHeroImgWrap');
     if (heroImg && heroWrap) {
       heroImg.alt = data.nome;
-      heroImg.src = 'assets/img/produtos/' + slug + '.jpg';
+      heroImg.src = data.imagem_url || ('assets/img/produtos/' + slug + '.jpg');
       heroImg.onerror = function () { heroWrap.remove(); };
     }
 

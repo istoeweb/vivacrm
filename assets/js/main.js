@@ -16,6 +16,26 @@ document.addEventListener('DOMContentLoaded', () => {
       '<li><a href="sobre.html" class="nav__link">Sobre</a></li><li><a href="contato.html" class="nav__link">Contato</a></li><li><a href="blog.html" class="nav__link">Blog</a></li></ul>',
       '<a href="https://wa.me/5512976002718" target="_blank" rel="noopener noreferrer" class="btn btn--whatsapp nav__cta">WhatsApp</a>'
     ].join('');
+
+    // Os submenus de produtos seguem o cadastro do CRM (produtos ativos, na ordem
+    // definida lá). A lista acima fica como reserva se a API não responder.
+    const MENU_GRUPOS = { seguros: '#produtos', saude: '#saude', outros: '#outros-produtos' };
+    const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    fetch('/api/produtos')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((produtos) => {
+        if (!Array.isArray(produtos) || !produtos.length) return;
+        publicNav.querySelectorAll('.nav__item--dropdown').forEach((item) => {
+          const href = item.querySelector('.nav__link').getAttribute('href') || '';
+          const grupo = Object.keys(MENU_GRUPOS).find((g) => href.endsWith(MENU_GRUPOS[g]));
+          const lista = grupo && produtos.filter((p) => p.grupo === grupo);
+          if (!lista || !lista.length) return;
+          item.querySelector('.nav__dropdown').innerHTML = lista
+            .map((p) => '<li><a href="produto.html?slug=' + encodeURIComponent(p.slug) + '">' + escHtml(p.nome) + '</a></li>')
+            .join('');
+        });
+      })
+      .catch(() => {});
   }
 
   // ---- Consentimento de cookies / LGPD ----

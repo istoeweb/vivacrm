@@ -12,6 +12,9 @@ const { localDir: blogLocalDir } = require('./storage');
 
 const { errorHandler, notFound, asyncHandler } = require('./utils');
 const articlePage = require('./article-page');
+const productPage = require('./product-page');
+const sitePage = require('./site-page');
+const sitemap = require('./sitemap');
 
 const authRoutes = require('./routes/auth');
 const leadsRoutes = require('./routes/leads');
@@ -24,6 +27,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const blogRoutes = require('./routes/blog');
 const siteRoutes = require('./routes/site');
 const configRoutes = require('./routes/config');
+const produtosRoutes = require('./routes/produtos');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -68,7 +72,8 @@ app.use(cors({
 }));
 
 app.use((req, res, next) => {
-  const limit = req.path === '/api/blog/admin/upload' ? '7mb' : '100kb';
+  const limit = req.path === '/api/blog/admin/upload' ? '7mb'
+    : req.path === '/api/site/admin/paginas' ? '1mb' : '100kb';
   express.json({ limit })(req, res, next);
 });
 
@@ -120,14 +125,17 @@ const publicPages = new Set([
   'blog.html',
   'artigo.html',
 ]);
-app.get('/', (_req, res) => res.sendFile(path.join(siteDir, 'index.html')));
+const renderSite = sitePage(siteDir);
+app.get('/', asyncHandler(renderSite('index.html')));
 app.get('/artigo.html', asyncHandler(articlePage(siteDir)));
+app.get('/produto.html', asyncHandler(productPage(siteDir)));
 app.get('/:page', (req, res, next) => {
   if (!publicPages.has(req.params.page)) return next();
+  if (sitePage.PAGE_IDS[req.params.page]) return asyncHandler(renderSite(req.params.page))(req, res, next);
   res.sendFile(path.join(siteDir, req.params.page));
 });
 app.get('/robots.txt', (_req, res) => res.sendFile(path.join(siteDir, 'robots.txt')));
-app.get('/sitemap.xml', (_req, res) => res.sendFile(path.join(siteDir, 'sitemap.xml')));
+app.get('/sitemap.xml', asyncHandler(sitemap(siteDir)));
 // Favicon global (site + CRM): usa a logo SVG da marca e evita o 404 de /favicon.ico
 app.get('/favicon.ico', (_req, res) => res.sendFile(path.join(assetsDir, 'img', 'logo.svg')));
 
@@ -148,6 +156,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/site', siteRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/produtos', produtosRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 

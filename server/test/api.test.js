@@ -319,6 +319,172 @@ test('artigo.html já vem com título e tags de prévia (Open Graph) do artigo',
   await api('DELETE', `/api/blog/admin/${created.data.id}`, { token: adminToken });
 });
 
+test('produtos: banco novo recebe o catálogo do site e o público só vê os ativos', async () => {
+  const lista = await api('GET', '/api/produtos');
+  assert.equal(lista.status, 200);
+  assert.ok(lista.data.length >= 20, 'catálogo estático deve ser semeado');
+  const auto = lista.data.find((p) => p.slug === 'seguro-auto');
+  assert.equal(auto.grupo, 'seguros');
+  assert.equal(lista.data.find((p) => p.slug === 'consorcios').grupo, 'outros');
+  assert.equal(lista.data.find((p) => p.slug === 'unimed').grupo, 'saude');
+
+  const um = await api('GET', '/api/produtos/unimed');
+  assert.equal(um.status, 200);
+  assert.ok(um.data.precos.length > 0);
+  assert.ok(um.data.faq.length > 0);
+  assert.equal(um.data.id, undefined, 'API pública não expõe campos internos');
+  assert.equal((await api('GET', '/api/produtos/nao-existe')).status, 404);
+});
+
+test('produtos: só admin gerencia; criar, validar, ocultar, editar e excluir', async () => {
+  assert.equal((await api('GET', '/api/produtos/admin')).status, 401);
+  assert.equal((await api('GET', '/api/produtos/admin', { token: corretorToken })).status, 403);
+  assert.equal((await api('POST', '/api/produtos/admin', { token: corretorToken, body: { nome: 'X' } })).status, 403);
+
+  assert.equal((await api('POST', '/api/produtos/admin', { token: adminToken, body: { nome: '' } })).status, 400);
+  assert.equal((await api('POST', '/api/produtos/admin', { token: adminToken, body: { nome: 'Img', imagem_url: 'javascript:alert(1)' } })).status, 400);
+
+  const criado = await api('POST', '/api/produtos/admin', { token: adminToken, body: {
+    nome: 'Seguro Pet', grupo: 'invalido', ordem: 5, ativo: true,
+    precos: [{ rotulo: 'Cães', valor: 'R$ 39,90' }, { rotulo: '', valor: '' }],
+    coberturas: [{ t: 'Consultas', d: 'Rede veterinária' }],
+    seguradoras: ['Porto', '', 'Tokio'],
+    faq: [{ q: 'Cobre vacina?', a: 'Sim.' }],
+  }});
+  assert.equal(criado.status, 201);
+  assert.equal(criado.data.slug, 'seguro-pet');
+  const id = criado.data.id;
+
+  const lido = (await api('GET', `/api/produtos/admin/${id}`, { token: adminToken })).data;
+  assert.equal(lido.grupo, 'seguros', 'grupo inválido cai no padrão');
+  assert.equal(lido.precos.length, 1, 'linhas vazias são descartadas');
+  assert.deepEqual(lido.seguradoras, ['Porto', 'Tokio']);
+
+  // Endereço repetido
+  assert.equal((await api('POST', '/api/produtos/admin', { token: adminToken, body: { nome: 'Outro', slug: 'seguro-pet' } })).status, 409);
+
+  // Ocultar: some da API pública e a página responde 404
+  assert.equal((await api('PUT', `/api/produtos/admin/${id}`, { token: adminToken, body: { ativo: false } })).status, 200);
+  assert.equal((await api('GET', '/api/produtos/seguro-pet')).status, 404);
+  assert.ok(!(await api('GET', '/api/produtos')).data.some((p) => p.slug === 'seguro-pet'));
+  const oculto = (await api('GET', `/api/produtos/admin/${id}`, { token: adminToken })).data;
+  assert.equal(oculto.precos.length, 1, 'edição parcial preserva o restante');
+
+  // Editar e reativar
+  const edit = await api('PUT', `/api/produtos/admin/${id}`, { token: adminToken, body: { ativo: true, tagline: 'Proteção para o seu pet' } });
+  assert.equal(edit.status, 200);
+  assert.equal((await api('GET', '/api/produtos/seguro-pet')).data.tagline, 'Proteção para o seu pet');
+
+  assert.equal((await api('DELETE', `/api/produtos/admin/${id}`, { token: adminToken })).status, 200);
+  assert.equal((await api('DELETE', `/api/produtos/admin/${id}`, { token: adminToken })).status, 404);
+});
+
+test('produto.html vem montada no servidor com o conteúdo do banco', async () => {
+  const criado = await api('POST', '/api/produtos/admin', { token: adminToken, body: {
+    nome: 'Seguro "Bike" <top>', slug: 'seguro-bike', tagline: 'Pedale & relaxe', descricao: 'Texto </script><script>alert(1)</script>',
+    precos: [{ rotulo: 'PF', valor: 'R$ 19,90' }], imagem_url: 'assets/img/produtos/bike.jpg',
+  }});
+  assert.equal(criado.status, 201);
+
+  const page = await fetch(`${base}/produto.html?slug=seguro-bike`);
+  const html = await page.text();
+  assert.equal(page.status, 200);
+  assert.match(html, /<title id="pageTitle">Seguro &quot;Bike&quot; &lt;top&gt; \| Vida de Ouro Jacareí<\/title>/);
+  assert.match(html, /<h1 id="pageH1">Seguro &quot;Bike&quot; &lt;top&gt;<\/h1>/);
+  assert.match(html, /<p id="pageTagline">Pedale &amp; relaxe<\/p>/);
+  assert.match(html, /<meta property="og:title" id="ogTitle" content="Seguro &quot;Bike&quot; &lt;top&gt; \| Vida de Ouro Jacareí"/);
+  assert.match(html, new RegExp(`<meta property="og:image" content="${base}/assets/img/produtos/bike.jpg" ?/?>`));
+  assert.match(html, /"@type":"Service"/);
+  assert.match(html, /window\.PRODUTOS = \{"seguro-bike":/);
+  assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/, 'conteúdo não pode fechar a tag script');
+  assert.doesNotMatch(html, /assets\/js\/produtos\.js/);
+
+  const missing = await fetch(`${base}/produto.html?slug=nao-existe`);
+  assert.equal(missing.status, 404);
+  assert.match(await missing.text(), /<meta name="robots" content="noindex">/);
+
+  // sitemap lista o produto ativo e deixa de listar quando oculto
+  let xml = await (await fetch(`${base}/sitemap.xml`)).text();
+  assert.match(xml, /produto\.html\?slug=seguro-bike/);
+  await api('PUT', `/api/produtos/admin/${criado.data.id}`, { token: adminToken, body: { ativo: false } });
+  xml = await (await fetch(`${base}/sitemap.xml`)).text();
+  assert.doesNotMatch(xml, /produto\.html\?slug=seguro-bike/);
+  assert.match(xml, /produto\.html\?slug=seguro-auto/);
+
+  await api('DELETE', `/api/produtos/admin/${criado.data.id}`, { token: adminToken });
+});
+
+test('páginas editáveis: catálogo, permissões e validação', async () => {
+  assert.equal((await api('GET', '/api/site/admin/paginas')).status, 401);
+  assert.equal((await api('GET', '/api/site/admin/paginas', { token: corretorToken })).status, 403);
+
+  const r = await api('GET', '/api/site/admin/paginas', { token: adminToken });
+  assert.equal(r.status, 200);
+  const ids = r.data.paginas.map((p) => p.id);
+  for (const id of ['home', 'sobre', 'contato', 'politica', 'blog', 'produto', 'global']) assert.ok(ids.includes(id), `página ${id}`);
+  const home = r.data.paginas.find((p) => p.id === 'home');
+  const titulo = home.campos.find((c) => c.key === 'home.topo.titulo');
+  assert.match(titulo.padrao, /\*\*Vale do Paraíba\*\*/, 'destaque vira **texto** no editor');
+  assert.equal(titulo.personalizado, false);
+  const faq = home.campos.find((c) => c.key === 'home.faq.lista');
+  assert.equal(faq.type, 'list');
+  assert.ok(faq.padrao.length >= 5);
+  assert.ok(home.campos.some((c) => c.key === 'home.seo.titulo'));
+
+  assert.equal((await api('PUT', '/api/site/admin/paginas', { token: adminToken, body: { valores: { 'nao.existe': 'x' } } })).status, 400);
+  assert.equal((await api('PUT', '/api/site/admin/paginas', { token: adminToken, body: { valores: { 'home.faq.lista': 'texto' } } })).status, 400);
+  assert.equal((await api('PUT', '/api/site/admin/paginas', { token: corretorToken, body: { valores: {} } })).status, 403);
+});
+
+test('páginas editáveis: salvar, aplicar no HTML do servidor e restaurar', async () => {
+  const valores = {
+    'home.topo.titulo': 'Seguro **barato** <script>alert(1)</script>',
+    'home.seo.titulo': 'Corretora & Cia',
+    'home.faq.lista': [{ pergunta: 'Pergunta nova?', resposta: 'Linha 1\nLinha 2' }],
+    'politica.texto1': '## Seção nova\n\nTexto com [link](javascript:alert(1)) e [contato](contato.html).\n\n- item a\n- item b',
+    'global.rodape.susep': 'SUSEP 123',
+  };
+  const salvo = await api('PUT', '/api/site/admin/paginas', { token: adminToken, body: { valores } });
+  assert.equal(salvo.status, 200);
+  assert.equal(salvo.data.gravados, 5);
+
+  const home = await (await fetch(`${base}/`)).text();
+  assert.match(home, /Seguro <strong>barato<\/strong> &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(home, /<script>alert\(1\)<\/script>/);
+  assert.match(home, /<title>Corretora &amp; Cia<\/title>/);
+  assert.match(home, /Pergunta nova\?/);
+  assert.match(home, /Linha 1<br>Linha 2/);
+  assert.equal((home.match(/class="faq__item"/g) || []).length, 1, 'lista com um item');
+  assert.match(home, /SUSEP 123/);
+
+  const pol = await (await fetch(`${base}/politica-de-privacidade.html`)).text();
+  assert.match(pol, /<h2>Seção nova<\/h2>/);
+  assert.match(pol, /<li>item a<\/li>/);
+  assert.match(pol, /<a href="#">link<\/a>/, 'link javascript: é neutralizado');
+  assert.match(pol, /<a href="contato\.html">contato<\/a>/);
+  const sobre = await (await fetch(`${base}/sobre.html`)).text();
+  assert.match(sobre, /SUSEP 123/, 'rodapé global vale em todas as páginas');
+
+  const prod = await (await fetch(`${base}/produto.html?slug=seguro-auto`)).text();
+  assert.match(prod, /SUSEP 123/, 'página de produto também recebe o rodapé');
+
+  const lido = await api('GET', '/api/site/admin/paginas', { token: adminToken });
+  const t = lido.data.paginas.find((p) => p.id === 'home').campos.find((c) => c.key === 'home.topo.titulo');
+  assert.equal(t.personalizado, true);
+  assert.equal(t.valor, valores['home.topo.titulo']);
+
+  // Restaurar: null ou valor igual ao original apagam a personalização.
+  const restaurar = Object.fromEntries(Object.keys(valores).map((k) => [k, null]));
+  restaurar['home.topo.titulo'] = t.padrao;
+  const rest = await api('PUT', '/api/site/admin/paginas', { token: adminToken, body: { valores: restaurar } });
+  assert.equal(rest.data.restaurados, 5);
+  const homeOriginal = await (await fetch(`${base}/`)).text();
+  assert.match(homeOriginal, /<strong>Vale do Paraíba<\/strong>/);
+  assert.doesNotMatch(homeOriginal, /SUSEP 123/);
+  const row = await db.get("SELECT COUNT(*) AS n FROM site_conteudo WHERE chave LIKE 'pg.%'");
+  assert.equal(Number(row.n), 0);
+});
+
 test('dashboard do corretor: filtros por dono e janelas de data', async () => {
   const cli = await api('POST', '/api/clientes', { token: corretorToken, body: { nome: 'Cliente Dash' } });
   const iso = (days) => new Date(Date.now() + days * 86400000).toISOString();

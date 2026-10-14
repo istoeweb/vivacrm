@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produtos do site | CRM Vida de Ouro</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+  <link rel="stylesheet" href="assets/crm.css" />
+  <style>
+    #appModal .modal { width: min(980px, calc(100vw - 32px)); max-width: none; }
+    .prod-nome small { display: block; margin-top: 4px; color: var(--gray-500); font-weight: 400; }
+    .prod-form fieldset { border: 0; padding: 0; margin: 0 0 22px; }
+    .prod-form legend { width: 100%; padding-bottom: 8px; margin-bottom: 14px; border-bottom: 1px solid var(--gray-200); font-size: 15px; font-weight: 800; color: var(--gray-900); }
+    .prod-help { margin-top: 5px; color: var(--gray-500); font-size: 12px; }
+    .prod-form textarea[name="descricao"] { min-height: 130px; }
+    .check-line { display: flex; align-items: center; gap: 10px; min-height: 42px; font-weight: 700; color: var(--gray-700); }
+    .check-line input { width: 20px; height: 20px; accent-color: var(--blue-600); }
+    .repeater { display: flex; flex-direction: column; gap: 10px; }
+    .repeater__row { display: grid; gap: 8px; align-items: start; padding: 12px; border: 1px solid var(--gray-200); border-radius: 14px; background: var(--gray-50); }
+    .repeater__row--2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+    .repeater__row--stack { grid-template-columns: minmax(0, 1fr) auto; }
+    .repeater__row--stack .repeater__fields { display: flex; flex-direction: column; gap: 8px; }
+    .repeater__row input, .repeater__row textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--gray-300); border-radius: 10px; background: var(--white); color: var(--gray-900); font: inherit; min-height: 40px; }
+    .repeater__row textarea { min-height: 64px; resize: vertical; }
+    .repeater__tools { display: flex; gap: 4px; }
+    .repeater__add { align-self: flex-start; }
+    .repeater__empty { color: var(--gray-500); font-size: 13px; padding: 4px 2px; }
+    .image-preview { display: none; width: 100%; max-height: 200px; margin-top: 10px; object-fit: cover; border-radius: 12px; border: 1px solid var(--gray-200); }
+    .image-preview.show { display: block; }
+    @media (max-width: 700px) {
+      .repeater__row--2 { grid-template-columns: minmax(0, 1fr) auto; }
+      .repeater__row--2 > input:nth-of-type(2) { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="content">
+  <div class="top-bar">
+    <div><h1>Produtos do site</h1><p>Páginas de produto, preços e menus do site</p></div>
+    <div class="flex gap-8">
+      <button class="btn btn-primary" type="button" onclick="novoProduto()">+ Novo produto</button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-card__value" id="totalAtivos">0</div><div class="stat-card__label">No site</div></div>
+    <div class="stat-card"><div class="stat-card__value" id="totalOcultos">0</div><div class="stat-card__label">Ocultos</div></div>
+    <div class="stat-card"><div class="stat-card__value" id="totalPrecos">0</div><div class="stat-card__label">Com preço "a partir de"</div></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="table-toolbar__filters">
+        <input type="search" id="search" placeholder="Buscar produto..." aria-label="Buscar produto" />
+        <select id="grupoFilter" aria-label="Filtrar por menu">
+          <option value="">Todos os menus</option>
+          <option value="seguros">Seguros</option>
+          <option value="saude">Saúde</option>
+          <option value="outros">Outros produtos</option>
+        </select>
+        <select id="statusFilter" aria-label="Filtrar por situação">
+          <option value="">Todos</option>
+          <option value="1">No site</option>
+          <option value="0">Ocultos</option>
+        </select>
+      </div>
+      <span class="text-muted text-small" id="countLabel"></span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Produto</th><th>Menu</th><th>Preço</th><th>Situação</th><th>Ordem</th><th></th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table></div>
+    <div class="pager" id="pager"></div>
+  </div>
+</div>
+<script src="assets/crm.js"></script>
+<script>
+if (requireAuth()) {
+  const user = getUser();
+  if (user.role !== 'admin') location.href = 'dashboard.html';
+  renderSidebar('produtos');
+
+  const GRUPO_LABEL = { seguros: 'Seguros', saude: 'Saúde', outros: 'Outros produtos' };
+  let produtos = [], page = 1;
+
+  async function load() { produtos = await apiGet('/produtos/admin'); render(); }
+
+  function render() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const grupo = document.getElementById('grupoFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const rows = produtos.filter(p =>
+      (!grupo || p.grupo === grupo) &&
+      (status === '' || String(p.ativo) === status) &&
+      (!q || `${p.nome} ${p.slug} ${p.categoria} ${p.tagline}`.toLowerCase().includes(q)));
+    document.getElementById('totalAtivos').textContent = produtos.filter(p => p.ativo).length;
+    document.getElementById('totalOcultos').textContent = produtos.filter(p => !p.ativo).length;
+    document.getElementById('totalPrecos').textContent = produtos.filter(p => p.precos.length).length;
+    document.getElementById('countLabel').textContent = `${rows.length} produto(s)`;
+    const pg = paginate(rows, page); page = pg.page;
+    document.getElementById('tableBody').innerHTML = rows.length ? pg.slice.map(p => `<tr>
+      <td class="prod-nome"><strong>${esc(p.nome)}</strong><small>produto.html?slug=${esc(p.slug)}</small></td>
+      <td>${esc(GRUPO_LABEL[p.grupo] || p.grupo)}</td>
+      <td>${p.precos.length ? esc('a partir de ' + p.precos[0].valor) : '-'}</td>
+      <td>${p.ativo ? '<span class="badge badge--ativo2">No site</span>' : '<span class="badge badge--inativo">Oculto</span>'}</td>
+      <td>${p.ordem}</td>
+      <td><div class="row-actions">
+        ${p.ativo ? `<a class="icon-btn" title="Ver no site" aria-label="Ver ${esc(p.nome)} no site" href="../produto.html?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">↗</a>` : ''}
+        <button class="icon-btn" type="button" title="${p.ativo ? 'Ocultar do site' : 'Mostrar no site'}" aria-label="${p.ativo ? 'Ocultar' : 'Mostrar'} ${esc(p.nome)}" onclick="toggleAtivo(${p.id})">${p.ativo ? '⇩' : '⇧'}</button>
+        <button class="icon-btn" type="button" title="Duplicar" aria-label="Duplicar ${esc(p.nome)}" onclick="duplicarProduto(${p.id})">⧉</button>
+        <button class="icon-btn" type="button" title="Editar" aria-label="Editar ${esc(p.nome)}" onclick="editarProduto(${p.id})">✎</button>
+        <button class="icon-btn icon-btn--del" type="button" title="Excluir" aria-label="Excluir ${esc(p.nome)}" onclick="excluirProduto(${p.id})">×</button>
+      </div></td></tr>`).join('') : '<tr class="empty-row"><td colspan="6">Nenhum produto encontrado.</td></tr>';
+    renderPager(document.getElementById('pager'), pg, n => { page = n; render(); });
+  }
+
+  /* ---- Listas editáveis (preços, coberturas, FAQ, seguradoras) ---- */
+  const LISTS = {
+    precos:      { layout: '2', fields: [['rotulo', 'Para quem (ex.: Pessoa física)', 80], ['valor', 'Valor (ex.: R$ 154,90)', 40]], add: '+ Adicionar preço', empty: 'Sem preço: a página não mostra valores.' },
+    coberturas:  { layout: 'stack', fields: [['t', 'Título da cobertura', 120], ['d', 'Descrição curta', 400, true]], add: '+ Adicionar cobertura', empty: 'Nenhuma cobertura cadastrada.' },
+    seguradoras: { layout: 'stack', fields: [['nome', 'Seguradora ou operadora', 80]], add: '+ Adicionar seguradora', empty: 'Nenhuma seguradora cadastrada.' },
+    faq:         { layout: 'stack', fields: [['q', 'Pergunta', 200], ['a', 'Resposta', 1200, true]], add: '+ Adicionar pergunta', empty: 'Nenhuma pergunta cadastrada.' },
+  };
+
+  function rowHTML(key, item = {}) {
+    const cfg = LISTS[key];
+    const inputs = cfg.fields.map(([f, ph, max, multi]) => multi
+      ? `<textarea data-field="${f}" maxlength="${max}" placeholder="${esc(ph)}" aria-label="${esc(ph)}">${esc(item[f] || '')}</textarea>`
+      : `<input data-field="${f}" maxlength="${max}" placeholder="${esc(ph)}" aria-label="${esc(ph)}" value="${esc(item[f] || '')}">`).join('');
+    const tools = `<div class="repeater__tools">
+      <button type="button" class="icon-btn" data-move="-1" title="Subir" aria-label="Subir item">↑</button>
+      <button type="button" class="icon-btn" data-move="1" title="Descer" aria-label="Descer item">↓</button>
+      <button type="button" class="icon-btn icon-btn--del" data-remove title="Remover" aria-label="Remover item">×</button></div>`;
+    return cfg.layout === '2'
+      ? `<div class="repeater__row repeater__row--2">${inputs}${tools}</div>`
+      : `<div class="repeater__row repeater__row--stack"><div class="repeater__fields">${inputs}</div>${tools}</div>`;
+  }
+
+  function listHTML(key, items) {
+    const cfg = LISTS[key];
+    return `<div class="repeater" data-list="${key}">
+      <div class="repeater__rows">${items.map(i => rowHTML(key, i)).join('')}</div>
+      <div class="repeater__empty" ${items.length ? 'hidden' : ''}>${esc(cfg.empty)}</div>
+      <button type="button" class="btn btn-outline btn-sm repeater__add">${esc(cfg.add)}</button></div>`;
+  }
+
+  function setupLists() {
+    document.querySelectorAll('#appModal .repeater').forEach(box => {
+      const key = box.dataset.list, rows = box.querySelector('.repeater__rows'), empty = box.querySelector('.repeater__empty');
+      const sync = () => { empty.hidden = rows.children.length > 0; };
+      box.querySelector('.repeater__add').addEventListener('click', () => {
+        rows.insertAdjacentHTML('beforeend', rowHTML(key));
+        rows.lastElementChild.querySelector('input,textarea').focus();
+        sync();
+      });
+      rows.addEventListener('click', e => {
+        const row = e.target.closest('.repeater__row'); if (!row) return;
+        if (e.target.closest('[data-remove]')) { row.remove(); sync(); return; }
+        const mv = e.target.closest('[data-move]');
+        if (mv) {
+          const sib = mv.dataset.move === '-1' ? row.previousElementSibling : row.nextElementSibling;
+          if (sib) mv.dataset.move === '-1' ? sib.before(row) : sib.after(row);
+        }
+      });
+    });
+  }
+
+  function collectLists() {
+    const out = {};
+    document.querySelectorAll('#appModal .repeater').forEach(box => {
+      const key = box.dataset.list;
+      const items = [...box.querySelectorAll('.repeater__row')].map(row => {
+        const o = {};
+        row.querySelectorAll('[data-field]').forEach(el => { o[el.dataset.field] = el.value.trim(); });
+        return o;
+      }).filter(o => Object.values(o).some(Boolean));
+      out[key] = key === 'seguradoras' ? items.map(o => o.nome) : items;
+    });
+    return out;
+  }
+
+  // Imagens do site ficam em "assets/..." (relativo à raiz); o CRM está em /crm/.
+  const imgSrc = u => !u ? '' : /^https:\/\//.test(u) ? u : '../' + u.replace(/^\//, '');
+
+  function slugify(v) { return String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+  function formHTML(p = {}) {
+    const g = p.grupo || 'seguros';
+    return `<form class="prod-form">
+      <fieldset><legend>Identificação</legend>
+        <div class="form-row">
+          <div class="form-group"><label for="fNome">Nome do produto *</label><input id="fNome" name="nome" required maxlength="120" value="${esc(p.nome || '')}"></div>
+          <div class="form-group"><label for="fSlug">Endereço da página</label><input id="fSlug" name="slug" maxlength="80" value="${esc(p.slug || '')}" placeholder="gerado pelo nome"><div class="prod-help" id="slugPreview"></div></div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group"><label for="fGrupo">Menu do site</label><select id="fGrupo" name="grupo">
+            ${Object.entries(GRUPO_LABEL).map(([v, l]) => `<option value="${v}" ${v === g ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div class="form-group"><label for="fCategoria">Categoria</label><input id="fCategoria" name="categoria" maxlength="80" value="${esc(p.categoria || '')}" placeholder="Ex.: Seguros de Veículos"></div>
+          <div class="form-group"><label for="fOrdem">Ordem no menu</label><input id="fOrdem" name="ordem" type="number" min="0" max="9999" step="1" value="${esc(p.ordem ?? '')}"><div class="prod-help">Menor aparece primeiro.</div></div>
+        </div>
+        <label class="check-line"><input type="checkbox" name="ativo" ${p.ativo === 0 ? '' : 'checked'}> Mostrar no site</label>
+      </fieldset>
+
+      <fieldset><legend>Topo da página</legend>
+        <div class="form-row">
+          <div class="form-group"><label for="fTag">Selo</label><input id="fTag" name="tag" maxlength="80" value="${esc(p.tag || '')}" placeholder="Ex.: Mais vendido"></div>
+          <div class="form-group"><label for="fTagline">Frase de destaque</label><input id="fTagline" name="tagline" maxlength="200" value="${esc(p.tagline || '')}" placeholder="Aparece abaixo do nome e no Google"></div>
+        </div>
+        <div class="form-group"><label>Preços "a partir de"</label>${listHTML('precos', p.precos || [])}<div class="prod-help">Valores mensais de referência. O site mostra o aviso de que dependem de idade e perfil.</div></div>
+      </fieldset>
+
+      <fieldset><legend>Sobre o produto</legend>
+        <div class="form-group"><label for="fDescricao">Descrição</label><textarea id="fDescricao" name="descricao" maxlength="4000">${esc(p.descricao || '')}</textarea></div>
+        <div class="form-group"><label for="fPublico">Para quem é</label><textarea id="fPublico" name="publico" maxlength="1000">${esc(p.publico || '')}</textarea></div>
+        <div class="form-group"><label for="fImagem">Imagem do topo</label><input id="fImagem" name="imagem_arquivo" type="file" accept="image/jpeg,image/png,image/webp"><input name="imagem_url" type="hidden" value="${esc(p.imagem_url || '')}">
+          <div class="prod-help">JPG, PNG ou WebP. A imagem é reduzida automaticamente.</div>
+          <img id="imagePreview" class="image-preview ${p.imagem_url ? 'show' : ''}" src="${esc(imgSrc(p.imagem_url))}" alt="Pré-visualização da imagem"></div>
+      </fieldset>
+
+      <fieldset><legend>Coberturas</legend>${listHTML('coberturas', p.coberturas || [])}</fieldset>
+      <fieldset><legend>Seguradoras e operadoras</legend>${listHTML('seguradoras', (p.seguradoras || []).map(nome => ({ nome })))}</fieldset>
+      <fieldset><legend>Perguntas frequentes</legend>${listHTML('faq', p.faq || [])}</fieldset>
+    </form>`;
+  }
+
+  function setupForm() {
+    const q = s => document.querySelector('#appModal ' + s);
+    q('.modal').classList.add('modal--wide');
+    const nome = q('[name="nome"]'), slug = q('[name="slug"]'), preview = document.getElementById('slugPreview');
+    let slugTouched = !!slug.value;
+    const upd = () => { const s = slug.value.trim() || slugify(nome.value); preview.textContent = s ? `produto.html?slug=${s}` : 'Use letras, números e hífens.'; };
+    slug.addEventListener('input', () => { slugTouched = true; upd(); });
+    nome.addEventListener('input', () => { if (!slugTouched) slug.value = slugify(nome.value); upd(); });
+    upd();
+    const file = q('[name="imagem_arquivo"]'), img = document.getElementById('imagePreview');
+    file.addEventListener('change', () => { const f = file.files[0]; if (!f) return; img.src = URL.createObjectURL(f); img.classList.add('show'); });
+    setupLists();
+  }
+
+  // Mesmo tratamento de imagem do Blog: reduz e comprime antes de enviar.
+  async function compressImage(file) {
+    const MAX = 1600;
+    const bmp = await createImageBitmap(file).catch(() => { throw new Error('Não foi possível ler a imagem'); });
+    const scale = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement('canvas'); canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height); bmp.close?.();
+    for (const [type, qual] of [['image/webp', 0.82], ['image/jpeg', 0.82], ['image/jpeg', 0.6]]) {
+      const dataUrl = canvas.toDataURL(type, qual);
+      if (dataUrl.startsWith(`data:${type}`) && dataUrl.length * 0.75 < 3 * 1024 * 1024) return { type, data: dataUrl };
+    }
+    throw new Error('Imagem muito grande mesmo após compressão. Tente outra imagem.');
+  }
+
+  async function prepare(data) {
+    const fileEl = document.querySelector('#appModal [name="imagem_arquivo"]');
+    const f = fileEl && fileEl.files[0];
+    delete data.imagem_arquivo;
+    if (f) {
+      if (f.size > 20 * 1024 * 1024) throw new Error('A imagem deve ter no máximo 20 MB');
+      const up = await apiPost('/blog/admin/upload', await compressImage(f));
+      data.imagem_url = up.url.replace(/^\//, '');
+    }
+    data.ativo = !!document.querySelector('#appModal [name="ativo"]').checked;
+    data.ordem = data.ordem === '' ? 0 : Number(data.ordem);
+    data.slug = data.slug || slugify(data.nome);
+    return { ...data, ...collectLists() };
+  }
+
+  function openForm(title, p, save) {
+    openModal(title, formHTML(p), '', async data => {
+      try { await save(await prepare(data)); closeModal(); load(); }
+      catch (e) { toast(e.message, true); }
+    });
+    setupForm();
+  }
+
+  const proximaOrdem = grupo => Math.max(0, ...produtos.filter(p => p.grupo === grupo).map(p => p.ordem)) + 10;
+
+  window.novoProduto = () => openForm('Novo produto', { ordem: proximaOrdem('seguros'), ativo: 1 },
+    async d => { await apiPost('/produtos/admin', d); toast('Produto criado!'); });
+  window.editarProduto = async id => {
+    const p = await apiGet('/produtos/admin/' + id);
+    openForm('Editar produto', p, async d => { await apiPut('/produtos/admin/' + id, d); toast('Produto atualizado!'); });
+  };
+  window.duplicarProduto = async id => {
+    const p = await apiGet('/produtos/admin/' + id);
+    const copia = { ...p, nome: p.nome + ' (cópia)', slug: '', ativo: 0, ordem: p.ordem + 1 };
+    openForm('Duplicar produto', copia, async d => { await apiPost('/produtos/admin', d); toast('Cópia criada (oculta até você mostrar no site).'); });
+  };
+  window.toggleAtivo = async id => {
+    const p = produtos.find(x => x.id === id); if (!p) return;
+    try { await apiPut('/produtos/admin/' + id, { ativo: !p.ativo }); toast(p.ativo ? 'Produto ocultado do site.' : 'Produto visível no site!'); load(); }
+    catch (e) { toast(e.message, true); }
+  };
+  window.excluirProduto = async id => {
+    const p = produtos.find(x => x.id === id);
+    if (!confirm(`Excluir "${p ? p.nome : 'produto'}"? A página deixa de existir. Para tirar do ar sem perder o conteúdo, use "Ocultar".`)) return;
+    try { await apiDel('/produtos/admin/' + id); toast('Produto excluído.'); load(); }
+    catch (e) { toast(e.message, true); }
+  };
+
+  document.getElementById('search').addEventListener('input', () => { page = 1; render(); });
+  document.getElementById('grupoFilter').addEventListener('change', () => { page = 1; render(); });
+  document.getElementById('statusFilter').addEventListener('change', () => { page = 1; render(); });
+  load().catch(e => toast(e.message, true));
+}
+</script>
+</body>
+</html>

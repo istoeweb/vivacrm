@@ -147,6 +147,27 @@ CREATE TABLE IF NOT EXISTS site_conteudo (
   valor TEXT NOT NULL DEFAULT '',
   atualizado_em TEXT NOT NULL DEFAULT ${nowDefault}
 );
+
+CREATE TABLE IF NOT EXISTS produtos (
+  id ${id},
+  slug TEXT NOT NULL UNIQUE,
+  nome TEXT NOT NULL,
+  grupo TEXT NOT NULL DEFAULT 'seguros' CHECK(grupo IN ('seguros','saude','outros')),
+  categoria TEXT,
+  tag TEXT,
+  tagline TEXT,
+  descricao TEXT,
+  publico TEXT,
+  imagem_url TEXT,
+  precos TEXT NOT NULL DEFAULT '[]',
+  coberturas TEXT NOT NULL DEFAULT '[]',
+  seguradoras TEXT NOT NULL DEFAULT '[]',
+  faq TEXT NOT NULL DEFAULT '[]',
+  ordem INTEGER NOT NULL DEFAULT 0,
+  ativo INTEGER NOT NULL DEFAULT 1,
+  criado_em TEXT NOT NULL DEFAULT ${nowDefault},
+  atualizado_em TEXT NOT NULL DEFAULT ${nowDefault}
+);
 `;
 }
 
@@ -174,6 +195,7 @@ CREATE INDEX IF NOT EXISTS idx_agendamentos_status ON agendamentos(status);
 CREATE INDEX IF NOT EXISTS idx_blog_status_data ON blog_posts(status, publicado_em);
 CREATE INDEX IF NOT EXISTS idx_blog_categoria ON blog_posts(categoria);
 CREATE INDEX IF NOT EXISTS idx_interacoes_lead ON lead_interacoes(lead_id, criado_em);
+CREATE INDEX IF NOT EXISTS idx_produtos_grupo ON produtos(grupo, ordem);
 `;
 
 /*
@@ -358,6 +380,9 @@ async function init(db) {
     await db.run(upd, SITE_CONTENT_DEFAULTS['contato.endereco'], 'contato.endereco', 'Jacareí – SP · Vale do Paraíba');
     await db.run("INSERT INTO site_conteudo (chave, valor) VALUES ('_migr.contato_v1', '1') ON CONFLICT (chave) DO NOTHING");
   }
+
+  // Catálogo de produtos: um banco novo recebe os produtos atuais do site.
+  await require('./produtos').seedIfEmpty(db);
 }
 
 const db = createDriver();
