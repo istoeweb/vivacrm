@@ -19,10 +19,12 @@
  *        md    — texto longo: parágrafos, "## Título", "### Subtítulo",
  *                "- item de lista", **negrito** e [texto](link)
  *
- * Título e descrição da página (SEO) também são editáveis: <page>.seo.titulo/descricao.
+ * Título, descrição e palavras-chave da página (SEO) também são editáveis:
+ * <page>.seo.titulo/descricao/palavras_chave.
  */
 const fs = require('fs');
 const path = require('path');
+const { cleanKeywords } = require('./utils');
 
 const SITE_DIR = path.join(__dirname, '..');
 const PREFIX = 'pg.';
@@ -187,9 +189,11 @@ function parseFields(html) {
 function seoFields(pageId, html) {
   const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/) || [])[1] || '';
   const desc = (html.match(/<meta name="description"[^>]*content="([^"]*)"/) || [])[1] || '';
+  const kws = (html.match(/<meta name="keywords"[^>]*content="([^"]*)"/) || [])[1] || '';
   return [
-    { key: `${pageId}.seo.titulo`, label: 'Busca no Google · Título da aba e do Google', type: 'text', padrao: decode(title.trim()), seo: true },
-    { key: `${pageId}.seo.descricao`, label: 'Busca no Google · Descrição no Google', type: 'area', padrao: decode(desc.trim()), seo: true },
+    { key: `${pageId}.seo.titulo`, label: 'SEO (Google) · Título da aba e do Google', type: 'text', padrao: decode(title.trim()), seo: true },
+    { key: `${pageId}.seo.descricao`, label: 'SEO (Google) · Descrição no Google', type: 'area', padrao: decode(desc.trim()), seo: true },
+    { key: `${pageId}.seo.palavras_chave`, label: 'SEO (Google) · Palavras-chave', type: 'text', padrao: cleanKeywords(decode(kws)), seo: true, keywords: true },
   ];
 }
 
@@ -242,6 +246,7 @@ function normalizar(campo, valor) {
     }).filter((o) => Object.values(o).some(Boolean));
     return { value: JSON.stringify(itens) };
   }
+  if (campo.keywords) return { value: cleanKeywords(valor) };
   return { value: String(valor ?? '').replace(/\r/g, '').trim().slice(0, LIMITES[campo.type] || 500) };
 }
 
@@ -290,6 +295,15 @@ function renderPage(html, valores, pageId) {
       const d = desc.replace(/\s+/g, ' ');
       out = out.replace(/(<meta name="description"[^>]*content=")[^"]*/, (_m, a) => a + esc(d))
         .replace(/(<meta property="og:description"[^>]*content=")[^"]*/, (_m, a) => a + esc(d));
+    }
+    // Palavras-chave: troca a meta keywords, cria se a página não tiver ou remove se ficou vazia.
+    const kwKey = `${pageId}.seo.palavras_chave`;
+    if (kwKey in valores) {
+      const kws = valores[kwKey];
+      const RE_KW = /[ \t]*<meta name="keywords"[^>]*>\r?\n?/;
+      if (!kws) out = out.replace(RE_KW, '');
+      else if (RE_KW.test(out)) out = out.replace(/(<meta name="keywords"[^>]*content=")[^"]*/, (_m, a) => a + esc(kws));
+      else out = out.replace(/<meta name="description"[^>]*>/, (m) => `${m}\n  <meta name="keywords" content="${esc(kws)}" />`);
     }
   }
   return out;

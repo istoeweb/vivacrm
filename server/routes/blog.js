@@ -1,5 +1,5 @@
 const db = require('../db');
-const { asyncRouter } = require('../utils');
+const { asyncRouter, cleanKeywords } = require('../utils');
 const { saveBlogImage } = require('../storage');
 const crypto = require('crypto');
 
@@ -21,15 +21,7 @@ function clean(body, existing = {}) {
   const slug = slugify(body.slug || existing.slug || titulo);
   const status = body.status === 'publicado' ? 'publicado' : 'rascunho';
   if (!titulo || !conteudo || !slug) return { error: 'Título e conteúdo são obrigatórios' };
-  const rawKeywords = body.palavras_chave ?? existing.palavras_chave ?? '';
-  const palavras_chave = String(rawKeywords)
-    .split(',')
-    .map((k) => k.trim())
-    .filter(Boolean)
-    .filter((k, i, arr) => arr.findIndex((o) => o.toLowerCase() === k.toLowerCase()) === i)
-    .slice(0, 15)
-    .join(', ')
-    .slice(0, 300) || null;
+  const palavras_chave = cleanKeywords(body.palavras_chave ?? existing.palavras_chave) || null;
   return {
     titulo, conteudo, slug, status, palavras_chave,
     resumo: String(body.resumo ?? existing.resumo ?? '').trim().slice(0, 500) || null,

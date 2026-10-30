@@ -116,6 +116,19 @@ function parsePremio(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+// Palavras-chave (SEO) separadas por vírgula: remove vazias e repetidas
+// (sem diferenciar maiúsculas), mantendo a ordem; até 15 termos / 300 caracteres.
+function cleanKeywords(raw) {
+  return String(raw ?? '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean)
+    .filter((k, i, arr) => arr.findIndex((o) => o.toLowerCase() === k.toLowerCase()) === i)
+    .slice(0, 15)
+    .join(', ')
+    .slice(0, 300);
+}
+
 module.exports = {
   ApiError,
   asyncHandler,
@@ -127,6 +140,7 @@ module.exports = {
   getPagination,
   wantsPagination,
   parsePremio,
+  cleanKeywords,
   idOr,
   LEAD_STATUSES,
   isValidLeadStatus,

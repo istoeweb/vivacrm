@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS produtos (
   coberturas TEXT NOT NULL DEFAULT '[]',
   seguradoras TEXT NOT NULL DEFAULT '[]',
   faq TEXT NOT NULL DEFAULT '[]',
+  palavras_chave TEXT,
   ordem INTEGER NOT NULL DEFAULT 0,
   ativo INTEGER NOT NULL DEFAULT 1,
   criado_em TEXT NOT NULL DEFAULT ${nowDefault},
@@ -339,6 +340,7 @@ const ADDED_COLUMNS = {
     motivo_perda: 'TEXT', valor_estimado: 'REAL', origem_pagina: 'TEXT',
     utm_source: 'TEXT', utm_medium: 'TEXT', utm_campaign: 'TEXT',
   },
+  produtos: { palavras_chave: 'TEXT' },
 };
 
 async function addMissingColumns(db) {

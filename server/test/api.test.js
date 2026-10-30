@@ -350,6 +350,7 @@ test('produtos: só admin gerencia; criar, validar, ocultar, editar e excluir', 
     coberturas: [{ t: 'Consultas', d: 'Rede veterinária' }],
     seguradoras: ['Porto', '', 'Tokio'],
     faq: [{ q: 'Cobre vacina?', a: 'Sim.' }],
+    palavras_chave: 'Seguro Pet, seguro pet ,  plano veterinário, ,',
   }});
   assert.equal(criado.status, 201);
   assert.equal(criado.data.slug, 'seguro-pet');
@@ -359,6 +360,7 @@ test('produtos: só admin gerencia; criar, validar, ocultar, editar e excluir', 
   assert.equal(lido.grupo, 'seguros', 'grupo inválido cai no padrão');
   assert.equal(lido.precos.length, 1, 'linhas vazias são descartadas');
   assert.deepEqual(lido.seguradoras, ['Porto', 'Tokio']);
+  assert.equal(lido.palavras_chave, 'Seguro Pet, plano veterinário', 'palavras-chave sem vazias nem repetidas');
 
   // Endereço repetido
   assert.equal((await api('POST', '/api/produtos/admin', { token: adminToken, body: { nome: 'Outro', slug: 'seguro-pet' } })).status, 409);
@@ -369,6 +371,7 @@ test('produtos: só admin gerencia; criar, validar, ocultar, editar e excluir', 
   assert.ok(!(await api('GET', '/api/produtos')).data.some((p) => p.slug === 'seguro-pet'));
   const oculto = (await api('GET', `/api/produtos/admin/${id}`, { token: adminToken })).data;
   assert.equal(oculto.precos.length, 1, 'edição parcial preserva o restante');
+  assert.equal(oculto.palavras_chave, 'Seguro Pet, plano veterinário', 'edição parcial preserva as palavras-chave');
 
   // Editar e reativar
   const edit = await api('PUT', `/api/produtos/admin/${id}`, { token: adminToken, body: { ativo: true, tagline: 'Proteção para o seu pet' } });
@@ -383,6 +386,7 @@ test('produto.html vem montada no servidor com o conteúdo do banco', async () =
   const criado = await api('POST', '/api/produtos/admin', { token: adminToken, body: {
     nome: 'Seguro "Bike" <top>', slug: 'seguro-bike', tagline: 'Pedale & relaxe', descricao: 'Texto </script><script>alert(1)</script>',
     precos: [{ rotulo: 'PF', valor: 'R$ 19,90' }], imagem_url: 'assets/img/produtos/bike.jpg',
+    palavras_chave: 'seguro bike, "bicicleta" <elétrica>',
   }});
   assert.equal(criado.status, 201);
 
@@ -394,6 +398,7 @@ test('produto.html vem montada no servidor com o conteúdo do banco', async () =
   assert.match(html, /<p id="pageTagline">Pedale &amp; relaxe<\/p>/);
   assert.match(html, /<meta property="og:title" id="ogTitle" content="Seguro &quot;Bike&quot; &lt;top&gt; \| Vida de Ouro Jacareí"/);
   assert.match(html, new RegExp(`<meta property="og:image" content="${base}/assets/img/produtos/bike.jpg" ?/?>`));
+  assert.match(html, /<meta name="keywords" content="seguro bike, &quot;bicicleta&quot; &lt;elétrica&gt;" \/>/);
   assert.match(html, /"@type":"Service"/);
   assert.match(html, /window\.PRODUTOS = \{"seguro-bike":/);
   assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/, 'conteúdo não pode fechar a tag script');
@@ -410,6 +415,10 @@ test('produto.html vem montada no servidor com o conteúdo do banco', async () =
   xml = await (await fetch(`${base}/sitemap.xml`)).text();
   assert.doesNotMatch(xml, /produto\.html\?slug=seguro-bike/);
   assert.match(xml, /produto\.html\?slug=seguro-auto/);
+
+  // Produto sem palavras-chave não ganha meta keywords vazia
+  const semKw = await (await fetch(`${base}/produto.html?slug=seguro-auto`)).text();
+  assert.doesNotMatch(semKw, /<meta name="keywords"/);
 
   await api('DELETE', `/api/produtos/admin/${criado.data.id}`, { token: adminToken });
 });
@@ -483,6 +492,30 @@ test('páginas editáveis: salvar, aplicar no HTML do servidor e restaurar', asy
   assert.doesNotMatch(homeOriginal, /SUSEP 123/);
   const row = await db.get("SELECT COUNT(*) AS n FROM site_conteudo WHERE chave LIKE 'pg.%'");
   assert.equal(Number(row.n), 0);
+});
+
+test('páginas editáveis: palavras-chave (SEO)', async () => {
+  const lista = await api('GET', '/api/site/admin/paginas', { token: adminToken });
+  const kwHome = lista.data.paginas.find((p) => p.id === 'home').campos.find((c) => c.key === 'home.seo.palavras_chave');
+  assert.ok(kwHome && kwHome.keywords, 'campo de palavras-chave na página inicial');
+  assert.match(kwHome.padrao, /seguro auto Jacareí/, 'padrão vem da meta keywords do HTML');
+  assert.ok(lista.data.paginas.find((p) => p.id === 'sobre').campos.some((c) => c.key === 'sobre.seo.palavras_chave'));
+
+  const salvo = await api('PUT', '/api/site/admin/paginas', { token: adminToken, body: { valores: {
+    'home.seo.palavras_chave': 'Seguro Pet, seguro pet ,  "bike" <elétrica>, ,',
+    'sobre.seo.palavras_chave': 'corretora Jacareí',
+  } } });
+  assert.equal(salvo.status, 200);
+  const home = await (await fetch(`${base}/`)).text();
+  assert.match(home, /<meta name="keywords" content="Seguro Pet, &quot;bike&quot; &lt;elétrica&gt;" \/>/, 'limpa, sem repetidas e escapada');
+  const sobre = await (await fetch(`${base}/sobre.html`)).text();
+  assert.match(sobre, /<meta name="keywords" content="corretora Jacareí" \/>/, 'cria a meta keywords quando a página não tem');
+
+  await api('PUT', '/api/site/admin/paginas', { token: adminToken, body: { valores: { 'home.seo.palavras_chave': '' } } });
+  assert.doesNotMatch(await (await fetch(`${base}/`)).text(), /<meta name="keywords"/, 'vazio remove a meta keywords');
+
+  await api('PUT', '/api/site/admin/paginas', { token: adminToken, body: { valores: { 'home.seo.palavras_chave': null, 'sobre.seo.palavras_chave': null } } });
+  assert.match(await (await fetch(`${base}/`)).text(), /<meta name="keywords" content="seguro auto Jacareí/);
 });
 
 test('dashboard do corretor: filtros por dono e janelas de data', async () => {

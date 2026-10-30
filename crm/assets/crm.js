@@ -117,6 +117,51 @@ function wppLink(tel) {
   return 'https://wa.me/' + (digits.length === 11 || digits.length === 10 ? '55' + digits : digits);
 }
 
+/* ---- Palavras-chave (SEO): usadas no Blog, em Produtos e em Conteúdo do site ---- */
+const KW_STOPWORDS = new Set('a o as os um uns uma umas de do da dos das em no na nos nas por para com sem sob sobre entre ate que se e ou mas nem como quando onde qual quais quem cujo porque pois entao assim aqui ali la ao aos sao foi ser sua seu suas seus mais menos muito pouco muita muitas muitos ja nao sim tambem esse essa isso este esta isto aquele aquela aquilo ele ela eles elas voce voces nos lhe me te dele dela deles delas num numa pelo pela pelos pelas desde apos cada todo toda todos todas outro outra outros outras seus contra ainda apenas enquanto durante conforme tem ter tinha havia gente coisa muito bem mal aos das dos ainda depois antes melhor melhores pode podem posso possui precisa preciso qualquer sempre mesmo mesma tudo nada'.normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\s+/));
+
+// Sugere até 8 palavras-chave: primeiro os termos fixos (ex.: nome, categoria), depois
+// as palavras mais frequentes do texto, ignorando acentos, números, palavras comuns
+// e palavras que já aparecem nos termos fixos ("seguro auto" dispensa "seguro" e "auto").
+function gerarPalavrasChave(texto, ...fixas) {
+  const semAcento = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const kws = [];
+  for (const f of fixas) { const t = String(f || '').trim().toLowerCase(); if (t && !kws.includes(t)) kws.push(t); }
+  const cobertas = new Set(kws.flatMap(k => semAcento(k).match(/[\p{L}0-9]+/gu) || []));
+  const freq = new Map();
+  const forms = new Map();
+  const tokens = String(texto || '').toLowerCase().match(/[\p{L}0-9]+/gu) || [];
+  for (const raw of tokens) {
+    const norm = semAcento(raw);
+    if (norm.length < 4 || KW_STOPWORDS.has(norm) || cobertas.has(norm) || /^\d+$/.test(norm)) continue;
+    freq.set(norm, (freq.get(norm) || 0) + 1);
+    if (!forms.has(norm)) forms.set(norm, raw);
+  }
+  const top = [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(x => forms.get(x[0]));
+  for (const t of top) if (!kws.includes(t)) kws.push(t);
+  return kws.slice(0, 8).join(', ');
+}
+
+// Liga o campo de palavras-chave ao botão "Gerar automaticamente" e à prévia em tags.
+// fonte() devolve { texto, fixas } com o conteúdo atual do formulário.
+function setupKeywordField(input, button, tagsBox, fonte) {
+  if (!input) return;
+  const render = () => {
+    if (!tagsBox) return;
+    const tags = String(input.value || '').split(',').map(t => t.trim()).filter(Boolean);
+    tagsBox.innerHTML = tags.map(t => `<span class="kw-tag">${esc(t)}</span>`).join('');
+  };
+  if (button) button.addEventListener('click', () => {
+    const { texto = '', fixas = [] } = fonte() || {};
+    const kws = gerarPalavrasChave(texto, ...fixas);
+    if (!kws) { toast('Adicione mais conteúdo para gerar palavras-chave.', true); return; }
+    // Dispara "input" para a prévia e para quem acompanha alterações (ex.: Conteúdo do site).
+    input.value = kws; input.dispatchEvent(new Event('input', { bubbles: true })); toast('Palavras-chave geradas!');
+  });
+  input.addEventListener('input', render);
+  render();
+}
+
 /* ---- Paginação (client-side) ---- */
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -234,7 +279,11 @@ function renderSidebar(activeKey) {
     links.push({ key: 'configuracoes', href: 'configuracoes.html', label: 'Configurações', icon: 'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z' });
   }
   const html = `
-    <div class="sidebar__brand">Vida de <strong>Ouro</strong><br><span style="font-size:10.5px;opacity:.6;letter-spacing:.08em;font-weight:500;">CRM Corretora</span></div>
+    <div class="sidebar__brand">
+      <img class="sidebar__logo" src="assets/img/logo-vida-de-ouro.png" alt="Vida de Ouro" width="150" height="73">
+      <img class="sidebar__logo-mini" src="assets/img/logo-simbolo.png" alt="" aria-hidden="true" width="40" height="40">
+      <span class="sidebar__brand-sub">CRM Corretora</span>
+    </div>
     <nav class="sidebar__nav">
       ${links.map(l => `
         <a href="${l.href}" class="sidebar__link ${l.key === activeKey ? 'active' : ''}">
