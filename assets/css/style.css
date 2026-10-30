@@ -199,14 +199,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 /* Logo imagem real */
 .logo__img {
-  height: 58px;
+  height: 62px;
   width: auto;
   display: block;
   transition: opacity var(--transition);
 }
 .logo__img:hover { opacity: .88; }
 .logo__img--footer {
-  height: 80px;
+  height: 96px;
   margin-bottom: 12px;
 }
 

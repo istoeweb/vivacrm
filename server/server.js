@@ -136,8 +136,8 @@ app.get('/:page', (req, res, next) => {
 });
 app.get('/robots.txt', (_req, res) => res.sendFile(path.join(siteDir, 'robots.txt')));
 app.get('/sitemap.xml', asyncHandler(sitemap(siteDir)));
-// Favicon global (site + CRM): usa a logo SVG da marca e evita o 404 de /favicon.ico
-app.get('/favicon.ico', (_req, res) => res.sendFile(path.join(assetsDir, 'img', 'logo.svg')));
+// Favicon global (site + CRM): usa o símbolo da logo da marca e evita o 404 de /favicon.ico
+app.get('/favicon.ico', (_req, res) => res.sendFile(path.join(assetsDir, 'img', 'logo-simbolo.png')));
 
 // Rate limit estrito nas rotas públicas antes das rotas gerais
 app.use('/api/auth/login', publicLimiter);

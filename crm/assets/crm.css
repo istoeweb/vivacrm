@@ -56,7 +56,7 @@ body {
 .global-search{position:relative;display:flex;align-items:center;width:min(380px,36vw);height:40px;padding:0 12px;background:var(--gray-100);border:1px solid transparent;border-radius:10px}.global-search:focus-within{background:var(--white);border-color:var(--blue-500)}.global-search input{width:100%;padding:0 8px;color:var(--gray-900);background:transparent;border:0;outline:0}.global-search__results{position:absolute;top:48px;left:0;width:100%;display:none;padding:8px;background:var(--white);border:1px solid var(--gray-200);border-radius:10px;box-shadow:var(--shadow-lg)}.global-search__results.show{display:block}.global-search__results a{display:flex;flex-direction:column;padding:10px;border-radius:7px}.global-search__results a:hover{background:var(--gray-100)}.global-search__results small{color:var(--gray-500)}.search-empty{padding:16px;text-align:center;color:var(--gray-500)}
 .appbar-profile{display:flex;align-items:center;gap:9px;padding-left:8px}.appbar-profile>span:last-child{display:flex;flex-direction:column}.appbar-profile strong{color:var(--gray-900);font-size:12px}.appbar-profile small{color:var(--gray-500);font-size:10px}.appbar-avatar{display:grid;place-items:center;width:36px;height:36px;color:#fff;background:linear-gradient(135deg,var(--blue-700),var(--blue-500));border-radius:50%;font-weight:800}.appbar-notification span{position:absolute;top:-5px;right:-5px;display:none;min-width:18px;height:18px;padding:0 4px;color:#fff;background:var(--red);border:2px solid var(--white);border-radius:10px;font-size:9px;line-height:14px}.appbar-notification span.show{display:block}
 .content{padding-top:96px!important;transition:margin-left .2s}.sidebar{transition:width .2s,transform .2s}.sidebar-overlay{position:fixed;z-index:9;inset:0;display:none;background:rgba(15,23,42,.5)}
-body.sidebar-collapsed{--sidebar-w:76px}body.sidebar-collapsed .sidebar__brand{padding:0 8px 22px;text-align:center;font-size:0}body.sidebar-collapsed .sidebar__brand::before{content:'VO';font-size:15px;color:var(--gold)}body.sidebar-collapsed .sidebar__brand span,body.sidebar-collapsed .sidebar__link span,body.sidebar-collapsed .sidebar__user-name,body.sidebar-collapsed .sidebar__user-role{display:none}body.sidebar-collapsed .sidebar__nav{padding:0 10px}body.sidebar-collapsed .sidebar__link{justify-content:center;padding:12px}body.sidebar-collapsed .sidebar__icon{width:21px;height:21px}body.sidebar-collapsed .sidebar__user{text-align:center;padding:12px 6px}
+body.sidebar-collapsed{--sidebar-w:76px}body.sidebar-collapsed .sidebar__brand{padding:0 8px 22px;text-align:center;font-size:0}body.sidebar-collapsed .sidebar__logo{display:none}body.sidebar-collapsed .sidebar__logo-mini{display:block}body.sidebar-collapsed .sidebar__brand span,body.sidebar-collapsed .sidebar__link span,body.sidebar-collapsed .sidebar__user-name,body.sidebar-collapsed .sidebar__user-role{display:none}body.sidebar-collapsed .sidebar__nav{padding:0 10px}body.sidebar-collapsed .sidebar__link{justify-content:center;padding:12px}body.sidebar-collapsed .sidebar__icon{width:21px;height:21px}body.sidebar-collapsed .sidebar__user{text-align:center;padding:12px 6px}
 thead th{position:sticky;top:0;z-index:1}.table-card{border:1px solid var(--gray-200)}tbody tr{transition:background .15s}.btn,.icon-btn,.stat-card{transition:transform .15s,box-shadow .15s,background .15s}.btn:active,.icon-btn:active{transform:scale(.97)}
 
 [data-theme="dark"]{--gray-900:#F8FAFC;--gray-700:#CBD5E1;--gray-500:#94A3B8;--gray-300:#475569;--gray-200:#334155;--gray-100:#1E293B;--gray-50:#172033;--white:#111827;--shadow:0 2px 14px rgba(0,0,0,.25);--shadow-lg:0 12px 38px rgba(0,0,0,.45)}[data-theme="dark"] body{background:#0B1120}[data-theme="dark"] .sidebar{background:#070D1B}[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{color-scheme:dark}
@@ -92,7 +92,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   box-shadow: var(--shadow-lg);
   text-align: center;
 }
-.login-logo { height: 60px; margin: 0 auto 16px; }
+.login-logo { width: auto; height: 96px; margin: 0 auto 16px; }
 .login-title { font-size: 22px; font-weight: 900; color: var(--blue-900); margin-bottom: 4px; }
 .login-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 28px; }
 .login-error { color: var(--red); font-size: 13px; margin-top: 12px; min-height: 18px; }
@@ -140,6 +140,13 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
+/* Palavras-chave (SEO): campo + botão "Gerar automaticamente" e prévia em tags */
+.kw-row { display: flex; gap: 8px; align-items: flex-start; }
+.kw-row input { flex: 1; min-width: 0; }
+.kw-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.kw-tags:empty { display: none; }
+.kw-tag { padding: 3px 10px; color: var(--blue-700); background: var(--blue-50); border-radius: 20px; font-size: 12px; font-weight: 600; }
+
 /* ---------- Layout (sidebar + content) ---------- */
 .layout { display: flex; min-height: 100vh; }
 .sidebar {
@@ -162,7 +169,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   border-bottom: 1px solid rgba(255,255,255,.08);
   margin-bottom: 16px;
 }
-.sidebar__brand strong { color: var(--gold); }
 .sidebar__nav { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
 .sidebar__link {
   display: flex; align-items: center; gap: 10px;
@@ -455,8 +461,12 @@ a.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .top-bar p { font-size: 14.5px; color: var(--gray-700); }
 
 /* Sidebar */
-.sidebar { padding: 24px 0; }
-.sidebar__brand { text-transform: none; letter-spacing: -.02em; font-size: 20px; font-weight: 800; padding: 0 24px 22px; }
+/* A logo deixa o topo mais alto: em telas baixas a barra rola em vez de cortar o menu. */
+.sidebar { padding: 24px 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
+.sidebar__brand { display: flex; flex-direction: column; align-items: center; gap: 8px; text-transform: none; padding: 0 24px 22px; }
+.sidebar__logo { display: block; width: 150px; height: auto; }
+.sidebar__logo-mini { display: none; width: 40px; height: 40px; }
+.sidebar__brand-sub { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; opacity: .6; }
 .sidebar__nav { padding: 0 14px; gap: 4px; }
 .sidebar__link { min-height: 44px; padding: 0 12px; border-radius: 12px; font-size: 14.5px; font-weight: 600; color: #C5CDDB; }
 .sidebar__link:hover { background: rgba(255,255,255,.06); }

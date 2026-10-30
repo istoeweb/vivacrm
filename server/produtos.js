@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const { cleanKeywords } = require('./utils');
 
 const GRUPOS = ['seguros', 'saude', 'outros'];
 const GRUPO_LABEL = { seguros: 'Seguros', saude: 'Saúde', outros: 'Outros produtos' };
@@ -69,6 +70,7 @@ function clean(body, existing) {
     seguradoras: (Array.isArray(pick('seguradoras')) ? pick('seguradoras') : [])
       .map((s) => str(s, 80)).filter(Boolean).slice(0, 40),
     faq: list(pick('faq'), { q: 200, a: 1200 }, 30),
+    palavras_chave: cleanKeywords(pick('palavras_chave')),
   };
 }
 
@@ -89,6 +91,7 @@ function fromRow(row) {
     coberturas: parseJson(row.coberturas, []),
     seguradoras: parseJson(row.seguradoras, []),
     faq: parseJson(row.faq, []),
+    palavras_chave: row.palavras_chave || '',
     ordem: Number(row.ordem) || 0,
     ativo: Number(row.ativo) ? 1 : 0,
     atualizado_em: row.atualizado_em,
@@ -99,9 +102,11 @@ function fromRow(row) {
 function toParams(p) {
   return [p.slug, p.nome, p.grupo, p.categoria, p.tag, p.tagline, p.descricao, p.publico, p.imagem_url,
     JSON.stringify(p.precos), JSON.stringify(p.coberturas), JSON.stringify(p.seguradoras), JSON.stringify(p.faq),
-    p.ordem, p.ativo];
+    p.palavras_chave, p.ordem, p.ativo];
 }
-const COLUMNS = 'slug,nome,grupo,categoria,tag,tagline,descricao,publico,imagem_url,precos,coberturas,seguradoras,faq,ordem,ativo';
+const COLUMNS = 'slug,nome,grupo,categoria,tag,tagline,descricao,publico,imagem_url,precos,coberturas,seguradoras,faq,palavras_chave,ordem,ativo';
+// "?,?,..." com um marcador por coluna, para os INSERTs.
+const PLACEHOLDERS = COLUMNS.split(',').map(() => '?').join(',');
 
 // Lê assets/js/produtos.js (que define window.PRODUTOS) sem executar nada além dele.
 function loadStaticCatalog() {
@@ -129,8 +134,8 @@ async function seedIfEmpty(db) {
     const img = fs.existsSync(path.join(imgDir, `${slug}.jpg`)) ? `assets/img/produtos/${slug}.jpg` : '';
     const p = clean({ ...data, slug, grupo: grupoPara(slug, data.categoria), ordem: (ordem += 10), ativo: 1, imagem_url: img });
     if (p.error) continue;
-    await db.run(`INSERT INTO produtos (${COLUMNS}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (slug) DO NOTHING`, ...toParams(p));
+    await db.run(`INSERT INTO produtos (${COLUMNS}) VALUES (${PLACEHOLDERS}) ON CONFLICT (slug) DO NOTHING`, ...toParams(p));
   }
 }
 
-module.exports = { GRUPOS, GRUPO_LABEL, ORDER_BY, COLUMNS, clean, fromRow, toParams, seedIfEmpty, slugify };
+module.exports = { GRUPOS, GRUPO_LABEL, ORDER_BY, COLUMNS, PLACEHOLDERS, clean, fromRow, toParams, seedIfEmpty, slugify };

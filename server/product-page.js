@@ -53,7 +53,7 @@ module.exports = function productPage(_siteDir) {
     const title = `${p.nome} | ${SITE_NAME}`;
     const desc = `${p.tagline || p.nome} — ${SITE_NAME}, corretora de seguros no Vale do Paraíba e Litoral Norte.`;
     const image = /^https:\/\//.test(p.imagem_url) ? p.imagem_url
-      : p.imagem_url ? `${base}/${p.imagem_url.replace(/^\//, '')}` : `${base}/assets/img/logo.svg`;
+      : p.imagem_url ? `${base}/${p.imagem_url.replace(/^\//, '')}` : `${base}/assets/img/logo-vida-de-ouro-escuro.png`;
     const jsonLd = jsonForScript({
       '@context': 'https://schema.org',
       '@type': 'Service',
@@ -68,6 +68,8 @@ module.exports = function productPage(_siteDir) {
     html = html
       .replace(/<title[^>]*>[\s\S]*?<\/title>/, () => `<title id="pageTitle">${esc(title)}</title>`)
       .replace(/(<meta name="description" content=")[^"]*/, (_m, a) => a + esc(desc))
+      .replace(/<meta name="description"[^>]*>/, (m) => (p.palavras_chave
+        ? `${m}\n  <meta name="keywords" content="${esc(p.palavras_chave)}" />` : m))
       .replace(/(<link rel="canonical" id="pageCanonical" href=")[^"]*/, (_m, a) => a + esc(url))
       .replace(/(<meta property="og:title" id="ogTitle" content=")[^"]*/, (_m, a) => a + esc(title))
       .replace(/(<meta property="og:description" id="ogDescription" content=")[^"]*/, (_m, a) => a + esc(desc))

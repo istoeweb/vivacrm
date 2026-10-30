@@ -1,7 +1,7 @@
 const db = require('../db');
 const { asyncRouter } = require('../utils');
 const { auth, requireRole } = require('../middleware/auth');
-const { COLUMNS, ORDER_BY, clean, fromRow, toParams } = require('../produtos');
+const { COLUMNS, PLACEHOLDERS, ORDER_BY, clean, fromRow, toParams } = require('../produtos');
 
 const router = asyncRouter();
 const adminOnly = [auth, requireRole('admin')];
@@ -28,7 +28,7 @@ router.post('/admin', ...adminOnly, async (req, res) => {
   const p = clean(req.body || {});
   if (p.error) return res.status(400).json({ error: p.error });
   try {
-    const info = await db.insert(`INSERT INTO produtos (${COLUMNS}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, ...toParams(p));
+    const info = await db.insert(`INSERT INTO produtos (${COLUMNS}) VALUES (${PLACEHOLDERS})`, ...toParams(p));
     res.status(201).json({ id: info.lastInsertRowid, slug: p.slug, ok: true });
   } catch (e) {
     if (isUniqueViolation(e)) return res.status(409).json({ error: SLUG_EM_USO });

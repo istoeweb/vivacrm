@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Produtos do site | CRM Vida de Ouro</title>
-  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+  <link rel="icon" type="image/png" href="/assets/img/logo-simbolo.png" />
   <link rel="stylesheet" href="assets/crm.css" />
   <style>
     #appModal .modal { width: min(980px, calc(100vw - 32px)); max-width: none; }
@@ -93,7 +93,7 @@ if (requireAuth()) {
     const rows = produtos.filter(p =>
       (!grupo || p.grupo === grupo) &&
       (status === '' || String(p.ativo) === status) &&
-      (!q || `${p.nome} ${p.slug} ${p.categoria} ${p.tagline}`.toLowerCase().includes(q)));
+      (!q || `${p.nome} ${p.slug} ${p.categoria} ${p.tagline} ${p.palavras_chave || ''}`.toLowerCase().includes(q)));
     document.getElementById('totalAtivos').textContent = produtos.filter(p => p.ativo).length;
     document.getElementById('totalOcultos').textContent = produtos.filter(p => !p.ativo).length;
     document.getElementById('totalPrecos').textContent = produtos.filter(p => p.precos.length).length;
@@ -221,6 +221,13 @@ if (requireAuth()) {
       <fieldset><legend>Coberturas</legend>${listHTML('coberturas', p.coberturas || [])}</fieldset>
       <fieldset><legend>Seguradoras e operadoras</legend>${listHTML('seguradoras', (p.seguradoras || []).map(nome => ({ nome })))}</fieldset>
       <fieldset><legend>Perguntas frequentes</legend>${listHTML('faq', p.faq || [])}</fieldset>
+
+      <fieldset><legend>SEO (Google)</legend>
+        <div class="form-group"><label for="fKeywords">Palavras-chave</label>
+          <div class="kw-row"><input id="fKeywords" name="palavras_chave" maxlength="300" value="${esc(p.palavras_chave || '')}" placeholder="Ex.: seguro auto, seguro de carro"><button type="button" class="btn btn-outline btn-sm" id="genKeywords">Gerar automaticamente</button></div>
+          <div class="prod-help">Separe por vírgulas. O botão sugere termos a partir do nome, categoria, textos, coberturas e perguntas. Usadas como meta keywords da página do produto.</div>
+          <div class="kw-tags" id="kwTags"></div></div>
+      </fieldset>
     </form>`;
   }
 
@@ -236,6 +243,15 @@ if (requireAuth()) {
     const file = q('[name="imagem_arquivo"]'), img = document.getElementById('imagePreview');
     file.addEventListener('change', () => { const f = file.files[0]; if (!f) return; img.src = URL.createObjectURL(f); img.classList.add('show'); });
     setupLists();
+    const val = name => q(`[name="${name}"]`).value;
+    setupKeywordField(q('[name="palavras_chave"]'), document.getElementById('genKeywords'), document.getElementById('kwTags'), () => {
+      const { coberturas = [], faq = [] } = collectLists();
+      const texto = [val('nome'), val('tagline'), val('descricao'), val('publico'),
+        ...coberturas.map(c => `${c.t} ${c.d}`), ...faq.map(f => `${f.q} ${f.a}`)].join(' ');
+      // Categorias genéricas ("Outros", "Outros produtos") não ajudam como palavra-chave.
+      const categoria = /^outros( produtos)?$/i.test(val('categoria').trim()) ? '' : val('categoria');
+      return { texto, fixas: [val('nome'), categoria] };
+    });
   }
 
   // Mesmo tratamento de imagem do Blog: reduz e comprime antes de enviar.

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Conteúdo do Site | CRM Vida de Ouro</title>
-  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+  <link rel="icon" type="image/png" href="/assets/img/logo-simbolo.png" />
   <link rel="stylesheet" href="assets/crm.css" />
   <style>
     .cms-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 6px; margin-bottom: 18px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; }
@@ -127,6 +127,11 @@ if (requireAuth()) {
 
   function inputHTML(c, value) {
     const id = fieldId(c.key);
+    if (c.keywords) {
+      return `<div class="kw-row"><input id="${id}" data-key="${esc(c.key)}" data-keywords maxlength="300" value="${esc(value)}" placeholder="Ex.: seguro auto Jacareí, corretora de seguros"><button type="button" class="btn btn-outline btn-sm" data-gen-kw>Gerar automaticamente</button></div>
+        <div class="cms-hint">Separe por vírgulas. O botão sugere termos a partir dos textos desta página. Usadas como meta keywords da página.</div>
+        <div class="kw-tags"></div>`;
+    }
     if (c.type === 'text') return `<input id="${id}" data-key="${esc(c.key)}" maxlength="500" value="${esc(value)}">`;
     const rows = c.type === 'md' ? '' : ` rows="${Math.min(10, Math.max(3, String(value).split('\n').length + 1))}"`;
     return `<textarea id="${id}" data-key="${esc(c.key)}" class="${c.type === 'md' ? 'md' : ''}"${rows}>${esc(value)}</textarea>`;
@@ -178,6 +183,14 @@ if (requireAuth()) {
         <div class="cms-section__body">${s.campos.map(fieldHTML).join('')}</div></details>`;
     }).join('');
     document.getElementById('viewPage').href = PAGE_URL[atual.id] || '../index.html';
+    sectionsEl.querySelectorAll('[data-keywords]').forEach(input => {
+      const box = input.closest('.cms-field');
+      setupKeywordField(input, box.querySelector('[data-gen-kw]'), box.querySelector('.kw-tags'), () => ({
+        // Textos da página (exceto as próprias palavras-chave e links) servem de base.
+        texto: [...sectionsEl.querySelectorAll('[data-key]:not([data-keywords]), .repeater [data-field]:not([inputmode="url"])')]
+          .map(el => el.value.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[*#]/g, ' ')).join(' '),
+      }));
+    });
     applySearch();
     updateDirtyInfo();
   }
