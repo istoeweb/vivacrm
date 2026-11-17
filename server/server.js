@@ -165,11 +165,15 @@ app.use('/api', notFound);
 app.use(errorHandler);
 
 if (require.main === module) {
-  db.ready.then(() => app.listen(PORT, '0.0.0.0', () => {
-    console.log(`CRM Vida de Ouro rodando em http://localhost:${PORT}`);
-    console.log(`Admin: http://localhost:${PORT}/crm/`);
-    console.log(`Banco: ${db.driver}`);
-  }), () => process.exit(1));
+  db.ready
+    // Com ADMIN_PASSWORD definida, cria o admin no primeiro start (hospedagens
+    // sem terminal, como a Hostinger). Não faz nada se o admin já existe.
+    .then(() => process.env.ADMIN_PASSWORD && require('./seed').seed())
+    .then(() => app.listen(PORT, '0.0.0.0', () => {
+      console.log(`CRM Vida de Ouro rodando em http://localhost:${PORT}`);
+      console.log(`Admin: http://localhost:${PORT}/crm/`);
+      console.log(`Banco: ${db.driver}`);
+    }), (err) => { console.error(err); process.exit(1); });
 }
 
 module.exports = app;
