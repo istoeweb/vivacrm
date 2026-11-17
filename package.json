@@ -1,7 +1,11 @@
 {
   "name": "vivacrm-vercel",
   "private": true,
-  "description": "Deploy na Vercel (preview). O app fica em server/; ver api/index.js.",
+  "description": "Deploy na Vercel (api/index.js) e na Hostinger (npm start). O app fica em server/.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
   "engines": {
     "node": "22.x"
   },
